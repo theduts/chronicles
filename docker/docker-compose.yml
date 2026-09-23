@@ -1,0 +1,40 @@
+name: chronicles
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: chronicles
+    restart: unless-stopped
+    ports:
+      - "4321:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-chronicles}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-chronicles}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: chronicles-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    ports:
+      - "${MINIO_PORT:-9000}:9000"         # API S3
+      - "${MINIO_CONSOLE_PORT:-9001}:9001" # Web Console
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - minio_data:/data
+
+volumes:
+  postgres_data:
+    name: chronicles_postgres_data
+  minio_data:
+    name: chronicles_minio_data

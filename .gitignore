@@ -39,3 +39,7 @@ Thumbs.db
 .idea/
 .vscode/
 *.iml
+
+#Harness
+.agents
+.planning

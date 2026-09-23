@@ -1,18 +1,34 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: unknown
+last_updated: "2026-09-23T22:30:28.662Z"
+progress:
+  total_phases: 5
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
+  percent: 40
+---
+
 # Estado Atual do Projeto: Chronicles RPG
 
 ## Status Geral
+
 - **Milestone 1:** Inicialização e Estruturação Full-Stack
 - **Mapeamento do Codebase Frontend:** Concluído ([.planning/codebase/](file:///c:/Users/murilo.dutra/Documents/chronicles/.planning/codebase))
-- **Fase Atual:** Fase 1 Concluída.
-- **Próximo Passo:** Iniciar Fase 2 – Setup da Infraestrutura Backend Spring Boot & Supabase Postgres (Executar `/gsd-plan-phase 2`).
-- **Última Sessão:** Execução da Fase 1 concluída com sucesso (Frontend Hygiene & Meta-Harness).
+- **Fase 1 (Frontend Hygiene & Meta-Harness):** Concluída.
+- **Fase 2 (Setup da Infraestrutura Backend Spring Boot & Docker Postgres / Flyway):** Concluída com sucesso!
+- **Próximo Passo:** Fase 3 (Desenvolvimento da API RESTful Java + Spring Boot - Auth, Characters, Campaigns, Bestiary).
 
 ---
 
 ## Memória do Projeto & Decisões Arquiteturais
+
 - **Mapeamento do Frontend:** O frontend React + TypeScript existente foi completamente mapeado e documentado em 7 relatórios técnicos em `.planning/codebase/`.
 - **Sistema de Regras:** Daemon / Tormenta Daemon é o sistema primário (regras em `regras/`), com modelo de dados extensível para suportar novos sistemas futuramente.
 - **Backend Target:** Java 21 + Spring Boot 3.x em `backend/`.
-- **Banco de Dados Target:** Supabase PostgreSQL conectado via Spring Data JPA (Hibernate JDBC).
+- **Banco de Dados Target:** PostgreSQL 16 via Docker Compose (`docker/docker-compose.yml`, porta `4321`) com storage MinIO. Versionamento de schema via Flyway.
+- **Schema e Tabelas (13):** Documentadas no `backend/DATABASE_DESIGN.md` cobrindo users, characters (híbrido com JSONB e aprovação DM), campaigns, campaign_players, campaign_npcs, bestiary_monsters (catálogo oficial e da campanha), campaign_lore (enciclopédia polimórfica), campaign_chronicles, contracts, notes, system_rules, feedbacks e spells.
 - **Frontend Target:** React 19 + TypeScript + Vite + Tailwind CSS em `frontend/`.
-- **Aprovação do Mestre:** Fluxo nativo onde alterações em fichas de jogadores em campanhas ativas passam por aprovação do Mestre (`isPendingDMReview`).
