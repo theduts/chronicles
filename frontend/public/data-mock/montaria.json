@@ -1,0 +1,184 @@
+{
+  "montarias_base": [
+    {
+      "id": "cavalo_carga_montaria",
+      "nome": "Cavalo de Carga ou Montaria",
+      "categoria": "Comum",
+      "atributos": {
+        "CON": 30,
+        "FR": 32,
+        "DEX": 5,
+        "AGI": 15,
+        "INT": 5,
+        "WILL": 5,
+        "PER": 20,
+        "CAR": 5
+      },
+      "pv_base": 32,
+      "ip_base": 1,
+      "ataques": [
+        {
+          "nome": "Mordida",
+          "pericia_porcentagem": 25,
+          "dano_formula": "1d6"
+        },
+        {
+          "nome": "Coice",
+          "pericia_porcentagem": 40,
+          "dano_formula": "2d6"
+        }
+      ],
+      "especiais": ["Partilhar Magias", "Resistência" ]
+    },
+    {
+      "id": "cavalo_guerra_leve",
+      "nome": "Cavalo de Guerra Leve",
+      "categoria": "Guerra",
+      "atributos": {
+        "CON": 30,
+        "FR": 32,
+        "DEX": 5,
+        "AGI": 15,
+        "INT": 5,
+        "WILL": 5,
+        "PER": 20,
+        "CAR": 5
+      },
+      "pv_base": 32,
+      "ip_base": 1,
+      "ataques": [
+        {
+          "nome": "Mordida",
+          "pericia_porcentagem": 25,
+          "dano_formula": "1d6+2"
+        },
+        {
+          "nome": "Coice",
+          "pericia_porcentagem": 40,
+          "dano_formula": "2d6+3"
+        }
+      ],
+      "especiais": ["Partilhar Magias", "Resistência" ]
+    },
+    {
+      "id": "cavalo_guerra_medio",
+      "nome": "Cavalo de Guerra Médio",
+      "categoria": "Guerra",
+      "atributos": {
+        "CON": 30,
+        "FR": 32,
+        "DEX": 5,
+        "AGI": 15,
+        "INT": 5,
+        "WILL": 5,
+        "PER": 20,
+        "CAR": 5
+      },
+      "pv_base": 32,
+      "ip_base": 1,
+      "ataques": [
+        {
+          "nome": "Mordida",
+          "pericia_porcentagem": 35,
+          "dano_formula": "1d6+4"
+        },
+        {
+          "nome": "Coice",
+          "pericia_porcentagem": 50,
+          "dano_formula": "2d6+5"
+        }
+      ],
+      "especiais": ["Partilhar Magias", "Resistência" ]
+    },
+    {
+      "id": "cavalo_guerra_pesado",
+      "nome": "Cavalo de Guerra Pesado",
+      "categoria": "Guerra",
+      "atributos": {
+        "CON": 30,
+        "FR": 32,
+        "DEX": 5,
+        "AGI": 15,
+        "INT": 5,
+        "WILL": 5,
+        "PER": 20,
+        "CAR": 5
+      },
+      "pv_base": 32,
+      "ip_base": 1,
+      "ataques": [
+        {
+          "nome": "Mordida",
+          "pericia_porcentagem": 45,
+          "dano_formula": "2d6"
+        },
+        {
+          "nome": "Coice",
+          "pericia_porcentagem": 60,
+          "dano_formula": "3d6"
+        }
+      ],
+      "especiais": ["Partilhar Magias", "Resistência" ]
+    },
+    {
+      "id": "ponei_comum",
+      "nome": "Pônei Comum",
+      "categoria": "Comum",
+      "atributos": {
+        "CON": 25,
+        "FR": 28,
+        "DEX": 5,
+        "AGI": 12,
+        "INT": 4,
+        "WILL": 5,
+        "PER": 15,
+        "CAR": 7
+      },
+      "pv_base": 27,
+      "ip_base": 1,
+      "ataques": [
+        {
+          "nome": "Mordida",
+          "pericia_porcentagem": 20,
+          "dano_formula": "1d3"
+        },
+        {
+          "nome": "Coice",
+          "pericia_porcentagem": 40,
+          "dano_formula": "1d6+2"
+        }
+      ],
+      "especiais": ["Partilhar Magias", "Resistência" ]
+    },
+    {
+      "id": "ponei_guerra",
+      "nome": "Pônei de Guerra",
+      "categoria": "Guerra",
+      "atributos": {
+        "CON": 30,
+        "FR": 30,
+        "DEX": 5,
+        "AGI": 16,
+        "INT": 4,
+        "WILL": 5,
+        "PER": 20,
+        "CAR": 5
+      },
+      "pv_base": 32,
+      "ip_base": 1,
+      "ataques": [
+        {
+          "nome": "Mordida",
+          "pericia_porcentagem": 25,
+          "dano_formula": "1d6"
+        },
+        {
+          "nome": "Coice",
+          "pericia_porcentagem": 40,
+          "dano_formula": "2d6"
+        }
+      ],
+      "especiais": ["Partilhar Magias", "Resistência" ]
+    }
+  ]
+}

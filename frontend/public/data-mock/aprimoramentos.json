@@ -1,0 +1,960 @@
+{
+  "acerto_critico": {
+    "id": "acerto_critico",
+    "name": "Acerto Crítico Aprimorado",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Adiciona +1d6 de dano extra a um acerto crítico, aplicado a uma arma específica." },
+      { "nivel": 2, "custo": 2, "descricao": "O bônus de dano aumenta para +1d10 no acerto crítico." },
+      { "nivel": 3, "custo": 3, "descricao": "O bônus de dano aumenta para +2d6 no acerto crítico." }
+    ]
+  },
+  "acuidade_arma": {
+    "id": "acuidade_arma",
+    "nome": "Acuidade com Arma",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Permite que um Guerreiro adicione seu modificador de Destreza (DEX) ao dano em vez do modificador de Força (FR) para uma arma específica."
+  },
+  "ambidestria": {
+    "id": "ambidestria",
+    "nome": "Ambidestria",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 2,
+    "descricao": "Permite manusear armas e instrumentos com ambas as mãos com igual eficiência. Pode usar duas armas brancas ao mesmo tempo (pequenas), exceto armas de duas mãos. Não afeta perícias de Agilidade."
+  },
+  "ambiente_favoravel": {
+    "id": "ambiente_favoravel",
+    "nome": "Ambiente Favorável (Apenas Magos)",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Raro: Recebe +1D adicional nas magias realizadas durante uma situação rara (ex: eclipse ou equinócio)." },
+      { "nivel": 2, "custo": 2, "descricao": "Incomum: Recebe +1D adicional nas magias realizadas durante uma situação incomum (ex: mês específico, signo, quando chove)." },
+      { "nivel": 3, "custo": 3, "descricao": "Comum: Recebe +1D adicional nas magias realizadas durante uma situação comum (ex: fase da lua ou estação do ano)." },
+      { "nivel": 4, "custo": 4, "descricao": "Frequente: Recebe +1D adicional nas magias realizadas durante uma situação frequente (ex: dia ou à noite)." }
+    ]
+  },
+  "aparencia_inofensiva": {
+    "id": "aparencia_inofensiva",
+    "nome": "Aparência Inofensiva",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "O personagem não aparenta ser perigoso. Vence automaticamente a Iniciativa no início de um combate (exceto se o adversário já conhecer seu potencial)."
+  },
+  "arma_amuleto_magico": {
+    "id": "arma_amuleto_magico",
+    "nome": "Arma ou Amuleto Mágico",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Possui uma arma mágica pequena ou média (+1 no dano e +10% para dividir entre ataque/defesa) ou objeto mágico simples." },
+      { "nivel": 2, "custo": 2, "descricao": "Possui uma arma mais poderosa (+3 no dano e +30% para dividir entre ataque/defesa), amuleto da sorte ou de proteção elemental." }
+    ]
+  },
+  "arma_preferencial": {
+    "id": "arma_preferencial",
+    "nome": "Arma Preferencial",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "A cada nível que alcançar, o personagem ganha um bônus cumulativo de +5% em sua perícia com uma arma específica."
+  },
+  "armadura_herois": {
+    "id": "armadura_herois",
+    "nome": "Armadura de Heróis",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "A natureza heróica protege o personagem mesmo sem armadura. Concede IP 1. Não acumula com armaduras reais." },
+      { "nivel": 2, "custo": 2, "descricao": "A natureza heróica protege o personagem mesmo sem armadura. Concede IP 2. Não acumula com armaduras reais." },
+      { "nivel": 3, "custo": 3, "descricao": "A natureza heróica protege o personagem mesmo sem armadura. Concede IP 3. Não acumula com armaduras reais." }
+    ]
+  },
+  "ataque_desarmado": {
+    "id": "ataque_desarmado",
+    "nome": "Ataque Desarmado",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Alta capacidade de combate com o corpo. Dano desarmado de 1d6." },
+      { "nivel": 2, "custo": 2, "descricao": "Alta capacidade de combate com o corpo. Dano desarmado de 1d6+1." },
+      { "nivel": 3, "custo": 3, "descricao": "Alta capacidade de combate com o corpo. Dano desarmado de 1d6+2." },
+      { "nivel": 4, "custo": 4, "descricao": "Alta capacidade de combate com o corpo. Dano desarmado de 2d6." }
+    ]
+  },
+  "ataque_furtivo": {
+    "id": "ataque_furtivo",
+    "nome": "Ataque Furtivo",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Causa +1d6 de dano adicional em pontos vitais se o alvo estiver incapaz de usar a Agilidade na defesa." },
+      { "nivel": 2, "custo": 2, "descricao": "Causa +2d6 de dano adicional em pontos vitais se o alvo estiver incapaz de usar a Agilidade na defesa." },
+      { "nivel": 3, "custo": 3, "descricao": "Causa +3d6 de dano adicional em pontos vitais se o alvo estiver incapaz de usar a Agilidade na defesa." }
+    ]
+  },
+  "ataque_poderoso": {
+    "id": "ataque_poderoso",
+    "nome": "Ataque Poderoso",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Permite subtrair um valor da jogada de ataque corpo-a-corpo para somar ao dano (cada 5% sacrificado concede +1 no dano, limitado ao nível do personagem)."
+  },
+  "atravessar": {
+    "id": "atravessar",
+    "nome": "Atravessar",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Se causar mais dano do que os PVs do oponente, ganha um ataque extra contra um inimigo adjacente. Limitado a uma vez por rodada." },
+      { "nivel": 2, "custo": 2, "descricao": "Permite novos ataques extras em sequência enquanto continuar zerando os PVs dos alvos na mesma rodada." }
+    ]
+  },
+  "aumentar_magia": {
+    "id": "aumentar_magia",
+    "nome": "Aumentar Magia",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Dobra o alcance de uma magia (exceto toque). Requer +1 ponto de Focus e custa +1 PM extra."
+  },
+  "biblioteca": {
+    "id": "biblioteca",
+    "nome": "Biblioteca",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Possui uma biblioteca que triplica (até o limite de 90%) o valor de 2 subgrupos específicos de perícias de conhecimento quando consultada." },
+      { "nivel": 2, "custo": 2, "descricao": "Possui uma biblioteca que triplica (até o limite de 90%) o valor de 6 subgrupos específicos de perícias de conhecimento quando consultada." },
+      { "nivel": 3, "custo": 3, "descricao": "Possui uma biblioteca que triplica (até o limite de 90%) o valor de 10 subgrupos específicos de perícias de conhecimento quando consultada." },
+      { "nivel": 4, "custo": 4, "descricao": "Possui uma biblioteca que triplica (até o limite de 90%) o valor de 14 subgrupos específicos de perícias de conhecimento quando consultada." }
+    ]
+  },
+  "bom_senso": {
+    "id": "bom_senso",
+    "nome": "Bom Senso",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "O Mestre avisa o jogador antes que ele realize uma ação obviamente estúpida."
+  },
+ "caminho_da_floresta": {
+    "id": "caminho_da_floresta",
+    "nome": "Caminho da Floresta",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Atravessa qualquer tipo de vegetação rasteira e natural à velocidade normal, sem tomar dano nem sofrer penalidades. Não anula vegetações manipuladas magicamente."
+  },
+  "canalizador": {
+    "id": "canalizador",
+    "name": "Canalizador",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 2, "descricao": "Apenas para Magos. Permite converter 6 Pontos de Vida (PV) em 1 Ponto de Magia (PM). PVs convertidos só se recuperam por descanso natural." },
+      { "nivel": 2, "custo": 4, "descricao": "Apenas para Magos. Permite converter 4 Pontos de Vida (PV) em 1 Ponto de Magia (PM). PVs convertidos só se recuperam por descanso natural." }
+    ]
+  },
+  "classe_social": {
+    "id": "classe_social",
+    "name": "Classe Social",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Possui uma propriedade física como uma torre (com 5 a 6 empregados), taverna ou pequena loja, ou trabalha a serviço direto de um Nobre." },
+      { "nivel": 2, "custo": 2, "descricao": "Possui um pequeno castelo ou feudo, pequenas lojas, uma companhia de navegação ou possui forte relação com o burgomestre local." },
+      { "nivel": 3, "custo": 3, "descricao": "Pertence oficialmente à nobreza. Possui um castelo com servos, ou uma pequena cidade inteira. Pode atuar como Nobre ou Embaixador." }
+    ]
+  },
+  "companheiro_animal": {
+    "id": "companheiro_animal",
+    "nome": "Companheiro Animal",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Acompanhado por uma criatura viva normal (80 pts de Atributo, INT máx 2, 50 pts de Perícia). A cada nível que o personagem avança, o animal ganha +5 de Atributo e +20 de Perícia."
+  },
+  "contatos_e_aliados": {
+    "id": "contatos_e_aliados",
+    "name": "Contatos e Aliados",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Possui 1 aliado ou contato NPC importante para o personagem em um ramo específico." },
+      { "nivel": 2, "custo": 2, "descricao": "Possui 2 aliados ou contatos NPCs importantes para o personagem em ramos específicos." },
+      { "nivel": 3, "custo": 3, "descricao": "Possui 4 aliados ou contatos NPCs importantes para o personagem em ramos específicos." },
+      { "nivel": 4, "custo": 4, "descricao": "Possui 8 aliados ou contatos NPCs importantes para o personagem em ramos específicos." }
+    ]
+  },
+  "coracao_de_guerreiro": {
+    "id": "coracao_de_guerreiro",
+    "nome": "Coração de Guerreiro",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 2,
+    "descricao": "Recebe um bônus de +25% em todos os testes de resistência baseados em Constituição (CON) para resistir à fadiga gerada por batalhas."
+  },
+  "coragem": {
+    "id": "coragem",
+    "nome": "Coragem",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 2,
+    "descricao": "Totalmente desprovido de medos convencionais. Dobra a porcentagem final em testes baseados em Força de Vontade (WILL) contra horror ou magias de medo."
+  },
+  "corpo_fechado": {
+    "id": "corpo_fechado",
+    "nome": "Corpo Fechado",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 2,
+    "descricao": "Uma vez por sessão, ao sofrer qualquer dano/ferimento, pode fazer um teste de CON. Se for bem-sucedido, o personagem ignora e não perde nenhum PV do ataque."
+  },
+  "corpo_maleavel": {
+    "id": "corpo_maleavel",
+    "name": "Corpo Maleável",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Reduz em 1d6 o dano sofrido por contusões (quedas, socos, impactos). Ganha +10% em Escalada e testes para escapar de amarras/algemas. Limita a FR máxima para 12." 
+  },
+  "divida_gratidao": {
+    "id": "divida_gratidao",
+    "nome": "Dívida de Gratidão",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Um NPC deve favores menores (descontos, testemunhos) que não o prejudiquem." },
+      { "nivel": 2, "custo": 2, "descricao": "Um NPC deve favores maiores (informações sigilosas, serviços sujos), mesmo que o coloquem em perigo." },
+      { "nivel": 3, "custo": 3, "descricao": "Alguém deve a vida ao personagem e fará de tudo para ajudar, independentemente das consequências." }
+    ]
+  },
+  "eloquente": {
+    "id": "eloquente",
+    "nome": "Eloquente",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Concede um bônus de +25% em testes de Etiqueta, Impressionar, Lábia e Liderança."
+  },
+  "empatia_animais": {
+    "id": "empatia_animais",
+    "nome": "Empatia com Animais",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Animais selvagens normais não atacam o personagem espontaneamente e não se assustam com sua presença."
+  },
+  "equipamento_inicial": {
+    "id": "equipamento_inicial",
+    "nome": "Equipamento Inicial",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "O personagem inicia com um bem de alta qualidade a sua escolha, sujeito à aprovação do Mestre."
+  },
+  "especializacao_arma": {
+    "id": "especializacao_arma",
+    "nome": "Especialização em Arma",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Concede bônus de +1 no dano para cada dois níveis do personagem com uma arma escolhida." },
+      { "nivel": 2, "custo": 2, "descricao": "Concede bônus constante de +2 no dano com uma arma escolhida." }
+    ]
+  },
+  "esquiva_sobrenatural": {
+    "id": "esquiva_sobrenatural",
+    "nome": "Esquiva Sobrenatural",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "O personagem retém seu valor de Agilidade na defesa mesmo se for pego desprevenido ou atacado por oponentes invisíveis."
+  },
+  "estender_magia": {
+    "id": "estender_magia",
+    "nome": "Estender Magia",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Dobra a duração de uma magia. Exige +1 ponto de Focus e custa +1 PM extra."
+  },
+  "evasao": {
+    "id": "evasao",
+    "nome": "Evasão",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Se passar em teste de Agilidade contra ataque mágico/explosão que causaria metade do dano num sucesso, não recebe dano algum. Não funciona indefeso."
+  },
+  "fama": {
+    "id": "fama",
+    "nome": "Fama",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Líder ou herói reconhecido de um pequeno vilarejo." },
+      { "nivel": 2, "custo": 2, "descricao": "Reconhecido em alguns vilarejos ou uma cidade pequena." },
+      { "nivel": 3, "custo": 3, "descricao": "Reconhecido em cidades pequenas ou em uma metrópole." },
+      { "nivel": 4, "custo": 4, "descricao": "Reconhecido em várias metrópoles, em um estado ou região inteira." }
+    ]
+  },
+  "familia_mentor_honrado": {
+    "id": "familia_mentor_honrado",
+    "nome": "Família ou Mentor Honrado",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "O respeito e prestígio vêm do nome de sua linhagem ou da reputação heróica de seu mentor."
+  },
+  "familiares": {
+    "id": "familiares",
+    "nome": "Familiares (Apenas Conjuradores)",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 2,
+    "descricao": "Vínculo com um animal mágico que dá habilidades a até 1m (ex: gato dá +10% furtividade). Evolui com o nível do personagem."
+  },
+  "imunidade_venenos": {
+    "id": "imunidade_venenos",
+    "nome": "Imunidade a Venenos",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 2, "descricao": "Totalmente imune a venenos naturais; ganha bônus de +1D contra venenos mágicos ou alquímicos." },
+      { "nivel": 2, "custo": 3, "descricao": "Imune a venenos naturais e artificiais; ganha +2D de proteção contra venenos mágicos." }
+    ]
+  },
+  "inimigo_favorito": {
+    "id": "inimigo_favorito",
+    "nome": "Inimigo Favorito",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Escolhe um tipo de criatura. Recebe +10% em perícias utilitárias (Escutar, Rastreio, Furtividade) e +2 no dano de armas contra ela."
+  },
+  "magia_sem_gestos": {
+    "id": "magia_sem_gestos",
+    "nome": "Magia Sem Gestos",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Permite conjurar magias sem mover as mãos, aumentando o custo em +2 PMs."
+  },
+  "magia_silenciosa": {
+    "id": "magia_silenciosa",
+    "nome": "Magia Silenciosa",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Permite conjurar magias sem falar, mesmo se estiver mudo, aumentando o custo em +1 PM."
+  },
+  "maximizar_magia": {
+    "id": "maximizar_magia",
+    "nome": "Maximizar Magia",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 2,
+    "descricao": "Garante efeito numérico máximo (dano/cura) de uma magia. Exige +2 pontos de Focus e aumenta o custo de PMs em 50%."
+  },
+  "memoria_eidetica": {
+    "id": "memoria_eidetica",
+    "nome": "Memória Eidética",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "O personagem se lembra perfeitamente de tudo o que vê ou ouve. Em estresse, exige teste de Percepção para absorver."
+  },
+  "montaria": {
+    "id": "montaria",
+    "nome": "Montaria",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Concede uma montaria simples (Aprimoramento não-canônico)"
+  },
+  "montaria_especial": {
+    "id": "montaria_especial",
+    "nome": "Montaria Especial",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 2,
+    "descricao": "Exige Pontos de Fé. Concede um cavalo de guerra inteligente e leal que ganha PV, IP e atributos baseados no nível do cavaleiro."
+  },
+  "movimento_rapido": {
+    "id": "movimento_rapido",
+    "nome": "Movimento Rápido",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Aumenta a velocidade terrestre do personagem em +3 m/s. Não funciona com carga ou armadura pesada."
+  },
+  "olhar_verdade": {
+    "id": "olhar_verdade",
+    "nome": "Olhar da Verdade",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 2,
+    "descricao": "Descobre se alguém mente ao olhar nos olhos (vencendo teste resistido de WILL vs WILL). Não funciona contra seres sobrenaturais."
+  },
+  "patrono": {
+    "id": "patrono",
+    "nome": "Patrono",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 2,
+    "descricao": "O personagem trabalha para um indivíduo ou organização poderosa (nobre, ordem, clube, etc.). Fornece equipamentos, armamentos e financiamento limitados em troca do cumprimento obrigatório de missões e ordens."
+  },
+  "poderes_magicos": {
+    "id": "poderes_magicos",
+    "name": "Poderes Mágicos",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Estudante arcano iniciante. Concede nativamente 2 pontos de Focus e 1 Ponto de Magia (PM) iniciais." },
+      { "nivel": 2, "custo": 2, "descricao": "Conhecimentos básicos de magia. Concede nativamente 3 pontos de Focus para distribuir livremente e 2 Pontos de Magia (PM) iniciais." },
+      { "nivel": 3, "custo": 3, "descricao": "Mago praticante. Concede nativamente 5 pontos de Focus para distribuir livremente e 3 Pontos de Magia (PM) iniciais." },
+      { "nivel": 4, "custo": 4, "descricao": "Mago desenvolvido. Concede nativamente 7 pontos de Focus para distribuir livremente, 5 Pontos de Magia (PM) iniciais e adiciona +1 inimigo mortal à ficha (a cargo do Mestre)." },
+      { "nivel": 5, "custo": 5, "descricao": "Mago ancião e poderoso. Concede nativamente 9 pontos de Focus para distribuir livremente, 7 Pontos de Magia (PM) iniciais e adiciona +2 inimigos mortais à ficha (a cargo do Mestre)." }
+    ]
+  },
+  "pontos_de_fe": {
+    "id": "pontos_de_fe",
+    "name": "Pontos de Fé",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Seguidor. Concede 1 Ponto de Fé/Focus inicial (+1 ponto a cada 2 níveis alcançados). Fé serve como PMs. Recupera 1 ponto por meia hora de oração em local calmo." },
+      { "nivel": 2, "custo": 2, "descricao": "Fiel. Concede 2 Pontos de Fé/Focus iniciais (+1 ponto a cada 2 níveis alcançados). Exige dedicação à doutrina e regras da entidade devotada." },
+      { "nivel": 3, "custo": 3, "descricao": "Entusiasta. Concede 3 Pontos de Fé/Focus iniciais (+1 ponto por nível avançado). Exige forte dedicação e cumprimento sério das obrigações religiosas." },
+      { "nivel": 4, "custo": 4, "descricao": "Fanático. Concede 5 Pontos de Fé/Focus iniciais (+1 ponto por nível avançado). Exige devoção absoluta e inflexível às leis divinas da entidade." },
+      { "nivel": 5, "custo": 5, "descricao": "Radical. Concede 7 Pontos de Fé/Focus iniciais (+1 ponto por nível avançado). O personagem vive estritamente sob as regras e dogmas severos da fé." }
+    ]
+  },
+  "pontos_heroicos": {
+    "id": "pontos_heroicos",
+    "name": "Pontos Heróicos",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Corajoso. Concede 1 Ponto Heróico adicional por nível. Funcionam como PVs extras que só podem ser gastos ao executar ações comprovadamente heróicas (sujeito à aprovação do Mestre)." },
+      { "nivel": 2, "custo": 2, "descricao": "Valoroso. Concede 2 Pontos Heróicos adicionais por nível para absorção de dano em atos heróicos." },
+      { "nivel": 3, "custo": 3, "descricao": "Intrépido. Concede 3 Pontos Heróicos adicionais por nível para absorção de dano em atos heróicos." },
+      { "nivel": 4, "custo": 4, "descricao": "Herói. Concede 4 Pontos Heróicos adicionais por nível para absorção de dano em atos heróicos." }
+    ]
+  },
+  "potencializar_magia": {
+    "id": "potencializar_magia",
+    "nome": "Potencializar Magia",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Permite aumentar os efeitos da magia (dano, alcance e duração) em +50%. Não afeta Testes de Resistência. O custo original em PM da magia também aumenta em +50% (arredondado para cima)."
+  },
+  "rastro_invisivel": {
+    "id": "rastro_invisivel",
+    "nome": "Rastro Invisível",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "O personagem não deixa pegadas ou rastros em ambientes naturais e não pode ser rastreado, a menos que escolha intencionalmente deixar uma trilha."
+  },
+  "reputacao": {
+    "id": "reputacao",
+    "name": "Reputação",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 2, "descricao": "Seu nome já foi famoso no passado e você teve seu auge. Existe uma chance de 20% de qualquer NPC encontrado reconhecer você." },
+      { "nivel": 2, "custo": 3, "descricao": "Seu nome foi sinônimo de terror ou revolução histórica, podendo ser citado em cantigas de bardos. Há 50% de chance de ser reconhecido." },
+      { "nivel": 3, "custo": 4, "descricao": "Ícone central da sociedade internacional. Biografias são escritas sobre você e o termo 'Mestre' precede seu nome. Há 90% de chance de ser reconhecido até por monstros inteligentes." }
+    ]
+  },
+  "recursos_e_dinheiro": {
+    "id": "recursos_e_dinheiro",
+    "name": "Recursos e Dinheiro",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Concede uma renda mensal de até 100 Peças de Prata (PP). O patrimônio total acumulado do personagem equivale a cerca de 50 vezes esse valor." },
+      { "nivel": 2, "custo": 2, "descricao": "Concede uma renda mensal de até 200 Peças de Prata (PP) e posses proporcionais." },
+      { "nivel": 3, "custo": 3, "descricao": "Concede uma renda mensal de até 400 Peças de Prata (PP) e posses proporcionais." },
+      { "nivel": 4, "custo": 4, "descricao": "Concede uma renda mensal de até 800 Peças de Prata (PP) e posses proporcionais." },
+      { "nivel": 5, "custo": 5, "descricao": "Concede uma renda mensal de até 1.600 Peças de Prata (PP) e posses proporcionais." }
+    ]
+  },
+  "reducao_de_dano": {
+    "id": "reducao_de_dano",
+    "name": "Redução de Dano",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "O personagem ignora e subtrai automaticamente 1 ponto de dano de cada ataque desferido contra ele." },
+      { "nivel": 2, "custo": 2, "descricao": "O personagem ignora e subtrai automaticamente 2 pontos de dano de cada ataque desferido contra ele." },
+      { "nivel": 3, "custo": 3, "descricao": "O personagem ignora e subtrai automaticamente 4 pontos de dano de cada ataque desferido contra ele." }
+    ]
+  },
+  "resistencia_dor": {
+    "id": "resistencia_dor",
+    "nome": "Resistencia à Dor",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 2,
+    "descricao": "Não sofre penalidades por ferimentos e permanece consciente com 0 PVs, desmaiando ou morrendo somente em -5 PVs."
+  },
+  "resistencia_magia": {
+    "id": "resistencia_magia",
+    "nome": "Resistência à Magia",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Cria uma aura que reduz efeitos de magias direcionadas ao personagem. 1D de resistência." },
+      { "nivel": 2, "custo": 2, "descricao": "Cria uma aura que reduz efeitos de magias direcionadas ao personagem. 2D de resistência." },
+      { "nivel": 3, "custo": 3, "descricao": "Cria uma aura que reduz efeitos de magias direcionadas ao personagem. 3D de resistência." },
+      { "nivel": 4, "custo": 4, "descricao": "Cria uma aura que reduz efeitos de magias direcionadas ao personagem. 4D de resistência." },
+      { "nivel": 5, "custo": 5, "descricao": "Cria uma aura que reduz efeitos de magias direcionadas ao personagem. 5D de resistência." }
+    ]
+  },
+  "sabio": {
+    "id": "sabio",
+    "nome": "Sábio",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "O personagem possui automaticamente 90% em uma perícia específica (exceto combate). Limite de uma vez por personagem."
+  },
+  "saude_ferro": {
+    "id": "saude_ferro",
+    "nome": "Saúde de Ferro",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Recupera 3 PVs a cada dois dias (em vez de 2) e possui imunidade natural a doenças comuns."
+  },
+  "sedutor": {
+    "id": "sedutor",
+    "nome": "Sedutor",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Concede +25% em testes envolvendo sedução e exerce charme natural em membros do sexo oposto."
+  },
+  "senso_direcao": {
+    "id": "senso_direcao",
+    "nome": "Senso de Direção",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Sempre se lembra perfeitamente de caminhos que já percorreu." },
+      { "nivel": 2, "custo": 2, "descricao": "Funciona de forma exímia mesmo em outros planos de existência (como Arcádia ou Spiritum)." }
+    ]
+  },
+  "sentidos_aguçados": {
+    "id": "sentidos_aguçados",
+    "nome": "Sentidos Aguçados",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Reduz em um nível a dificuldade de testes de Percepção envolvendo um sentido escolhido (visão, audição, tato, olfato ou paladar). Pode ser comprado múltiplas vezes para sentidos diferentes."
+  },
+  "sono_leve": {
+    "id": "sono_leve",
+    "nome": "Sono Leve",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "O personagem acorda facilmente com qualquer barulho ou agitação, evitando ser pego de surpresa." },
+      { "nivel": 2, "custo": 2, "descricao": "Sono reparador; necessita de apenas 4 horas de descanso (em vez de 8) para reaver todas as forças." }
+    ]
+  },
+  "sortudo": {
+    "id": "sortudo",
+    "nome": "Sortudo",
+    "tipo": "POSITIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 2, "descricao": "Uma vez por sessão de jogo, pode rolar novamente qualquer teste de dados que tenha falhado." },
+      { "nivel": 2, "custo": 3, "descricao": "Uma vez por sessão de jogo, pode declarar um acerto crítico automático antes de rolar o dado." }
+    ]
+  },
+  "talento": {
+    "id": "talento",
+    "nome": "Talento",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Testes normais com uma Arte específica tornam-se Fáceis, e testes difíceis tornam-se Normais (não aplicável a combate)."
+  },
+  "temperamento_calmo": {
+    "id": "temperamento_calmo",
+    "nome": "Temperamento Calmo",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 2,
+    "descricao": "Autocontrole extremo. Dobra o valor de testes relacionados a dissimulação ou controle emocional (WILL, CAR, Lábia, Intimidação)."
+  },
+  "tiro_letal": {
+    "id": "tiro_letal",
+    "nome": "Tiro Letal",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Variante do Ataque Poderoso para arqueiros. Subtrai um valor do ataque à distância para somar ao dano (+1 de dano para cada 5% sacrificado)."
+  },
+  "tiro_longo": {
+    "id": "tiro_longo",
+    "nome": "Tiro Longo",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Aumenta o limite de alcance de tiros de arco em 50%."
+  },
+  "vontade_de_ferro": {
+    "id": "vontade_de_ferro",
+    "nome": "Vontade de Ferro",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 2,
+    "descricao": "Adiciona +25% em qualquer teste de resistência mental baseado em Força de Vontade (WILL)."
+  },
+  "voz_de_comando": {
+    "id": "voz_de_comando",
+    "nome": "Voz de Comando",
+    "tipo": "POSITIVO",
+    "tem_niveis": false,
+    "custo": 4,
+    "descricao": "O personagem emite ordens que subordinados cumprem cegamente (exige teste de Liderança sem disputa de WILL contra os alvos)."
+  },
+  "alergia": {
+    "id": "alergia",
+    "nome": "Alergia",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "O contato com a substância alérgica gera espirros incessantes e penalidades em ações físicas."
+  },
+  "alcoolatra": {
+    "id": "alcoolatra",
+    "nome": "Alcoólatra",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Viciado em bebidas. Exige teste de WILL para evitar beber; se estiver bêbado, TODOS os testes tornam-se Difíceis."
+  },
+  "arma_amuleto_maldito": {
+    "id": "arma_amuleto_maldito",
+    "nome": "Arma ou Amuleto Maldito",
+    "tipo": "NEGATIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Item pequeno/médio com penalidade de -1 no dano e -10% em atq/def, ou gera pequenos infortúnios (atrair demônios menores)." },
+      { "nivel": 2, "custo": 2, "descricao": "Item grande com penalidade pesada de até -3 no dano e -30% em ataque/defesa." }
+    ]
+  },
+  "cleptomaniaco": {
+    "id": "cleptomaniaco",
+    "nome": "Cleptomaníaco",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 2,
+    "descricao": "O personagem sente a necessidade incontrolável e muitas vezes inconsciente de roubar algum objeto de todos os lugares que visita, independente do valor."
+  },
+  "codigo_de_honra": {
+    "id": "codigo_de_honra",
+    "nome": "Código de Honra",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Segue rigidamente um código de conduta (ex: Cavalheiros, Combate, Caçador ou Heróis) e jamais pode desobedecê-lo, mesmo sob risco de vida."
+  },
+  "compulsao": {
+    "id": "compulsao",
+    "nome": "Compulsão",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Necessidade incontrolável de repetir uma tarefa ou tique nervoso (como limpar a arma constantemente ou usar vícios de linguagem) sem perceber."
+  },
+  "complexo_de_inferioridade": {
+    "id": "complexo_de_inferioridade",
+    "nome": "Complexo de Inferioridade",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Sente-se inferior a qualquer um. Exige um Teste Difícil de Força de Vontade (WILL) para aceitar desafios ou realizar ações heróicas. Atribui suas vitórias apenas à sorte."
+  },
+  "coracao_mole": {
+    "id": "coracao_mole",
+    "nome": "Coração Mole",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Extremamente sentimental. Nunca recusa pedidos de ajuda e jamais mata ou fere gravemente um oponente, preferindo deixá-lo inconsciente ou render-se."
+  },
+  "covarde": {
+    "id": "covarde",
+    "nome": "Covarde",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Evita situações de grande risco, tendendo a fugir ou se esconder. Só consegue deixar sua segurança de lado se passar em um Teste de Força de Vontade (WILL)."
+  },
+  "curioso": {
+    "id": "curioso",
+    "nome": "Curioso",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "A curiosidade compele o personagem a investigar pistas misteriosas imediatamente, exigindo teste de WILL para resistir."
+  },
+  "deficiente_fisico": {
+    "id": "deficiente_fisico",
+    "nome": "Deficiente Físico",
+    "tipo": "NEGATIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Pequena: Cego de um olho, falta de uma mão ou quase surdo. Testes fáceis viram normais, e normais viram difíceis na área afetada." },
+      { "nivel": 2, "custo": 2, "descricao": "Média: Totalmente cego, falta de um braço, surdo ou anosmia. Todos os testes relacionados viram Difíceis." },
+      { "nivel": 3, "custo": 3, "descricao": "Grave: Paraplégico, surdo-mudo ou falta de ambos os braços. Impossibilitado de realizar ações físicas ligadas à perda." }
+    ]
+  },
+  "dificuldade_fala": {
+    "id": "dificuldade_fala",
+    "nome": "Dificuldade de Fala",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Personagem gago ou de língua presa, dificultando gravemente a comunicação e o entendimento por outros."
+  },
+  "distracao": {
+    "id": "distracao",
+    "nome": "Distração",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Dificuldade severa de concentração (testes de WILL para concentrar-se viram sempre Difíceis). Impede a compra de Concentração."
+  },
+  "familia_mentor_desonrado": {
+    "id": "familia_mentor_desonrado",
+    "nome": "Família ou Mentor Desonrado",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Linhagem ou mentor cometeram crimes no passado. Sofre discriminação, desconfiança e tratamento frio da sociedade."
+  },
+  "fanatico": {
+    "id": "fanatico",
+    "nome": "Fanático",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 2,
+    "descricao": "A vida do personagem é cegamente guiada pela busca obsessiva de um objetivo específico, afetando todas as decisões cotidianas."
+  },
+  "fanfarronice": {
+    "id": "fanfarronice",
+    "nome": "Fanfarronice",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "O personagem constantemente conta vantagens absurdas sobre si mesmo e assume feitos alheios. Age de forma arrogant e superior, o que frequentemente incomoda os outros ao seu redor."
+  },
+  "fobia": {
+    "id": "fobia",
+    "name": "Fobia",
+    "tipo": "NEGATIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Medo de algo específico. Próximo ao objeto, exige teste de WILL. Falha piora a dificuldade de todos os testes (Fácil vira Normal, Normal vira Difícil, Difícil vira Falha Automática). Falha crítica gera fuga imediata." },
+      { "nivel": 2, "custo": 2, "descricao": "Pavor indescritível e irracional. Próximo ao objeto, exige teste de WILL. Em caso de falha, foge imediatamente em pânico. Em caso de falha crítica, fica paralisado sem direito a ações por 3d6 rodadas." }
+    ]
+  },
+  "furia": {
+    "id": "furia",
+    "nome": "Fúria",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 2,
+    "descricao": "Ao sofrer mais de 5 pontos de dano num único ataque, deve passar em WILL ou entrar em fúria cega por 3d6 rodadas. Ataca aliados e inimigos indistintamente, ganhando +30% no acerto, +3 no dano e o benefício de Resistência à Dor."
+  },
+  "galante": {
+    "id": "galante",
+    "nome": "Galante",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Fraqueza romântica crônica pelo sexo oposto. Exige teste de WILL para não tentar conquistar um amante em potencial."
+  },
+  "ganancia": {
+    "id": "ganancia",
+    "nome": "Ganância",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Cobiça desmedida e inveja. O personagem faz qualquer coisa (roubos, traições, pactos) para conseguir mais riquezas."
+  },
+  "gula": {
+    "id": "gula",
+    "nome": "Gula",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Apetite desproporcional; consome o dobro ou o triplo de uma pessoa comum e busca comer em momentos inusitados."
+  },
+  "habitos_detestaveis": {
+    "id": "habitos_detestaveis",
+    "nome": "Hábitos Detestáveis",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Atos involuntários que causam nojo social (ex: cuspir no chão constantemente, negligência grave com banhos)."
+  },
+  "inimigo": {
+    "id": "inimigo",
+    "nome": "Inimigo",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Um rival NPC consideravelmente mais forte quer a morte do personagem. Se derrotado, é substituído por outro pior. Pode ser comprado mais de uma vez."
+  },
+  "intolerancia": {
+    "id": "intolerancia",
+    "nome": "Intolerância",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Incapacidade de tolerar uma circunstância (ver injustiças, fumaça). Interrompe tarefas na hora para tomar satisfações (teste de WILL para não perder a cabeça)."
+  },
+  "ma_fama": {
+    "id": "ma_fama",
+    "nome": "Má Fama",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Decorrente de crimes, vilania ou atos infames cometidos pelo próprio personagem no passado."
+  },
+  "mania": {
+    "id": "mania",
+    "nome": "Mania",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "O personagem tem um hábito ou modus operandi rígido (ex: colecionar algo ou frequentar um local específico) que se sente compelido a repetir pelo menos uma vez por semana."
+  },
+  "mau_humor": {
+    "id": "mau_humor",
+    "nome": "Mau Humor",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Constantemente irritado, nervoso e ríspido nas interações sociais. Aumenta a dificuldade de todos os testes baseados em Carisma (CAR)."
+  },
+  "megalomanico": {
+    "id": "megalomanico",
+    "nome": "Megalomaníaco",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Excesso massivo de confiança e ambição por power absoluto, julgando-se superior ou divino. Exige teste de WILL para não entrar em fúria se sua soberania for contestada."
+  },
+  "odio": {
+    "id": "odio",
+    "nome": "Ódio",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Sente abominação por uma pessoa, raça, classe ou grupo específico. Exige teste de WILL ao encontrá-los; se falhar, a antipatia fica evidente e todos os testes sociais tornam-se Difíceis (ou Impossíveis, se já eram originalmente Difíceis)."
+  },
+  "orgulhoso": {
+    "id": "orgulhoso",
+    "nome": "Orgulhoso",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Não tolera insultos, provocações ou conselhos. Exige teste de WILL para não se ressentir/atacar ao ser insultado, para não aceitar um desafio tolo que teste sua bravura, ou para não rejeitar completamente um bom conselho recebido."
+  },
+  "pacifista": {
+    "id": "pacifista",
+    "name": "Pacifista",
+    "tipo": "NEGATIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Misericordioso com oponentes. Sempre permite que sobrevivam e vivam após serem derrotados em combate." },
+      { "nivel": 2, "custo": 2, "descricao": "O personagem só aceita lutar se for a última alternativa possível, preferindo fugir ou contornar diplomaticamente a situação." },
+      { "nivel": 3, "custo": 3, "descricao": "O personagem jamais luta. Pode realizar testes de Defesa/Esquiva contra golpes de oponentes, mas em hipótese alguma efetuará um ataque." }
+    ]
+  },
+  "perda_terrivel": {
+    "id": "perda_terrivel",
+    "nome": "Perda Terrível",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Perdeu tragicamente alguém muito amado e testemunhou ou encontrou os corpos. Exige teste de WILL sempre que a pessoa for mencionada; se falhar, fica catatônico por 3d6 rodadas."
+  },
+  "restricao_a_magia": {
+    "id": "restricao_a_magia",
+    "name": "Restrição à Magia",
+    "tipo": "NEGATIVO",
+    "tem_niveis": true,
+    "niveis": [
+      { "nivel": 1, "custo": 1, "descricao": "Fica totalmente incapacitado de usar artes arcanas durante uma situação ou período incomum (ex: um mês específico, signo do zodíaco, quando chove ou neva)." },
+      { "nivel": 2, "custo": 2, "descricao": "O bloqueio místico ocorre durante uma situação ou período comum (ex: uma fase da lua ou uma estação do ano específica)." },
+      { "nivel": 3, "custo": 3, "descricao": "O bloqueio mágico ocorre de maneira frequente (ex: durante todo o período do dia ou durante toda a noite)." }
+    ]
+  },
+  "sanguinario_ou_vulneravel": {
+    "id": "sanguinario_ou_vampirico",
+    "nome": "Sanguinário",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Uma vez em combate, o personagem luta até o fim sem misericórdia, rendição ou recuos. Prefere morrer a se entregar, e exige que um dos lados seja completamente destruído."
+  },
+  "sono_pesado": {
+    "id": "sono_pesado",
+    "nome": "Sono Pesado",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Dorme profundamente e perde horários com facilidade. Ruídos dificilmente o acordam. Todos os testes baseados em Percepção (PER) para despertar tornam-se automaticamente Difíceis."
+  },
+  "traumatizado": {
+    "id": "traumatizado",
+    "nome": "Traumatizado",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 2,
+    "descricao": "Sofreu um severo trauma na infância. Qualquer menção aos fatos traumatizantes obriga um teste de WILL; se falhar, todos os testes do personagem tornam-se Difíceis pelos próximos 3d6 turnos."
+  },
+  "timidez": {
+    "id": "timidez",
+    "nome": "Timidez",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Timidez extrema que prejudica interações sociais. Todos os testes baseados no atributo Carisma (CAR) tornam-se automaticamente Difíceis."
+  },
+  "teimosia": {
+    "id": "teimosia",
+    "nome": "Teimosia",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "O personagem acredita cegamente que só ele está certo e não aceita opiniões alheias, forçando seu ponto de vista no grupo."
+  },
+  "vontade_fraca": {
+    "id": "vontade_fraca",
+    "nome": "Vontade Fraca",
+    "tipo": "NEGATIVO",
+    "tem_niveis": false,
+    "custo": 1,
+    "descricao": "Suscetibilidade extrema à passividade e manipulação alheia. Impõe uma penalidade constante de -25% em qualquer teste mental baseado em WILL."
+  }
+}

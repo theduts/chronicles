@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-br" class="dark bg-[#131313]">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#131313" />
+    <title>Chronicles</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Fallback Background & Text Color to prevent FOUC / Flash of Unstyled Content -->
+    <style>
+      html, body {
+        background-color: #131313 !important;
+        color: #e5e2e1;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+
+    <!-- Asset Preloads -->
+    <link rel="preload" href="/images/fundo_da_ficha%20-%20escuro.webp" as="image" type="image/webp" />
+    <link rel="preload" href="/images/fundo_da_ficha%20-%20claro.webp" as="image" type="image/webp" />
+    <link rel="preload" href="/images/contract_board%20-%20escuro.webp" as="image" type="image/webp" />
+    <link rel="preload" href="/images/contract_board%20-%20claro.webp" as="image" type="image/webp" />
+    <link rel="preload" href="/images/fundo_notas.webp" as="image" type="image/webp" />
+    <link rel="preload" href="/images/logo%20v2.webp" as="image" type="image/webp" />
+
+    <!-- Google Fonts & Material Symbols -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
+  </head>
+  <body class="bg-[#131313] text-[#e5e2e1] overflow-x-hidden antialiased selection:bg-[#9e1b1b]/30 selection:text-[#ffb4ac]">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

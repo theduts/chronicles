@@ -1,0 +1,530 @@
+[
+  {
+    "nome": "Animais",
+    "atributo_base": "INT",
+    "descricao": "Tratamento, adestramento, cuidados e conhecimentos gerais sobre criaturas e montarias.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      { "nome": "Tratamento de Animais", "atributo_subgrupo": null },
+      { "nome": "Treinamento de Animais", "atributo_subgrupo": null },
+      { "nome": "Veterinária", "atributo_subgrupo": null },
+      { "nome": "Doma", "atributo_subgrupo": null },
+      { "nome": "Montaria", "atributo_subgrupo": "AGI" }
+    ],
+    "tag": "Sobrevivência"
+  },
+  {
+  "nome": "Armadilhas",
+  "atributo_base": "INT",
+  "descricao": "Habilidade para projetar, desarmar, encontrar e armar armadilhas e mecanismos ocultos.",
+  "requer_ataque_defesa": false,
+  "subgrupos": [],
+  "tag": "Ladinagem"
+  },
+  {
+    "nome": "Armas Brancas",
+    "atributo_base": "DEX",
+    "descricao": "Perícia de combate corporal dividida individualmente por tipo de arma de corte ou impacto.",
+    "requer_ataque_defesa": true,
+    "subgrupos": [
+      { "nome": "Espada Curta", "atributo_subgrupo": null },
+      { "nome": "Espada Longa", "atributo_subgrupo": null },
+      { "nome": "Bastão / Cajado", "atributo_subgrupo": null },
+      { "nome": "Machado de Combate", "atributo_subgrupo": null },
+      { "nome": "Maça / Martelo", "atributo_subgrupo": null },
+      { "nome": "Adaga / Faca", "atributo_subgrupo": null },
+      { "nome": "Lança", "atributo_subgrupo": null },
+      { "nome": "Alabarda / Foice", "atributo_subgrupo": null }
+    ],
+    "tag": "Combate"
+  },
+  {
+    "nome": "Armas Brancas de Longo Alcance",
+    "atributo_base": "DEX",
+    "descricao": "Capacidade de disparar e mirar armas de arremesso mecânico ou tensão física.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      { "nome": "Arco Curto", "atributo_subgrupo": null },
+      { "nome": "Arco Longo", "atributo_subgrupo": null },
+      { "nome": "Besta Leve", "atributo_subgrupo": null },
+      { "nome": "Besta Pesada", "atributo_subgrupo": null },
+      { "nome": "Funda", "atributo_subgrupo": null },
+      { "nome": "Arco Composto", "atributo_subgrupo": null },
+      { "nome": "Azagaia", "atributo_subgrupo": null },
+      { "nome": "Zarabatana", "atributo_subgrupo": null }
+    ],
+    "tag": "Combate"
+  },
+  {
+    "nome": "Armeiro",
+    "atributo_base": null,
+    "descricao": "Habilidade técnica para forjar, consertar, modificar e avaliar armas e armaduras metálicas.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Ofício"
+  },
+  {
+    "nome": "Artes",
+    "atributo_base": "INT",
+    "descricao": "Habilidades que envolvem a teoria, história, crítica ou prática das expressões artísticas e performáticas.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      { "nome": "Arquitetura", "atributo_subgrupo": null },
+      { "nome": "Atuação", "atributo_subgrupo": "CAR" },
+      { "nome": "Canto", "atributo_subgrupo": "CAR" },
+      { "nome": "Culinária (Canto)", "atributo_subgrupo": "PER" },
+      { "nome": "Dança", "atributo_subgrupo": "AGI" },
+      { "nome": "Desenho e Pintura", "atributo_subgrupo": "DEX" },
+      { "nome": "Escapismo", "atributo_subgrupo": "AGI" },
+      { "nome": "Escultura", "atributo_subgrupo": "DEX" },
+      { "nome": "Instrumentos Musicais", "atributo_subgrupo": "DEX" },
+      { "nome": "Joalheria", "atributo_subgrupo": "DEX" },
+      { "nome": "Prestidigitação", "atributo_subgrupo": "DEX" }
+    ],
+    "tag": "Ofício"
+  },
+  {
+    "nome": "Artesanato",
+    "atributo_base": "DEX",
+    "descricao": "Permite criar peças decorativas de vários tipos de materiais. Seu valor inicial é igual a metade do valor que o personagem possui na perícia Artes correspondente.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      { "nome": "Cerâmica", "atributo_subgrupo": null },
+      { "nome": "Escultura", "atributo_subgrupo": null },
+      { "nome": "Madeira", "atributo_subgrupo": null },
+      { "nome": "Pedra", "atributo_subgrupo": null },
+      { "nome": "Pintura", "atributo_subgrupo": null },
+      { "nome": "Gravuras", "atributo_subgrupo": null }
+    ],
+    "tag": "Ofício"
+  },
+  {
+    "nome": "Artes Marciais",
+    "atributo_base": "AGI",
+    "descricao": "Estilo avançado focado em combate desarmado, permitindo manobras técnicas e bônus de dano.",
+    "requer_ataque_defesa": true,
+    "subgrupos": [],
+    "tag": "Combate"
+  },
+  {
+    "nome": "Artífice",
+    "atributo_base": null,
+    "descricao": "Profissões técnicas medievais voltadas ao suporte urbano, rural e manufatura pesada.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      { "nome": "Ferreiro", "atributo_subgrupo": null },
+      { "nome": "Pedreiro", "atributo_subgrupo": null },
+      { "nome": "Marceneiro", "atributo_subgrupo": null },
+      { "nome": "Coureiro", "atributo_subgrupo": null },
+      { "nome": "Mineiro", "atributo_subgrupo": null },
+      { "nome": "Carpinteiro", "atributo_subgrupo": null },
+      { "nome": "Costureiro", "atributo_subgrupo": null },
+      { "nome": "Sapateiro", "atributo_subgrupo": null }
+    ],
+    "tag": "Ofício"
+  },
+  {
+    "nome": "Artilharia",
+    "atributo_base": "INT",
+    "descricao": "Conhecimento de cálculo e operação de armas de cerco em larga escala.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      { "nome": "Catapulta", "atributo_subgrupo": null },
+      { "nome": "Balista", "atributo_subgrupo": null },
+      { "nome": "Trabuquete", "atributo_subgrupo": null }
+    ],
+    "tag": "Combate"
+  },
+  {
+    "nome": "Avaliação de Objetos",
+    "atributo_base": "PER",
+    "descricao": "Habilidade de estimar o valor real, procedência e qualidade de tesouros, antiguidades e relíquias.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Ladinagem"
+  },
+  {
+    "nome": "Briga",
+    "atributo_base": "DEX",
+    "descricao": "Combate desarmado instintivo (soco, chute, cabeçada) que todo personagem possui como base.",
+    "requer_ataque_defesa": true,
+    "subgrupos": [],
+    "tag": "Combate"
+  },
+  {
+    "nome": "Caça",
+    "atributo_base": "PER",
+    "descricao": "Capacidade de capturar animais silvestres para subsistência, obter materiais brutos e evitar predadores.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Sobrevivência"
+  },
+  {
+    "nome": "Camuflagem",
+    "atributo_base": "PER",
+    "descricao": "Habilidade passiva de ocultar a si mesmo ou acampamentos inteiros utilizando recursos naturais and sombras.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Sobrevivência"
+  },
+  {
+  "nome": "Ciências",
+  "atributo_base": "INT",
+  "descricao": "Grupo de conhecimentos teóricos e acadêmicos detalhados relativos a determinado assunto, obtidos através de estudo e observação direta. Por ser uma perícia altamente técnica, seu valor inicial é zero.",
+  "requer_ataque_defesa": false,
+  "subgrupos": [
+    { "nome": "Agricultura", "atributo_subgrupo": null },
+    { "nome": "Arqueologia", "atributo_subgrupo": null },
+    { "nome": "Astronomia", "atributo_subgrupo": null },
+    { "nome": "Botânica", "atributo_subgrupo": null },
+    { "nome": "Direito e Jurisprudência", "atributo_subgrupo": null },
+    { "nome": "Ecologia", "atributo_subgrupo": null },
+    { "nome": "Filosofia", "atributo_subgrupo": null },
+    { "nome": "Física", "atributo_subgrupo": null },
+    { "nome": "Geografia", "atributo_subgrupo": null },
+    { "nome": "Heráldica", "atributo_subgrupo": null },
+    { "nome": "Herbalismo", "atributo_subgrupo": null },
+    { "nome": "História", "atributo_subgrupo": null },
+    { "nome": "Literatura", "atributo_subgrupo": null },
+    { "nome": "Meteorologia", "atributo_subgrupo": null },
+    { "nome": "Teologia", "atributo_subgrupo": null },
+    { "nome": "Zoologia", "atributo_subgrupo": null }
+  ],
+  "tag": "Conhecimento"
+  },
+  {
+  "nome": "Ciências Proibidas",
+  "atributo_base": "INT",
+  "descricao": "Conhecimentos ocultos, místicos ou perseguidos por autoridades e seitas religiosas.",
+  "requer_ataque_defesa": false,
+  "subgrupos": [
+    { "nome": "Alquimia", "atributo_subgrupo": null },
+    { "nome": "Astrologia", "atributo_subgrupo": null },
+    { "nome": "Ocultismo", "atributo_subgrupo": null },
+    { "nome": "Rituais", "atributo_subgrupo": null },
+    { "nome": "Tarot", "atributo_subgrupo": null },
+    { "nome": "Teoria da Magia", "atributo_subgrupo": null }
+  ],
+  "tag": "Magia"
+  },
+  {
+    "nome": "Concentração",
+    "atributo_base": "WILL",
+    "descricao": "Foco mental absoluto necessário para que conjuradores não percam feitiços ao sofrerem danos.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Magia"
+  },
+  {
+    "nome": "Condução",
+    "atributo_base": "AGI",
+    "descricao": "Perícia para guiar transportes tracionados por animais em terrenos difíceis ou sob combate.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      "Carroça / Charrete",
+      "Carruagem de Viagem",
+      "Biga de Guerra"
+    ],
+    "tag": "Sobrevivência"
+  },
+  {
+  "nome": "Conhecimentos",
+  "atributo_base": "INT",
+  "descricao": "Sabedoria prática e folclórica regional sobre elementos perigosos ou históricos do cenário.",
+  "requer_ataque_defesa": false,
+  "subgrupos": [
+    { "nome": "Anões", "atributo_subgrupo": null },
+    { "nome": "Dragões", "atributo_subgrupo": null },
+    { "nome": "Elfos", "atributo_subgrupo": null },
+    { "nome": "Goblinóides", "atributo_subgrupo": null },
+    { "nome": "Halflings", "atributo_subgrupo": null },
+    { "nome": "Mortos-vivos", "atributo_subgrupo": null },
+    { "nome": "Vampiros", "atributo_subgrupo": null },
+    { "nome": "Zumbis", "atributo_subgrupo": null }
+  ],
+  "tag": "Conhecimento"
+  },
+  {
+    "nome": "Disfarce",
+    "atributo_base": "INT",
+    "descricao": "Alteração da aparência visual e comportamento com roupas e trejeitos para se passar por terceiros.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Ladinagem"
+  },
+  {
+    "nome": "Escapismo",
+    "atributo_base": "AGI",
+    "descricao": "Capacidade de contorcer o próprio corpo para se livrar de nós, algemas, amarras ou jaulas apertadas.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Ladinagem"
+  },
+  {
+    "nome": "Escudo",
+    "atributo_base": "DEX",
+    "descricao": "Uso defensivo de proteções de braço para bloquear e desviar ataques direcionados.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Combate"
+  },
+  {
+    "nome": "Escutar",
+    "atributo_base": "PER",
+    "descricao": "Percepção auditiva aguçada para detectar passos furtivos, sussurros à distância ou barulhos mecânicos ocultos.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Ladinagem"
+  },
+  {
+    "nome": "Esportes",
+    "atributo_base": "AGI",
+    "descricao": "Conjunto de modalidades atléticas e capacidades físicas que envolvem coordenação motora, força, mobilidade e técnicas de deslocamento ou combate indireto.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      { "nome": "Acrobacia", "atributo_subgrupo": "AGI" },
+      { "nome": "Arremesso", "atributo_subgrupo": "DEX" },
+      { "nome": "Escalada", "atributo_subgrupo": "FOR" },
+      { "nome": "Natação", "atributo_subgrupo": "AGI" },
+      { "nome": "Salto", "atributo_subgrupo": "AGI" }
+    ],
+    "tag": "Sobrevivência"
+  },
+  {
+    "nome": "Esquiva",
+    "atributo_base": "AGI",
+    "descricao": "Capacidade de reação física para sair do caminho de projéteis ou golpes corporais sem usar escudos.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      { "nome": "Clero", "atributo_subgrupo": null },
+      { "nome": "Comercial", "atributo_subgrupo": null },
+      { "nome": "Diplomacia", "atributo_subgrupo": null },
+      { "nome": "Mercado Negro", "atributo_subgrupo": null },
+      { "nome": "Nobreza", "atributo_subgrupo": null },
+      { "nome": "Submundo", "atributo_subgrupo": null }
+    ],
+    "tag": "Combate"
+  },
+  {
+    "nome": "Etiqueta",
+    "atributo_base": "CAR",
+    "descricao": "Conhecimento das normas de comportamento social exigidas em cortes reais e alta nobreza.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Conhecimento"
+  },
+  {
+  "nome": "Explosivos",
+  "atributo_base": "INT",
+  "descricao": "Habilidade técnica em armar, desarmar, manusear e calcular o posicionamento estratégico de compostos explosivos para demolições seguras.",
+  "requer_ataque_defesa": false,
+  "subgrupos": [],
+  "tag": "Ladinagem"
+  },
+  {
+    "nome": "Furtar",
+    "atributo_base": "DEX",
+    "descricao": "Prestidigitação e agilidade manual para trombar e pegar bolsas de moedas ou trapacear com dados.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Ladinagem"
+  },
+  {
+    "nome": "Furtividade",
+    "atributo_base": "AGI",
+    "descricao": "Capacidade de se deslocar de maneira totalmente silenciosa sem produzir ruídos de passos ou de armadura.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Ladinagem"
+  },
+  {
+    "nome": "Falsificação",
+    "atributo_base": "INT",
+    "descricao": "Técnica usada para criar cópias convincentes de cartas, documentos, obras de arte e demais objetos, exigindo um valor mínimo de 30% em perícias correlatas para sua execução eficiente.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      { "nome": "Documentos", "atributo_subgrupo": null },
+      { "nome": "Esculturas", "atributo_subgrupo": null },
+      { "nome": "Joalheria", "atributo_subgrupo": null },
+      { "nome": "Pinturas", "atributo_subgrupo": null }
+    ],
+    "tag": "Ladinagem"
+  },
+  {
+    "nome": "Idiomas",
+    "atributo_base": "INT",
+    "descricao": "Capacidade de compreender, falar, ler e escrever diferentes línguas. Personagens começam nativamente com 30% em seu idioma natal.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      { "nome": "Abissal", "atributo_subgrupo": null },
+      { "nome": "Aquan", "atributo_subgrupo": null },
+      { "nome": "Celestial", "atributo_subgrupo": null },
+      { "nome": "Comum", "atributo_subgrupo": null },
+      { "nome": "Dracônico", "atributo_subgrupo": null },
+      { "nome": "Druídico", "atributo_subgrupo": null },
+      { "nome": "Anões", "atributo_subgrupo": null },
+      { "nome": "Élfico", "atributo_subgrupo": null },
+      { "nome": "Gnomo", "atributo_subgrupo": null },
+      { "nome": "Goblin", "atributo_subgrupo": null },
+      { "nome": "Halfling", "atributo_subgrupo": null },
+      { "nome": "Orc", "atributo_subgrupo": null },
+      { "nome": "Silvestre", "atributo_subgrupo": null },
+      { "nome": "Subterrânea", "atributo_subgrupo": null }
+    ],
+    "tag": "Conhecimento"
+  },
+  {
+    "nome": "Jogos",
+    "atributo_base": "INT",
+    "descricao": "Permite ao personagem conhecer, operar e competir em diferentes jogos de azar, estratégia ou lógica que não chegam a ser considerados esportes atléticos.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      { "nome": "Cartas", "atributo_subgrupo": "PER" },
+      { "nome": "Dados", "atributo_subgrupo": "DEX" },
+      { "nome": "Tabuleiro", "atributo_subgrupo": "INT" },
+      { "nome": "Adivinhas", "atributo_subgrupo": "INT" }
+    ],
+    "tag": "Ladinagem"
+  },
+  {
+    "nome": "Manipulação",
+    "atributo_base": "CAR",
+    "descricao": "Habilidade de obter favores, persuadir, extrair informações ou coagir outras pessoas através de técnicas sociais sutis ou impositivas.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      { "nome": "Empatia", "atributo_subgrupo": "CAR" },
+      { "nome": "Impressionar", "atributo_subgrupo": "CAR" },
+      { "nome": "Interrogatório", "atributo_subgrupo": "INT" },
+      { "nome": "Intimidação", "atributo_subgrupo": "WILL" },
+      { "nome": "Lábia", "atributo_subgrupo": "CAR" },
+      { "nome": "Liderança", "atributo_subgrupo": "CAR" },
+      { "nome": "Manha", "atributo_subgrupo": "CAR" },
+      { "nome": "Sedução", "atributo_subgrupo": "CAR" },
+      { "nome": "Tortura", "atributo_subgrupo": "INT" }
+    ],
+    "tag": "Conhecimento"
+  },
+  {
+    "nome": "Manobras de Combate",
+    "atributo_base": "DEX",
+    "descricao": "Caso excepcional no sistema. Não são testadas individualmente nem possuem valor limitante; representam técnicas de combate destravadas permanentemente por um custo fixo em pontos de perícia.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      { "nome": "Desarme", "atributo_subgrupo": null },
+      { "nome": "Luta às Cegas", "atributo_subgrupo": null },
+      { "nome": "Luta com Duas Armas", "atributo_subgrupo": null },
+      { "nome": "Manobras para Impressionar", "atributo_subgrupo": null },
+      { "nome": "Mira", "atributo_subgrupo": null },
+      { "nome": "Refem", "atributo_subgrupo": null }
+    ],
+    "tag": "Combate"
+  },
+  {
+    "nome": "Manuseio de Fechaduras",
+    "atributo_base": "DEX",
+    "descricao": "Capacidade tátil de manipular engrenagens e destrancar travas internas usando gazuas de ladino.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Ladinagem"
+  },
+  {
+    "nome": "Mineração",
+    "atributo_base": "INT",
+    "descricao": "Dá os conhecimentos necessários para obter minérios ou pedras preciosas, bem como construir uma mina com segurança sem que ocorram desabamentos.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      { "nome": "Cristais", "atributo_subgrupo": null },
+      { "nome": "Gemas", "atributo_subgrupo": null },
+      { "nome": "Metais", "atributo_subgrupo": null }
+    ],
+    "tag": "Ofício"
+  },
+  {
+    "nome": "Navegação",
+    "atributo_base": "INT",
+    "descricao": "Conhecimento necessário para conduzir veículos ou embarcações em alto mar e oceanos, além de permitir a interpretação de mapas marítimos.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      { "nome": "Marítima", "atributo_subgrupo": null },
+      { "nome": "Fluvial", "atributo_subgrupo": null },
+      { "nome": "Astronômica", "atributo_subgrupo": null }
+    ],
+    "tag": "Conhecimento"
+  },
+  {
+    "nome": "Negociação",
+    "atributo_base": "CAR",
+    "descricao": "Permite ao personagem mover-se no mundo das finanças, pechinchar preços e gerenciar burocracias ou transações comerciais.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      { "nome": "Barganha", "atributo_subgrupo": "CAR" },
+      { "nome": "Burocracia", "atributo_subgrupo": "INT" },
+      { "nome": "Contabilidade", "atributo_subgrupo": "INT" }
+    ],
+    "tag": "Conhecimento"
+  },
+  {
+    "nome": "Pesquisa / Investigação",
+    "atributo_base": "PER",
+    "descricao": "Raciocínio dedutivo para encontrar padrões ocultos em cenas de crimes ou vasculhar bibliotecas antigas.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Conhecimento"
+  },
+  {
+    "nome": "Primeiros Socorros",
+    "atributo_base": "INT",
+    "descricao": "Tratamentos médicos de emergência no campo de batalha para parar sangramentos e estabilizar aliados caídos.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Sobrevivência"
+  },
+  {
+    "nome": "Procura",
+    "atributo_base": "PER",
+    "descricao": "Investigação ativa e minuciosa de ambientes fechados buscando salas secretas ou paredes falsas.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Ladinagem"
+  },
+  {
+    "nome": "Rastreio",
+    "atributo_base": "PER",
+    "descricao": "Capacidade de analisar solo, galhos quebrados e pegadas para perseguir alvos em ambientes abertos.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Sobrevivência"
+  },
+  {
+    "nome": "Sobrevivência",
+    "atributo_base": "PER",
+    "descricao": "Habilidade vital de se manter vivo, encontrar água potável e abrigo em biomas extremos.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [
+      { "nome": "Florestas", "atributo_subgrupo": null },
+      { "nome": "Geleiras", "atributo_subgrupo": null },
+      { "nome": "Montanhas e Cavernas", "atributo_subgrupo": null },
+      { "nome": "Selvas", "atributo_subgrupo": null },
+      { "nome": "Planícies", "atributo_subgrupo": null },
+      { "nome": "Desertos", "atributo_subgrupo": null },
+      { "nome": "Pântanos", "atributo_subgrupo": null }
+    ],
+    "tag": "Sobrevivência"
+  },
+  {
+    "nome": "Subterfúgio",
+    "atributo_base": "PER",
+    "descricao": "Comportamento furtivo no cotidiano usado para agir de forma suspeita sem despertar a desconfiança de guardas.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Ladinagem"
+  },
+  {
+    "nome": "Venefício",
+    "atributo_base": "INT",
+    "descricao": "Estudo de substâncias perigosas usado para extrair venenos, identificar toxinas e aplicá-las em armas.",
+    "requer_ataque_defesa": false,
+    "subgrupos": [],
+    "tag": "Ladinagem"
+  }
+]

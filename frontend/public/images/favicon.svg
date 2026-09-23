@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="purple-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b1b68" />
+      <stop offset="100%" stop-color="#150a28" />
+    </linearGradient>
+    <linearGradient id="gold-stroke" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffe89c" />
+      <stop offset="50%" stop-color="#d4af37" />
+      <stop offset="100%" stop-color="#aa7c11" />
+    </linearGradient>
+    <linearGradient id="gold-text" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="40%" stop-color="#fce289" />
+      <stop offset="100%" stop-color="#c8982a" />
+    </linearGradient>
+  </defs>
+
+  <!-- D20 Outer Hexagon -->
+  <polygon points="50,4 90,27 90,73 50,96 10,73 10,27" fill="url(#purple-bg)" stroke="url(#gold-stroke)" stroke-width="3.5" stroke-linejoin="round" />
+
+  <!-- D20 Facets (Deep Purple / Indigo Shading) -->
+  <polygon points="50,4 30,34 70,34" fill="#4c228a" stroke="url(#gold-stroke)" stroke-width="1.8" stroke-linejoin="round" />
+  <polygon points="10,27 50,4 30,34" fill="#2c1254" stroke="url(#gold-stroke)" stroke-width="1.8" stroke-linejoin="round" />
+  <polygon points="90,27 50,4 70,34" fill="#3a186d" stroke="url(#gold-stroke)" stroke-width="1.8" stroke-linejoin="round" />
+
+  <!-- Center Face -->
+  <polygon points="30,34 70,34 50,74" fill="#5827a3" stroke="url(#gold-stroke)" stroke-width="1.8" stroke-linejoin="round" />
+
+  <polygon points="10,27 30,34 10,73" fill="#200d3d" stroke="url(#gold-stroke)" stroke-width="1.8" stroke-linejoin="round" />
+  <polygon points="90,27 70,34 90,73" fill="#2f1359" stroke="url(#gold-stroke)" stroke-width="1.8" stroke-linejoin="round" />
+
+  <polygon points="10,73 30,34 50,74" fill="#1b0a33" stroke="url(#gold-stroke)" stroke-width="1.8" stroke-linejoin="round" />
+  <polygon points="90,73 70,34 50,74" fill="#250e45" stroke="url(#gold-stroke)" stroke-width="1.8" stroke-linejoin="round" />
+
+  <polygon points="10,73 50,74 50,96" fill="#120624" stroke="url(#gold-stroke)" stroke-width="1.8" stroke-linejoin="round" />
+  <polygon points="90,73 50,74 50,96" fill="#1c0936" stroke="url(#gold-stroke)" stroke-width="1.8" stroke-linejoin="round" />
+
+  <!-- Number 20 in Metallic Gold -->
+  <text x="50" y="53" font-family="'Cinzel', 'Georgia', serif" font-size="21" font-weight="900" fill="url(#gold-text)" text-anchor="middle" dominant-baseline="central">20</text>
+</svg>

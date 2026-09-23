@@ -1,0 +1,187 @@
+================================================================================
+          VARREDURA COMPLETA E DETALHADA DE LORE NO BESTIÁRIO (NEUTRALIZAÇÃO)
+================================================================================
+
+Este relatório exibe TODAS as referências a lore, reinos, divindades ou termos
+específicos encontrados no arquivo 'bestiario.json' após a última limpa feita.
+Seu objetivo é servir como guia completo para substituição e neutralização total.
+
+--------------------------------------------------------------------------------
+1. COMPILAÇÃO DE LOCAIS, DEUSES E ELEMENTOS DE CENÁRIO DETECTADOS
+--------------------------------------------------------------------------------
+
+[1] CRIATURA: ASSASSINO DA SAVANA
+   - Campo: "nome" | Termo Suspeito: "Savana"
+     Trecho: "Assassino da Savana"
+   - Campo: "descricao" | Termo Suspeito: "grande savana"
+     Trecho: "Grande predador felino de oito patas, considerado o animal mais veloz da grande savana. Vive em pequenos grupos familiares e utiliza velocidade e camuflagem para emboscar suas presas."
+   - Campo: "loot[0]" | Termo Suspeito: "Savana"
+     Trecho: "Pele de Assassino da Savana"
+
+[2] CRIATURA: COLOSSO DA RUPTURA
+   - Campo: "nome" | Termo Suspeito: "ruptura"
+     Trecho: "Colosso da Ruptura"
+   - Campo: "descricao" | Termo Suspeito: "ruptura"
+     Trecho: "Um demônio titânico de proporções bíblicas que lembra um escaravelho negro de dez metros de comprimento. Não utiliza pinças ou ferrões, mas destrói tudo ao seu redor avançando com sua força colossal para demolir estruturas ou proteger áreas de vital importância para a Ruptura."
+
+[3] CRIATURA: COUATL-SOL
+   - Campo: "observacoes" | Termo Suspeito: "reinado"
+     Trecho: "['Mecanicamente possui entre 10 e 15 Pontos de Magia.', 'Os Couatls-Sol são completamente imunes a ataques normais ou mágicos baseados no elemento Luz.', 'Possuem os mesmos Poderes Garantidos concedidos pelo deus do Sol.', 'Jamais deixam seus esconderijos ou templos durante a noite.', 'Estudiosos do Reinado suspeitam que a espécie seja aparentada aos dragões.']"
+
+[4] CRIATURA: DEMÔNIO DA RUPTURA
+   - Campo: "nome" | Termo Suspeito: "ruptura"
+     Trecho: "Demônio da Ruptura"
+   - Campo: "descricao" | Termo Suspeito: "ruptura"
+     Trecho: "Monstruosidades aberrantes com aspecto biomecânico que mistura traços de insetos e crustáceos, frequentemente lembrando formas humanas distorcidas cobertas por cascas e garras de lagosta. São seres macabros que habitam os domínios da Ruptura, cujas anatomias alienígenas desafiam as leis naturais e a própria sanidade de quem os contempla."
+   - Campo: "habilidade[0].descricao" | Termo Suspeito: "ruptura"
+     Trecho: "Ver um ou mais Demônios da Ruptura pela primeira vez provoca efeitos mentalmente perturbadores na inteligência de criaturas nativas, podendo induzir à loucura crônica devido à incapacidade da mente de aceitar a existência de tais seres."
+   - Campo: "observacoes" | Termo Suspeito: "ruptura"
+     Trecho: "['Os atributos base, PV e IP estão zerados neste arquivo pois mudam de acordo com a espécie específica de demônio. A imunidade contra ácido, eletricidade e veneno funciona perfeitamente para fontes normais ou de origem mágica.', 'Além das imunidades listadas, os Demônios da Ruptura são altamente resistentes a chamas místicas, sofrendo sempre dano mínimo quando atacados por Fogo Mágico.', 'Raras variações da criatura podem apresentar perfis elementais exóticos, como imunidade a gelo acoplada a uma vulnerabilidade contra fogo.']"
+
+[5] CRIATURA: DOPPLEGANGER
+   - Campo: "habilidade[2].descricao" | Termo Suspeito: "ruptura"
+     Trecho: "Ao focar e interagir profundamente com o alvo, o doppleganger realiza uma cópia total, absorvendo e trocando de mentes, memórias e copiando perfeitamente as características e habilidades do indivíduo. Restrições: Só pode assumir formas humanóides com tamanho entre um halfling e um ogre. É impossível copiar totalmente mortos-vivos, construtos, dragões/meio-dragões, elementais, invertebrados (como Demônios da Ruptura) e o povo-fada (sprites, dríades, nereidas e ninfas), embora ainda possa fazer cópias parciais deles."
+
+[6] CRIATURA: ELEFANTE DA SAVANA
+   - Campo: "nome" | Termo Suspeito: "Savana"
+     Trecho: "Elefante da Savana"
+   - Campo: "descricao" | Termo Suspeito: "grande savana"
+     Trecho: "A espécie mais comum de elefante, habitante da grande savana e, historicamente, de Tamu-ra. São animais bastante inteligentes, comumente domesticados por diversos povos para atuar como montaria e bestas de carga. Vivem em manadas selvagens lideradas e protegidas pelos machos."
+
+[7] CRIATURA: LAGOSTA DA RUPTURA
+   - Campo: "nome" | Termo Suspeito: "ruptura"
+     Trecho: "Lagosta da Ruptura"
+   - Campo: "descricao" | Termo Suspeito: "ruptura"
+     Trecho: "Demônio da Ruptura que se assemelha a uma grande lagosta bípede de 2,5 metros de altura, dotada de quatro braços e quatro patas. Atua como sentinela em estruturas profundas das áreas corrompidas."
+
+[8] CRIATURA: GÊNIO DAS TREVAS
+   - Campo: "observacoes" | Termo Suspeito: "sombria"
+     Trecho: "Seguindo o padrão rígido da raça, possui Focus 10 em Trevas e Focus 8 em todos os demais caminhos, exceto Luz (Focus 0). Seu Poder de Fogo (PdF 4) projeta energia sombria."
+
+[9] CRIATURA: GNOLL
+   - Campo: "observacoes" | Termo Suspeito: "grande savana"
+     Trecho: "São encontrados com maior frequência na grande savana ou em áreas desabitadas e estradas da terra dos minotauros. Costumam andar e atacar em bandos numerosos compostos por 1d6x4+10 indivíduos."
+
+[10] CRIATURA: TIGRE
+   - Campo: "descricao" | Termo Suspeito: "ruptura"
+     Trecho: "Grande felino predador extremamente raro e extinto de seu habitat natural (a ilha do Leste, devastada pela Ruptura). Atualmente, os poucos espécimes sobreviventes só são vistos em cativeiro, como apresentações circenses, espetáculos de arena ou palácios em Nitamu-ra."
+
+[11] CRIATURA: GORILA
+   - Campo: "descricao" | Termo Suspeito: "grande savana"
+     Trecho: "Primatas de grande porte que vivem em clãs familiares liderados por um macho alfa. Mostram-se agressivos contra estranhos, mas são pacíficos caso sua confiança seja conquistada com o tempo. Espécimes comuns habitam as florestas e montanhas próximas à grande savana, enquanto variantes brancas vivem nas Montanhas Uivantes."
+
+[12] CRIATURA: HOMEM-ESCORPIÃO
+   - Campo: "descricao" | Termo Suspeito: "sanguinárias"
+     Trecho: "Criaturas horrendas e demoníacas que possuem o torso humano ligado ao corpo de um escorpião gigante, apresentando pinças no lugar das mãos. Vivem em cavernas nas Montanhas Sanguinárias de forma nômade e tribal, destruindo agressivamente a vida silvestre das regiões por onde passam."
+   - Campo: "descricao" | Termo Suspeito: "montanhas sanguinárias"
+     Trecho: "Criaturas horrendas e demoníacas que possuem o torso humano ligado ao corpo de um escorpião gigante, apresentando pinças no lugar das mãos. Vivem em cavernas nas Montanhas Sanguinárias de forma nômade e tribal, destruindo agressivamente a vida silvestre das regiões por onde passam."
+
+[13] CRIATURA: LOUVA-A-DEUS DA RUPTURA
+   - Campo: "nome" | Termo Suspeito: "ruptura"
+     Trecho: "Louva-a-deus da Ruptura"
+   - Campo: "descricao" | Termo Suspeito: "ruptura"
+     Trecho: "Gigantesco demônio com aspecto de louva-a-deus bípede, medindo cerca de 2,5m. Possui garras extremamente afiadas e é visto patrulhando regiões profundas da Ruptura em bandos."
+
+[14] CRIATURA: HOMEM-FORMIGA DA RUPTURA
+   - Campo: "nome" | Termo Suspeito: "ruptura"
+     Trecho: "Homem-formiga da Ruptura"
+   - Campo: "descricao" | Termo Suspeito: "ruptura"
+     Trecho: "Demônio com cabeça de formiga, olhos verdes, pinça espinhosa na mão direita e garra na esquerda. Comumente encontrado patrulhando fronteiras da Ruptura em bandos."
+   - Campo: "observacoes" | Termo Suspeito: "ruptura"
+     Trecho: "Realiza dois ataques por turno: pinça (Força) e garra (Força - 1d6). É o único demônio da Ruptura que pode ser ferido por armas normais."
+
+[15] CRIATURA: LEÃO-DA-GUERRA
+   - Campo: "observacoes" | Termo Suspeito: "sanguinárias"
+     Trecho: "Habita as Montanhas Sanguinárias. Caça todas as formas de vida com extremo apetite devido à sua ferocidade natural e desejo de matança."
+   - Campo: "observacoes" | Termo Suspeito: "montanhas sanguinárias"
+     Trecho: "Habita as Montanhas Sanguinárias. Caça todas as formas de vida com extremo apetite devido à sua ferocidade natural e desejo de matança."
+
+[16] CRIATURA: MASTIM DE MEGALON
+   - Campo: "observacoes" | Termo Suspeito: "sanguinárias"
+     Trecho: "Encontrados em matilhas selvagens de 2 a 8 indivíduos nas Montanhas Sanguinárias. Quando domesticados, são frequentemente utilizados como bestas de carga e montarias de ataque nos exércitos dos Minotauros."
+   - Campo: "observacoes" | Termo Suspeito: "montanhas sanguinárias"
+     Trecho: "Encontrados em matilhas selvagens de 2 a 8 indivíduos nas Montanhas Sanguinárias. Quando domesticados, são frequentemente utilizados como bestas de carga e montarias de ataque nos exércitos dos Minotauros."
+
+[17] CRIATURA: MÚMIA
+   - Campo: "habilidade[0].descricao" | Termo Suspeito: "daemon"
+     Trecho: "Realiza até 2 ataques de garras por turno (dano 1d6 + bônus de Força). Acertos exigem um Teste de Resistência da vítima; em caso de falha, contrai uma doença sobrenatural (maldição) que impõe um redutor de -1 em todos os testes (-3 em Atributos Físicos no sistema Daemon). Afeta apenas seres vivos."
+
+[18] CRIATURA: RINOCERONTE DA SAVANA
+   - Campo: "nome" | Termo Suspeito: "Savana"
+     Trecho: "Rinoceronte da Savana"
+   - Campo: "descricao" | Termo Suspeito: "grande savana"
+     Trecho: "Grande mamífero herbívoro de até 4 metros de comprimento que habita a grande savana, frequentemente formando manadas junto a elefantes. É extremamente mal-humorado e agressivo com qualquer criatura que se aproxime."
+
+[19] CRIATURA: CASCAVEL
+   - Campo: "habilidade[1].descricao" | Termo Suspeito: "daemon"
+     Trecho: "Se a vítima falhar no Teste de Resistência contra a Mordida, ela é envenenada. No sistema 3D&T, sofre um redutor temporário de -1 em todas as suas Características e perde 1 PV por rodada até a morte ou cura. No sistema Daemon, sofre 1d6 de dano por rodada (um teste de CON por rodada reduz o dano daquela rodada pela metade) até o máximo de 6d6 de dano acumulado. Pode ser detido com um teste bem-sucedido de Medicina (Habilidade+1) ou magia de Cura (que apenas interrompe o veneno e não restaura PV)."
+
+[20] CRIATURA: NAJA
+   - Campo: "habilidade[1].descricao" | Termo Suspeito: "daemon"
+     Trecho: "Se a vítima falhar no Teste de Resistência contra a Mordida, ela é envenenada. No sistema 3D&T, sofre um redutor temporário de -1 em todas as Características e perde 2 PV por rodada até a morte ou cura. No sistema Daemon, sofre 1d6 de dano por rodada (um teste de CON por rodada reduz o dano pela metade) até o limite máximo de 7d6 de dano acumulado. Pode ser detido com teste de Medicina (Habilidade+1) ou magia de Cura (que apenas interrompe o veneno, sem recuperar PV)."
+
+[21] CRIATURA: SERPENTE MARINHA
+   - Campo: "habilidade[1].descricao" | Termo Suspeito: "daemon"
+     Trecho: "Se a vítima falhar no Teste de Resistência contra a Mordida, ela é envenenada. No sistema 3D&T, sofre um redutor temporário de -1 em todas as Características e perde 3 PV por rodada até morrer ou ser curada. No sistema Daemon, sofre 1d6 de dano por rodada (teste de CON por rodada reduz o dano pela metade) até atingir o teto drástico de 10d6 de dano acumulado. Pode ser interrompido com teste de Medicina (Habilidade+1) ou magia de Cura (que serve apenas para cessar a progressão do veneno)."
+
+[22] CRIATURA: COBRA-REI
+   - Campo: "habilidade[1].descricao" | Termo Suspeito: "daemon"
+     Trecho: "Caso a vítima falhe no Teste de Resistência contra a Mordida, é envenenada. No sistema 3D&T, sofre um redutor temporário de -1 em todas as suas Características e perde 1 PV por rodada até ser curada ou morrer. No sistema Daemon, sofre 1d6 de dano por rodada (um teste de CON por rodada reduz o dano daquela rodada pela metade) até o limite máximo de 3d6 de dano. Pode ser contido com teste de Medicina (Habilidade+1) ou qualquer magia de Cura (que interrompe o efeito sem regenerar PV)."
+
+[23] CRIATURA: SHIMAY
+   - Campo: "descricao" | Termo Suspeito: "ruptura"
+     Trecho: "Demônio da Ruptura bípede e delgado com movimentos ágeis, comumente confundido à distância com um elfo negro. Possui uma couraça escura, uma estrutura óssea em formato de arco acoplada ao braço esquerdo e hastes espinhosas orgânicas nas costas que funcionam como flechas."
+   - Campo: "observacoes" | Termo Suspeito: "ruptura"
+     Trecho: "Atuam em bandos de 5 a 8 indivíduos prestando suporte de artilharia a grupos de homens-formiga da Ruptura. O ácido de suas setas leva uma rodada completa para dissolver porções de armaduras metálicas."
+
+[24] CRIATURA: SPRITES
+   - Campo: "habilidade[2].nome" | Termo Suspeito: "ruptura"
+     Trecho: "Morte por Ruptura"
+   - Campo: "habilidade[2].descricao" | Termo Suspeito: "ruptura"
+     Trecho: "Um sprite morre imediatamente ao entrar em qualquer área sob efeito da Ruptura. Poucas rodadas após falecer, seu corpo se desfaz em poeira brilhante, tornando impossível a ressurreição tradicional (apenas a magia Desejo pode trazê-lo de volta)."
+   - Campo: "observacoes" | Termo Suspeito: "ponsmânia"
+     Trecho: "No sistema Daemon, a raça recebe as seguintes modificações: +6 AGI, +2 DEX, +2 CAR, -6 FR, -2 CON e velocidade de voo de 5m/s. Habitam principalmente o reino de Ponsmânia, na grande floresta de Grenaria."
+   - Campo: "observacoes" | Termo Suspeito: "grenaria"
+     Trecho: "No sistema Daemon, a raça recebe as seguintes modificações: +6 AGI, +2 DEX, +2 CAR, -6 FR, -2 CON e velocidade de voo de 5m/s. Habitam principalmente o reino de Ponsmânia, na grande floresta de Grenaria."
+   - Campo: "observacoes" | Termo Suspeito: "daemon"
+     Trecho: "No sistema Daemon, a raça recebe as seguintes modificações: +6 AGI, +2 DEX, +2 CAR, -6 FR, -2 CON e velocidade de voo de 5m/s. Habitam principalmente o reino de Ponsmânia, na grande floresta de Grenaria."
+
+[25] CRIATURA: CARANGUEIJO DA RUPTURA
+   - Campo: "nome" | Termo Suspeito: "ruptura"
+     Trecho: "Carangueijo da Ruptura"
+   - Campo: "descricao" | Termo Suspeito: "ruptura"
+     Trecho: "Monstruoso demônio da Ruptura que foge ao padrão humanoide, assemelhando-se a um caranguejo gigante (canceronte) com quase 6 metros de altura. Possui quatro olhos, dez patas, duas pinças esmagadoras e o corpo totalmente recoberto por espinhos afiados avermelhados."
+   - Campo: "habilidade[1].descricao" | Termo Suspeito: "ruptura"
+     Trecho: "Sua couraça escarlate confere camuflagem perfeita dentro de rios e lagos de ácido da Ruptura. Quando imóvel nessas condições, torna-se quase invisível (exige-se Teste de Habilidade -2 dos oponentes para percebê-lo)."
+
+[26] CRIATURA: REI HOMEM-FORMIGA DA RUPTURA
+   - Campo: "nome" | Termo Suspeito: "ruptura"
+     Trecho: "Rei homem-formiga da Ruptura"
+
+[27] CRIATURA: VARANO DE KRAH
+   - Campo: "descricao" | Termo Suspeito: "grande savana"
+     Trecho: "Grande lagarto de couro camaleônico nativo da grande savana e do deserto. É majoritariamente necrófago, mas caça pequenos animais. Pode ser domesticado em cativeiro, tornando-se dócil e servindo de montaria para criaturas de pequeno porte."
+
+[28] CRIATURA: VESPAS DA RUPTURA
+   - Campo: "nome" | Termo Suspeito: "ruptura"
+     Trecho: "Vespas da Ruptura"
+   - Campo: "descricao" | Termo Suspeito: "ruptura"
+     Trecho: "Praga aberrante das áreas de Ruptura. Pequenas vespas do tamanho de pardais que se reúnem em enxames de milhões, agindo em união coordenada como se fossem um único organismo."
+
+[29] CRIATURA: BESOURO-TATU DA RUPTURA
+   - Campo: "nome" | Termo Suspeito: "ruptura"
+     Trecho: "Besouro-tatu da Ruptura"
+   - Campo: "descricao" | Termo Suspeito: "ruptura"
+     Trecho: "Criatura monstruosa das áreas de Ruptura que se assemelha a uma mistura entre um besouro gigante e um tatu. Desloca-se projetada para a frente de forma similar a um gorila e utiliza sua carapaça rochosa de camuflagem natural em pedreiras e escombros para realizar emboscadas."
+
+--------------------------------------------------------------------------------
+2. OUTRAS CRIATURAS E NOMES PRÓPRIOS ELEMENTAIS QUE REQUEREM ATENÇÃO
+--------------------------------------------------------------------------------
+Fique atento a termos gerais que podem remeter indiretamente a sistemas ou cenários,
+como:
+- "Daemon" (Menção ao sistema Daemon de RPG nas observações de algumas criaturas feéricas).
+- "Ruptura" (Substituto de Tormenta, mas que pode ser trocado por algo ainda mais genérico como "Corrupção Abissal" ou "Caos").
+- Referências a reinos como "Ponsmânia" ou florestas como "Grenaria" (presentes na observação do Shinobi/Fada/Sprite).
+- Nomes próprios como "Thwor Ironfist" ou "Lin-Wu" (deus oriental) em notas de dragões elementais.
+
+================================================================================

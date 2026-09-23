@@ -1,0 +1,6 @@
+{
+  "name": "Daemon RPG",
+  "description": "Uma ferramenta de RPG medieval de mesa para gerenciar fichas de personagens, registrar anotações e diários de aventuras, e sincronizar campanhas baseadas no sistema Daemon.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
