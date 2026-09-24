@@ -33,11 +33,11 @@
 **Objetivo:** Desenvolver as regras de negócio, serviços, repositórios e controllers REST para gerenciar usuários, fichas de personagem Daemon, campanhas, anotações e bestiário.
 
 ### Tarefas Chave
-- [ ] **Módulo Auth/User:** Implementar cadastro, autenticação e tokens (JWT/Security).
-- [ ] **Módulo Character:** Implementar CRUD completo de fichas (atributos, pontos de status, perícias, aprimoramentos, magia, proteções, equipamentos, companheiros) e fluxo de submissão para revisão (`isPendingDMReview`).
-- [ ] **Módulo Campaign:** Implementar gestão de campanhas (mestre, jogadores vinculados, histórico, aprovação de fichas pelo mestre).
-- [ ] **Módulo Bestiário & Notas:** Implementar CRUD de monstros/NPCs e diário de sessão/anotações.
-- [ ] Escrever testes unitários e de integração (JUnit 5 + Spring Boot Test).
+- [x] **Módulo Auth/User:** Implementar cadastro, autenticação e tokens (JWT/Security).
+- [x] **Módulo Character:** Implementar CRUD completo de fichas (atributos, pontos de status, perícias, aprimoramentos, magia, proteções, equipamentos, companheiros) e fluxo de submissão para revisão (`isPendingDMReview`).
+- [x] **Módulo Campaign:** Implementar gestão de campanhas (mestre, jogadores vinculados, histórico, aprovação de fichas pelo mestre).
+- [x] **Módulo Bestiário & Notas:** Implementar CRUD de monstros/NPCs e diário de sessão/anotações.
+- [x] Escrever testes unitários e de integração (JUnit 5 + Spring Boot Test).
 
 ---
 

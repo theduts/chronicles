@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Executing Phase 03
-last_updated: "2026-09-23T23:59:25.721Z"
+status: Phase 3 Completed (Ready for Proposer Loop / Next Phase)
+last_updated: "2026-09-24T00:31:00.000Z"
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 1
-  percent: 17
+  completed_plans: 6
+  percent: 60
 ---
 
 # Estado Atual do Projeto: Chronicles RPG
@@ -19,8 +19,13 @@ progress:
 - **Milestone 1:** Inicialização e Estruturação Full-Stack
 - **Mapeamento do Codebase Frontend:** Concluído ([.planning/codebase/](file:///c:/Users/murilo.dutra/Documents/chronicles/.planning/codebase))
 - **Fase 1 (Frontend Hygiene & Meta-Harness):** Concluída.
-- **Fase 2 (Setup da Infraestrutura Backend Spring Boot & Docker Postgres / Flyway):** Concluída com UAT 100% aprovado (4/4 testes passados). Learnings extraídos e consolidados em `02-LEARNINGS.md` e `.agents/AGENTS.md`.
-- **Próximo Passo:** Fase 3 (Desenvolvimento da API RESTful Java + Spring Boot - Auth, Characters, Campaigns, Bestiary).
+- **Fase 2 (Setup da Infraestrutura Backend Spring Boot & Docker Postgres / Flyway):** Concluída com UAT 100% aprovado.
+- **Fase 3 (Desenvolvimento da API RESTful Java + Spring Boot):** Concluída com sucesso (4/4 planos executados e 18 testes automatizados passando).
+  - **Plano 03-01 (Segurança & Autenticação JWT):** Concluído.
+  - **Plano 03-02 (Personagens & Validação Daemon JSONB):** Concluído.
+  - **Plano 03-03 (Campanhas & Fluxo DM Review & Anotações):** Concluído.
+  - **Plano 03-04 (Bestiário Oficial, Grimório e Contratos):** Concluído.
+- **Próximo Passo:** Execução do Proposer Loop (`/gsd-extract-learnings`) e início da Fase 4 (Integração Full-Stack React + TypeScript ↔ Spring Boot API).
 
 ---
 
