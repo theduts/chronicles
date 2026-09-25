@@ -5707,7 +5707,11 @@ export default function CharacterEditorView({
           {characterId && userRole !== 'dm' && (
             <ActionButton
               type="button"
+              disabled={!!(editedChar?.isPendingDMReview || characters.find((c) => c.id === characterId)?.isPendingDMReview)}
               onClick={() => {
+                if (editedChar?.isPendingDMReview || characters.find((c) => c.id === characterId)?.isPendingDMReview) {
+                  return;
+                }
                 const nextLocked = !isLocked;
                 setIsLocked(nextLocked);
                 if (!nextLocked) {
@@ -5729,7 +5733,11 @@ export default function CharacterEditorView({
                 }
               }}
               icon={!isLocked ? Unlock : Edit}
-              label={!isLocked ? 'Bloquear Edição' : 'Editar Ficha'}
+              label={
+                (editedChar?.isPendingDMReview || characters.find((c) => c.id === characterId)?.isPendingDMReview)
+                  ? 'Em Análise pelo Mestre'
+                  : (!isLocked ? 'Bloquear Edição' : 'Editar Ficha')
+              }
               variant={!isLocked ? 'primary' : 'secondary'}
               size="sm"
             />
@@ -9651,8 +9659,12 @@ export default function CharacterEditorView({
               {userRole !== 'dm' && (
                 <button
                   type="button"
+                  disabled={!!(editedChar?.isPendingDMReview || characters.find((c) => c.id === characterId)?.isPendingDMReview)}
                   onClick={() => {
                     setIsDotsMenuOpen(false);
+                    if (editedChar?.isPendingDMReview || characters.find((c) => c.id === characterId)?.isPendingDMReview) {
+                      return;
+                    }
                     const nextLocked = !isLocked;
                     setIsLocked(nextLocked);
                     if (!nextLocked) {
@@ -9673,7 +9685,7 @@ export default function CharacterEditorView({
                       }
                     }
                   }}
-                  className={`flex items-center justify-between w-full p-2.5 border transition-all text-xs font-sans font-bold uppercase tracking-wider rounded-none cursor-pointer active:scale-95 ${
+                  className={`flex items-center justify-between w-full p-2.5 border transition-all text-xs font-sans font-bold uppercase tracking-wider rounded-none cursor-pointer active:scale-95 disabled:opacity-50 ${
                     !isLocked
                       ? 'bg-primary border-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container'
                       : 'bg-surface-container-low border-outline-variant/30 text-on-surface hover:text-on-surface hover:border-primary'

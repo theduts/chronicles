@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Character, Note, ActiveScreen, Campaign } from './types';
 import { INITIAL_NOTES } from './mockData';
 import { useAppStore } from './store/useAppStore';
+import { api } from './services/api';
 import Sidebar from './components/Sidebar';
 import AuthView from './components/AuthView';
 import DashboardView from './components/DashboardView';
@@ -138,6 +139,18 @@ function MainApp() {
     }
   });
 
+  const queryClientInstance = useQueryClient();
+
+  // Query characters from Spring Boot backend
+  const { data: serverCharacters, isLoading: isLoadingCharacters } = useQuery({
+    queryKey: ['characters'],
+    queryFn: async () => {
+      const response = await api.get<Character[]>('/characters');
+      return response.data;
+    },
+    enabled: !!token && !!user,
+  });
+
   const [characters, setCharacters] = useState<Character[]>(() => {
     try {
       const saved = localStorage.getItem('daemon_characters');
@@ -151,23 +164,51 @@ function MainApp() {
     return [];
   });
 
-  // Fetch characters if localStorage has no "daemon_characters" key, simulating database seed
   useEffect(() => {
-    const saved = localStorage.getItem('daemon_characters');
-    if (!saved) {
-      fetch('/data-mock/personagens.json')
-        .then((res) => res.json())
-        .then((data) => {
-          if (Array.isArray(data)) {
-            setCharacters(data);
-            localStorage.setItem('daemon_characters', JSON.stringify(data));
-          }
-        })
-        .catch((err) => {
-          console.error('Error fetching characters from json:', err);
-        });
+    if (serverCharacters && Array.isArray(serverCharacters)) {
+      setCharacters(serverCharacters);
+      localStorage.setItem('daemon_characters', JSON.stringify(serverCharacters));
     }
-  }, []);
+  }, [serverCharacters]);
+
+  const createCharacterMutation = useMutation({
+    mutationFn: async (newChar: Character) => {
+      const response = await api.post<Character>('/characters', newChar);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClientInstance.invalidateQueries({ queryKey: ['characters'] });
+    },
+  });
+
+  const updateCharacterMutation = useMutation({
+    mutationFn: async ({ id, char }: { id: string; char: Character }) => {
+      const response = await api.put<Character>(`/characters/${id}`, char);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClientInstance.invalidateQueries({ queryKey: ['characters'] });
+    },
+  });
+
+  const submitReviewMutation = useMutation({
+    mutationFn: async ({ id, char }: { id: string; char: Character }) => {
+      const response = await api.post<Character>(`/characters/${id}/submit-review`, char);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClientInstance.invalidateQueries({ queryKey: ['characters'] });
+    },
+  });
+
+  const deleteCharacterMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/characters/${id}`);
+    },
+    onSuccess: () => {
+      queryClientInstance.invalidateQueries({ queryKey: ['characters'] });
+    },
+  });
 
   const [notes, setNotes] = useState<Note[]>(() => {
     try {
@@ -325,38 +366,30 @@ function MainApp() {
 
   // Character modifications
   const handleSaveCharacter = (updatedChar: Character) => {
+    const isExisting = characters.some((c) => c.id === updatedChar.id);
+    if (isExisting && updatedChar.id) {
+      if (user?.role === 'dm' || user?.role === 'ROLE_ADMIN') {
+        updateCharacterMutation.mutate({ id: updatedChar.id, char: updatedChar });
+      } else {
+        submitReviewMutation.mutate({ id: updatedChar.id, char: updatedChar });
+      }
+    } else {
+      createCharacterMutation.mutate(updatedChar);
+    }
+
     setCharacters((prev) => {
       const idx = prev.findIndex((c) => c.id === updatedChar.id);
       if (idx !== -1) {
-        // Editing existing character
-        const existingChar = prev[idx];
-        
-        // If edited by a DM, apply directly
-        if (user?.role === 'dm') {
-          const copy = [...prev];
-          copy[idx] = {
-            ...updatedChar,
-            isPendingDMReview: false,
-            pendingChanges: undefined
-          };
-          return copy;
-        } else {
-          // Edited by a player:
-          // Keep pre-edit data on main fields, store proposed edit in pendingChanges
-          // "a solicitação de edição deve ser 'idempotente'. Exemplo: se o usuário pode solicitar a mudança do nome duas vezes, o que deve constar pra aprovação é última edição (e não duas aprovações)"
-          const copy = [...prev];
-          copy[idx] = {
-            ...existingChar,
-            isPendingDMReview: true,
-            pendingChanges: updatedChar
-          };
-          return copy;
-        }
-      } else {
-        // Brand new character creation: save directly
-        return [updatedChar, ...prev];
+        const copy = [...prev];
+        copy[idx] = {
+          ...updatedChar,
+          isPendingDMReview: user?.role === 'dm' || user?.role === 'ROLE_ADMIN' ? false : true,
+        };
+        return copy;
       }
+      return [updatedChar, ...prev];
     });
+
     // Return to characters summary
     setActiveScreen('characters');
   };
@@ -374,6 +407,7 @@ function MainApp() {
   };
 
   const handleDeleteCharacter = (id: string) => {
+    deleteCharacterMutation.mutate(id);
     setCharacters((prev) => prev.filter((c) => c.id !== id));
   };
 
