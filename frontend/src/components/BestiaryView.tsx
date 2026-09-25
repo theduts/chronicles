@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Trash2, Edit3, Skull, Shield, Heart, Zap, Sparkles, AlertTriangle, Languages, Briefcase, Gift, Compass, PawPrint, Ghost, UserRound, Leaf, Hammer } from 'lucide-react';
+import { api } from '../services/api';
 import CustomSelect from './CustomSelect';
 import Modal from './Modal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
@@ -180,18 +181,26 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
 
   // Load baseline creatures on mount
   useEffect(() => {
-    fetch('/data-mock/bestiario.json')
+    api.get<any[]>('/bestiary')
       .then((res) => {
-        if (!res.ok) throw new Error('Could not load base bestiary');
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setBaseCreatures(data);
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setBaseCreatures(res.data);
+        } else {
+          return fetch('/data-mock/bestiario.json')
+            .then((r) => r.json())
+            .then((d) => Array.isArray(d) && setBaseCreatures(d));
         }
       })
-      .catch((err) => console.error('Erro ao buscar bestiario.json:', err));
-  }, []);
+      .catch((err) => {
+        console.error('Erro ao buscar monstros da API:', err);
+        fetch('/data-mock/bestiario.json')
+          .then((res) => res.json())
+          .then((data) => {
+            if (Array.isArray(data)) setBaseCreatures(data);
+          })
+          .catch((e) => console.error('Fallback bestiario.json erro:', e));
+      });
+  }, [activeCampaignId]);
 
   // Save to localStorage
   const saveEntries = (updatedList: BestiaryEntry[]) => {

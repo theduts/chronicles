@@ -210,6 +210,21 @@ function MainApp() {
     },
   });
 
+  // Query notes from Spring Boot backend
+  const { data: serverNotes } = useQuery({
+    queryKey: ['notes'],
+    queryFn: async () => {
+      const response = await api.get<any[]>('/notes');
+      return response.data.map((n) => ({
+        id: String(n.id),
+        meta: n.meta || n.title || 'Anotação',
+        content: n.content || '',
+        saveBtnId: `save-${n.id}`,
+      }));
+    },
+    enabled: !!token && !!user,
+  });
+
   const [notes, setNotes] = useState<Note[]>(() => {
     try {
       const saved = localStorage.getItem('daemon_notes');
@@ -222,6 +237,50 @@ function MainApp() {
       console.error('Error parsing notes from localStorage:', e);
       return INITIAL_NOTES;
     }
+  });
+
+  useEffect(() => {
+    if (serverNotes && Array.isArray(serverNotes) && serverNotes.length > 0) {
+      setNotes(serverNotes);
+      localStorage.setItem('daemon_notes', JSON.stringify(serverNotes));
+    }
+  }, [serverNotes]);
+
+  const createNoteMutation = useMutation({
+    mutationFn: async (newNote: Note) => {
+      const payload = {
+        title: newNote.meta || 'Nova Anotação',
+        content: newNote.content || ' ',
+      };
+      const response = await api.post('/notes', payload);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClientInstance.invalidateQueries({ queryKey: ['notes'] });
+    },
+  });
+
+  const updateNoteMutation = useMutation({
+    mutationFn: async ({ id, note }: { id: string; note: Note }) => {
+      const payload = {
+        title: note.meta || 'Anotação',
+        content: note.content || ' ',
+      };
+      const response = await api.put(`/notes/${id}`, payload);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClientInstance.invalidateQueries({ queryKey: ['notes'] });
+    },
+  });
+
+  const deleteNoteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/notes/${id}`);
+    },
+    onSuccess: () => {
+      queryClientInstance.invalidateQueries({ queryKey: ['notes'] });
+    },
   });
 
   // Campaign State for Header Dropdown
@@ -445,14 +504,21 @@ function MainApp() {
 
   // Notes modifications
   const handleSaveNote = (updatedNote: Note) => {
+    if (updatedNote.id && !updatedNote.id.startsWith('note-')) {
+      updateNoteMutation.mutate({ id: updatedNote.id, note: updatedNote });
+    }
     setNotes((prev) => prev.map((n) => (n.id === updatedNote.id ? updatedNote : n)));
   };
 
   const handleAddNote = (newNote: Note) => {
+    createNoteMutation.mutate(newNote);
     setNotes((prev) => [newNote, ...prev]);
   };
 
   const handleDeleteNote = (id: string) => {
+    if (id && !id.startsWith('note-')) {
+      deleteNoteMutation.mutate(id);
+    }
     setNotes((prev) => prev.filter((n) => n.id !== id));
   };
 
