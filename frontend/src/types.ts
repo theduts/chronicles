@@ -245,8 +245,9 @@ export interface Campaign {
 export interface User {
   id: string;
   username: string;
+  name?: string;
   email: string;
-  role: string;
+  role: 'player' | 'dm' | string;
 }
 
 export type ActiveScreen = 'login' | 'signup' | 'dashboard' | 'characters' | 'character_editor' | 'notes' | 'settings' | 'chronicles' | 'npcs' | 'bestiary' | 'campaigns' | 'campaign_history';
