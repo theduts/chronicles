@@ -27,3 +27,9 @@ As lições aprendidas em cada fase concluída evoluem este harness para as fase
    - Teste de domínio/unidade puro para as regras do sistema Daemon.
    - Teste de integração MockMvc para contrato de API REST (códigos de status HTTP, serialização JSON e validação de schema).
    - Manter o tempo total de execução da suíte de testes inferior a 15s para garantir alta cadência de feedback (Nyquist-compliant).
+
+### Desenvolvimento API RESTful & Spring Boot (Extraído da Fase 3)
+5. **Tipagem JSONB (Jackson + JPA):** Para o mapeamento de colunas JSONB genéricas (ex: `@JdbcTypeCode(SqlTypes.JSON)`), utilizar sempre coleções estritamente tipadas como `Map<String, Object>` ou `List<Object>` em vez de `java.lang.Object` para evitar falhas silenciosas de serialização no commit do EntityManager. Se possível, usar POJOs fortemente tipados.
+6. **Spring Data JPA & JPQL Keywords:** Evitar nomes de propriedades ou métodos que contenham palavras reservadas do JPQL como "Or" (ex: `schoolOrFocus`), pois forçam desestruturação lógica indevida. Quando não for possível, utilizar queries explícitas via `@Query`.
+7. **Compatibilidade Lombok + MapStruct (Java 26):** Garantir a inclusão explícita de `lombok-mapstruct-binding` no `maven-compiler-plugin` para contornar problemas de compatibilidade interna.
+8. **Segurança (CORS):** Manter configurações de CORS estritas em `SecurityConfig.java`, restringindo `AllowedOriginPatterns` para os domínios da aplicação (`http://localhost:3000`) em vez de deixar configurações permissivas.

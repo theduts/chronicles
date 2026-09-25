@@ -26,9 +26,13 @@ public class CharacterRequest {
     private String age;
     private String classKit;
 
+    @jakarta.validation.constraints.Min(value = 1, message = "O nível inicial do personagem deve ser no mínimo 1")
+    @io.swagger.v3.oas.annotations.media.Schema(description = "Nível do personagem (mínimo 1)", example = "1")
     @Builder.Default
     private Integer level = 1;
 
+    @jakarta.validation.constraints.Min(value = 0, message = "O XP não pode ser negativo")
+    @io.swagger.v3.oas.annotations.media.Schema(description = "Pontos de experiência", example = "0")
     @Builder.Default
     private Integer xp = 0;
 
