@@ -82,4 +82,14 @@ public class CampaignController {
     ) {
         return ResponseEntity.ok(campaignService.approveCharacter(id, characterId, user));
     }
+
+    @PostMapping("/{id}/reject-character/{characterId}")
+    @Operation(summary = "Rejeitar evolução de ficha pelo Mestre", description = "Rejeita as alterações propostas de uma ficha, descartando-as.")
+    public ResponseEntity<CharacterResponse> rejectCharacter(
+            @PathVariable UUID id,
+            @PathVariable UUID characterId,
+            @AuthenticationPrincipal User user
+    ) {
+        return ResponseEntity.ok(campaignService.rejectCharacter(id, characterId, user));
+    }
 }

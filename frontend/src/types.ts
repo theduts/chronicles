@@ -62,6 +62,7 @@ export interface Character {
   level: number;
   xp: number;
   portraitUrl: string;
+  campaignId?: string;
   attributes: CharacterAttributes;
   statusPoints: {
     vida: StatPoint;

@@ -150,5 +150,21 @@ class CampaignControllerTest {
                 .andExpect(jsonPath("$.isPendingDMReview").value(false))
                 .andExpect(jsonPath("$.attributes.for.natural").value(16))
                 .andExpect(jsonPath("$.attributes.con.natural").value(13));
+
+        // 5. Submit another proposed change and test rejection
+        character = characterRepository.findById(character.getId()).orElseThrow();
+        character.setIsPendingReview(true);
+        character.setProposedSheet(CharacterSheet.builder()
+                .attributes(CharacterAttributes.builder()
+                        .con(AttributeRow.builder().natural(18).build())
+                        .build())
+                .build());
+        characterRepository.save(character);
+
+        mockMvc.perform(post("/api/campaigns/" + campaignId + "/reject-character/" + character.getId())
+                        .header(HttpHeaders.AUTHORIZATION, dmToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isPendingDMReview").value(false))
+                .andExpect(jsonPath("$.attributes.con.natural").value(13));
     }
 }

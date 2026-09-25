@@ -50,15 +50,31 @@ export default function CampaignDMReview({
     },
   });
 
+  const rejectMutation = useMutation({
+    mutationFn: async (characterId: string) => {
+      const response = await api.post(`/campaigns/${campaignId}/reject-character/${characterId}`);
+      return response.data;
+    },
+    onSuccess: (_, characterId) => {
+      setFeedbackMessage({ text: 'Alterações pendentes recusadas.', type: 'success' });
+      queryClient.invalidateQueries({ queryKey: ['campaign-characters', campaignId] });
+      queryClient.invalidateQueries({ queryKey: ['characters'] });
+      onRejectSuccess?.(characterId);
+      setTimeout(() => setFeedbackMessage(null), 4000);
+    },
+    onError: (error: any) => {
+      const msg = error.response?.data?.detail || error.response?.data?.message || 'Falha ao recusar alterações da ficha.';
+      setFeedbackMessage({ text: msg, type: 'error' });
+      setTimeout(() => setFeedbackMessage(null), 4000);
+    },
+  });
+
   const handleApprove = (characterId: string) => {
     approveMutation.mutate(characterId);
   };
 
   const handleReject = (characterId: string) => {
-    setFeedbackMessage({ text: 'Alterações pendentes recusadas.', type: 'success' });
-    onRejectSuccess?.(characterId);
-    queryClient.invalidateQueries({ queryKey: ['campaign-characters', campaignId] });
-    setTimeout(() => setFeedbackMessage(null), 4000);
+    rejectMutation.mutate(characterId);
   };
 
   return (

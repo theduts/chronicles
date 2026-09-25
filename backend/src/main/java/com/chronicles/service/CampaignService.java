@@ -165,6 +165,34 @@ public class CampaignService {
         return characterMapper.toResponse(saved);
     }
 
+    @Transactional
+    public CharacterResponse rejectCharacter(UUID campaignId, UUID characterId, User user) {
+        Campaign campaign = campaignRepository.findById(campaignId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Campanha não encontrada"));
+
+        if (!campaign.getDm().getId().equals(user.getId()) && user.getRole() != Role.ROLE_ADMIN) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Apenas o Mestre da campanha pode rejeitar fichas");
+        }
+
+        Character character = characterRepository.findById(characterId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Personagem não encontrado"));
+
+        if (character.getCampaignId() == null || !character.getCampaignId().equals(campaignId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este personagem não pertence a esta campanha");
+        }
+
+        if (!Boolean.TRUE.equals(character.getIsPendingReview())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não há alterações pendentes de revisão para este personagem");
+        }
+
+        // Discard proposed evolution
+        character.setProposedSheet(null);
+        character.setIsPendingReview(false);
+
+        Character saved = characterRepository.save(character);
+        return characterMapper.toResponse(saved);
+    }
+
     private CampaignResponse toResponse(Campaign campaign, User currentUser) {
         List<CampaignPlayer> players = campaignPlayerRepository.findAllByCampaignId(campaign.getId());
         List<String> playerEmails = players.stream()
