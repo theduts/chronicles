@@ -1,36 +1,31 @@
 ---
 phase: "04"
-status: "issues_found"
-files_reviewed: 42
+status: "clean"
+files_reviewed: 28
+depth: "standard"
+findings:
+  critical: 0
+  warning: 0
+  info: 1
+  total: 1
 ---
 
 # Code Review: Phase 04
 
 ## Resumo
-A revisão identificou problemas críticos relacionados à persistência de dados no backend durante ações de aprovação/rejeição de fichas, além de antipadrões na utilização do React Query e acúmulo de responsabilidades no `App.tsx`.
+A revisão de código da Fase 04 auditou os 28 arquivos alterados durante a integração Full-Stack React + TypeScript ↔ Spring Boot API. Todos os apontamentos críticos e de warning foram solucionados e validados por suítes de testes automatizados e compilação do TypeScript.
 
-## Findings
+## Status das Correções
 
-### CR-01: Funções de Aprovação/Rejeição no `App.tsx` não persistem no Backend
-- **Severity:** Critical
-- **File:** `frontend/src/App.tsx`
-- **Description:** As funções `handleApproveCharacter` e `handleRejectCharacter` localizadas no `App.tsx` modificam apenas o estado local (via `setCharacters`), sem realizar a chamada para a API (ex: `POST /api/campaigns/{id}/approve-character/{characterId}`). Se essas ações forem acionadas fora do `CampaignDMReview.tsx` (que possui as mutations corretas), as aprovações serão perdidas ao recarregar a página.
-- **Recommendation:** Refatorar as funções `handleApproveCharacter` e `handleRejectCharacter` no `App.tsx` para utilizarem `useMutation` e chamarem os endpoints corretos da API, ou remover essa responsabilidade do `App.tsx` garantindo que toda aprovação/rejeição ocorra apenas através do componente `CampaignDMReview` (que já possui a implementação correta).
+- **CR-01 (Corrigido em 85d76b6):** Persistência no backend para aprovação e rejeição de fichas (`POST /api/campaigns/{id}/approve-character/{characterId}` e `POST /api/campaigns/{id}/reject-character/{characterId}`).
+- **WR-01 (Corrigido em e00f1c0):** Eliminação de duplicação de estado (`useState` vs React Query) via hooks dedicados.
+- **WR-02 (Corrigido em e8ad71d):** Decomposição do `App.tsx` em hooks modulares de roteamento e mutações.
+- **WR-03 (Corrigido em 735b9be):** Resolução dos 28 erros TS2339 no `CharacterEditorView.tsx` via coerção segura de string no cálculo de tamanho de campos numéricos.
+- **WR-04 (Corrigido em c373342):** Ajuste de origens permitidas no CORS do Spring Security (`SecurityConfig.java`) para habilitar o frontend dev server na porta 4000.
 
-### WR-01: Antipadrão de Duplicação de Estado (React Query vs useState)
-- **Severity:** Warning
-- **File:** `frontend/src/App.tsx`
-- **Description:** Os dados retornados pelo React Query (`serverCharacters` e `serverNotes`) estão sendo sincronizados em um estado local (`useState`) e no `localStorage` via `useEffect`. Como o `@tanstack/react-query` já gerencia o estado do servidor e possui mecanismos nativos de cache, essa duplicação gera múltiplas fontes de verdade e aumenta o risco de inconsistências e "race conditions".
-- **Recommendation:** Remover o `useState` de `characters` e `notes` no `App.tsx`. Utilizar diretamente os dados fornecidos pelo `useQuery`. Para cache persistente, utilizar o plugin de persistência do React Query em vez de gerenciar o `localStorage` manualmente.
-
-### WR-02: God Component (App.tsx com quase 1000 linhas)
-- **Severity:** Warning
-- **File:** `frontend/src/App.tsx`
-- **Description:** O componente principal da aplicação centraliza diversas responsabilidades: lógica manual de roteamento (`pushState`/`popState`), múltiplas `useMutations` para entidades distintas (Personagens, Notas), sincronização de cache manual e a definição de todos os modais da UI.
-- **Recommendation:** Extrair o roteamento para uma biblioteca dedicada (como `react-router-dom`) ou para um componente de roteamento isolado. Mover as lógicas de mutação (ex: `useCharacterMutations()`, `useNoteMutations()`) para hooks customizados (`hooks/`) separando regras de negócio da camada visual.
+## Findings Remanescentes
 
 ### IN-01: Armazenamento do Token JWT no LocalStorage
 - **Severity:** Info
 - **File:** `frontend/src/store/useAppStore.ts`
-- **Description:** O JWT está sendo salvo via middleware `persist` do Zustand diretamente no `localStorage`. Embora funcional e comum em MVPs, isso deixa o token vulnerável a ataques de XSS (Cross-Site Scripting).
-- **Recommendation:** Como melhoria futura para a segurança da plataforma, considerar a utilização de cookies `HttpOnly` para o armazenamento da sessão ou manter tokens de vida curta no client.
+- **Description:** O JWT está sendo salvo via middleware `persist` do Zustand diretamente no `localStorage`. Padrão comum e adequado para este estágio de desenvolvimento, mas para ambientes de produção com dados sensíveis recomenda-se cookies `HttpOnly` com refresh token ou token efêmero em memória.

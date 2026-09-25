@@ -1,23 +1,23 @@
 ---
 phase: "04"
-fixed_at: "2026-09-24T22:45:00-03:00"
+fixed_at: "2026-09-24T22:55:00-03:00"
 review_path: ".planning/phases/04-integra-o-full-stack-react-typescript-spring-boot-api/04-REVIEW.md"
-iteration: 1
-findings_in_scope: 3
-fixed: 3
+iteration: 2
+findings_in_scope: 5
+fixed: 5
 skipped: 0
 status: "all_fixed"
 ---
 
 # Phase 04: Code Review Fix Report
 
-**Fixed at:** 2026-09-24T22:45:00-03:00
+**Fixed at:** 2026-09-24T22:55:00-03:00
 **Source review:** .planning/phases/04-integra-o-full-stack-react-typescript-spring-boot-api/04-REVIEW.md
-**Iteration:** 1
+**Iteration:** 2
 
 **Summary:**
-- Findings in scope: 3
-- Fixed: 3
+- Findings in scope: 5
+- Fixed: 5
 - Skipped: 0
 
 ## Fixed Issues
@@ -37,8 +37,18 @@ status: "all_fixed"
 **Commit:** `e8ad71d`
 **Applied fix:** Decomposto o `App.tsx` através da extração do roteamento e sincronização de histórico (`pushState`/`popState`) para o hook `useNavigationRouting` e integração com `useCharacterMutations` e `useNoteMutations`, reduzindo mais de 300 linhas de código no componente central.
 
+### WR-03: Erros de tipagem TypeScript TS2339 no CharacterEditorView.tsx
+**Files modified:** `frontend/src/components/CharacterEditorView.tsx`
+**Commit:** `735b9be`
+**Applied fix:** Substituídos acessos diretos a `.length` em tipos numéricos (`editedChar.xp`, `row.natural`, `danoSofrido`, `ouro`, `prata`, `bronze`, `skill.gasto`, etc.) por coerção de string segura `String(val ?? '').length >= 50`, garantindo 100% de aprovação no `tsc --noEmit` (`npm run lint`).
+
+### WR-04: Restrição de Porta do Frontend no CORS do SecurityConfig.java
+**Files modified:** `backend/src/main/java/com/chronicles/config/SecurityConfig.java`
+**Commit:** `c373342`
+**Applied fix:** Adicionada a porta do servidor de desenvolvimento Vite (`http://localhost:4000`) e porta alternativa (`http://localhost:5173`) à lista de origens permitidas no `SecurityConfig.java`.
+
 ---
 
-_Fixed: 2026-09-24T22:45:00-03:00_
-_Fixer: the agent (gsd-code-fixer)_
-_Iteration: 1_
+_Fixed: 2026-09-24T22:55:00-03:00_
+_Fixer: Antigravity Code Review & Fix Pipeline_
+_Iteration: 2_
