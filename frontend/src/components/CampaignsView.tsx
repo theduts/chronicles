@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '../services/api';
 import { Map, Plus, Trash2, X, Link, Image as ImageIcon, Save, Sparkles, BookOpen, AlertTriangle } from 'lucide-react';
 import { Campaign } from '../types';
 import CustomSelect from './CustomSelect';
@@ -70,6 +72,38 @@ export default function CampaignsView({
     }
   };
 
+  const queryClient = useQueryClient();
+
+  const createCampaignMutation = useMutation({
+    mutationFn: async (payload: {
+      name: string;
+      subtitulo?: string;
+      universo?: string;
+      lore?: string;
+      ilustracao?: string;
+    }) => {
+      const response = await api.post<Campaign>('/campaigns', payload);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      if (data?.id) {
+        setActiveCampaignId(data.id);
+        localStorage.setItem('daemon_active_campaign_id', data.id);
+      }
+    },
+  });
+
+  const updateCampaignMutation = useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: any }) => {
+      const response = await api.put<Campaign>(`/campaigns/${id}`, payload);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+    },
+  });
+
   const handleCreateCampaign = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCampName.trim()) return;
@@ -78,20 +112,31 @@ export default function CampaignsView({
       ? (newCampIlustracaoBase64 || DEFAULT_IMAGES[newCampUniverse]) 
       : (newCampIlustracaoLink.trim() || DEFAULT_IMAGES[newCampUniverse]);
 
+    const payload = {
+      name: newCampName.trim(),
+      subtitulo: newCampSubtitle.trim(),
+      universo: newCampUniverse,
+      lore: newCampLore.trim(),
+      ilustracao,
+    };
+
+    createCampaignMutation.mutate(payload);
+
+    const tempId = `camp_${Date.now()}`;
     const newCampaign: Campaign = {
-      id: `camp_${Date.now()}`,
+      id: tempId,
       name: newCampName.trim(),
       subtitulo: newCampSubtitle.trim(),
       universo: newCampUniverse,
       lore: newCampLore.trim(),
       ilustracao,
       dmEmail: user.email,
-      players: ['teste_pc@email.com', user.email]
+      players: ['teste_pc@email.com', user.email],
     };
 
     setCampaigns(prev => [...prev, newCampaign]);
-    setActiveCampaignId(newCampaign.id);
-    localStorage.setItem('daemon_active_campaign_id', newCampaign.id);
+    setActiveCampaignId(tempId);
+    localStorage.setItem('daemon_active_campaign_id', tempId);
 
     // Reset fields
     setNewCampName('');
@@ -127,6 +172,18 @@ export default function CampaignsView({
     const ilustracao = editCampIlustracaoType === 'upload'
       ? (editCampIlustracaoBase64 || DEFAULT_IMAGES[editCampUniverse])
       : (editCampIlustracaoLink.trim() || DEFAULT_IMAGES[editCampUniverse]);
+
+    const payload = {
+      name: editCampName.trim(),
+      subtitulo: editCampSubtitle.trim(),
+      universo: editCampUniverse,
+      lore: editCampLore.trim(),
+      ilustracao,
+    };
+
+    if (selectedCampaign.id && !selectedCampaign.id.startsWith('camp_')) {
+      updateCampaignMutation.mutate({ id: selectedCampaign.id, payload });
+    }
 
     setCampaigns(prev => prev.map(c => {
       if (c.id === selectedCampaign.id) {
