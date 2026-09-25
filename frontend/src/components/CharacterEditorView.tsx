@@ -6189,9 +6189,9 @@ export default function CharacterEditorView({
                   value={editedChar.xp}
                   onChange={(e) => handleDemographicChange('xp', e.target.value)}
                   onBlur={() => handleDemographicBlur('xp')}
-                  className={`w-full bg-transparent border-none p-0 text-on-surface font-mono text-sm text-center focus:ring-0 outline-none ${editedChar.xp?.length >= 50 ? '!text-red-500' : ''}`}
+                  className={`w-full bg-transparent border-none p-0 text-on-surface font-mono text-sm text-center focus:ring-0 outline-none ${String(editedChar.xp ?? '').length >= 50 ? '!text-red-500' : ''}`}
                 />
-{editedChar.xp?.length >= 50 && (
+{String(editedChar.xp ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -6308,9 +6308,9 @@ export default function CharacterEditorView({
                                 : validationErrors.includes(`attr-${attrKey}`) 
                                   ? 'text-red-400 font-bold' 
                                   : 'text-on-surface'
-                            } ${row.natural?.length >= 50 ? '!text-red-500' : ''}`}
+                            } ${String(row.natural ?? '').length >= 50 ? '!text-red-500' : ''}`}
                           />
-{row.natural?.length >= 50 && (
+{String(row.natural ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -6446,9 +6446,9 @@ export default function CharacterEditorView({
                             value={editedChar.statusPoints.vida.danoSofrido}
                             onChange={(e) => handleStatusChange('vida', 'danoSofrido', e.target.value)}
                             onBlur={() => handleStatusBlur('vida', 'danoSofrido')}
-                            className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-red-500 border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-primary outline-none text-xs rounded-none disabled:opacity-75 ${editedChar.statusPoints.vida.danoSofrido?.length >= 50 ? '!text-red-500' : ''}`}
+                            className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-red-500 border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-primary outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.statusPoints.vida.danoSofrido ?? '').length >= 50 ? '!text-red-500' : ''}`}
                           />
-{editedChar.statusPoints.vida.danoSofrido?.length >= 50 && (
+{String(editedChar.statusPoints.vida.danoSofrido ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -6506,9 +6506,9 @@ export default function CharacterEditorView({
                               value={editedChar.statusPoints.magia.magiaExaurida}
                               onChange={(e) => handleStatusChange('magia', 'magiaExaurida', e.target.value)}
                               onBlur={() => handleStatusBlur('magia', 'magiaExaurida')}
-                              className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#60a5fa] border border-outline-variant/30 py-0.5 focus:ring-1 focus:ring-[#a2d2ff] outline-none text-xs rounded-none disabled:opacity-75 ${editedChar.statusPoints.magia.magiaExaurida?.length >= 50 ? '!text-red-500' : ''}`}
+                              className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#60a5fa] border border-outline-variant/30 py-0.5 focus:ring-1 focus:ring-[#a2d2ff] outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.statusPoints.magia.magiaExaurida ?? '').length >= 50 ? '!text-red-500' : ''}`}
                             />
-{editedChar.statusPoints.magia.magiaExaurida?.length >= 50 && (
+{String(editedChar.statusPoints.magia.magiaExaurida ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -6574,9 +6574,9 @@ export default function CharacterEditorView({
                             value={editedChar.statusPoints.psi.esforcoMental}
                             onChange={(e) => handleStatusChange('psi', 'esforcoMental', e.target.value)}
                             onBlur={() => handleStatusBlur('psi', 'esforcoMental')}
-                            className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#fef08a] border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-[#ffcc00] outline-none text-xs rounded-none disabled:opacity-75 ${editedChar.statusPoints.psi.esforcoMental?.length >= 50 ? '!text-red-500' : ''}`}
+                            className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#fef08a] border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-[#ffcc00] outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.statusPoints.psi.esforcoMental ?? '').length >= 50 ? '!text-red-500' : ''}`}
                           />
-{editedChar.statusPoints.psi.esforcoMental?.length >= 50 && (
+{String(editedChar.statusPoints.psi.esforcoMental ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -6646,9 +6646,9 @@ export default function CharacterEditorView({
                             onBlur={() => handleStatusBlur('heroicos', 'valorFinal')}
                             disabled={isLocked || getPontosHeroicosLevel(editedChar.aprimoramentosPositivos) !== null}
                             title={getPontosHeroicosLevel(editedChar.aprimoramentosPositivos) !== null ? "Valor calculado automaticamente a partir do aprimoramento Pontos Heróicos" : ""}
-                            className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#d8b4fe] border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-[#9c27b0] outline-none text-xs rounded-none disabled:opacity-50 cursor-not-allowed select-none ${editedChar.statusPoints.heroicos.valorFinal?.length >= 50 ? '!text-red-500' : ''}`}
+                            className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#d8b4fe] border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-[#9c27b0] outline-none text-xs rounded-none disabled:opacity-50 cursor-not-allowed select-none ${String(editedChar.statusPoints.heroicos.valorFinal ?? '').length >= 50 ? '!text-red-500' : ''}`}
                           />
-{editedChar.statusPoints.heroicos.valorFinal?.length >= 50 && (
+{String(editedChar.statusPoints.heroicos.valorFinal ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -6668,9 +6668,9 @@ export default function CharacterEditorView({
                             value={editedChar.statusPoints.heroicos.danoSofrido}
                             onChange={(e) => handleStatusChange('heroicos', 'danoSofrido', e.target.value)}
                             onBlur={() => handleStatusBlur('heroicos', 'danoSofrido')}
-                            className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#d8b4fe] border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-[#9c27b0] outline-none text-xs rounded-none disabled:opacity-75 ${editedChar.statusPoints.heroicos.danoSofrido?.length >= 50 ? '!text-red-500' : ''}`}
+                            className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#d8b4fe] border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-[#9c27b0] outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.statusPoints.heroicos.danoSofrido ?? '').length >= 50 ? '!text-red-500' : ''}`}
                           />
-{editedChar.statusPoints.heroicos.danoSofrido?.length >= 50 && (
+{String(editedChar.statusPoints.heroicos.danoSofrido ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -6738,9 +6738,9 @@ export default function CharacterEditorView({
                       value={editedChar.protection.ipEscudo}
                       onChange={(e) => handleProtectionChange('ipEscudo', e.target.value)}
                       onBlur={() => handleProtectionBlur('ipEscudo')}
-                      className={`w-full max-w-[80px] bg-surface-container text-on-surface text-center font-mono font-bold border border-outline-variant/60 py-1 focus:ring-1 focus:ring-primary outline-none text-xs rounded-none disabled:opacity-75 ${editedChar.protection.ipEscudo?.length >= 50 ? '!text-red-500' : ''}`}
+                      className={`w-full max-w-[80px] bg-surface-container text-on-surface text-center font-mono font-bold border border-outline-variant/60 py-1 focus:ring-1 focus:ring-primary outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.protection.ipEscudo ?? '').length >= 50 ? '!text-red-500' : ''}`}
                     />
-{editedChar.protection.ipEscudo?.length >= 50 && (
+{String(editedChar.protection.ipEscudo ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -6762,9 +6762,9 @@ export default function CharacterEditorView({
                       value={editedChar.protection.ipPsiquico}
                       onChange={(e) => handleProtectionChange('ipPsiquico', e.target.value)}
                       onBlur={() => handleProtectionBlur('ipPsiquico')}
-                      className={`w-full max-w-[80px] bg-surface-container text-on-surface text-center font-mono font-bold border border-outline-variant/60 py-1 focus:ring-1 focus:ring-primary outline-none text-xs rounded-none disabled:opacity-75 ${editedChar.protection.ipPsiquico?.length >= 50 ? '!text-red-500' : ''}`}
+                      className={`w-full max-w-[80px] bg-surface-container text-on-surface text-center font-mono font-bold border border-outline-variant/60 py-1 focus:ring-1 focus:ring-primary outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.protection.ipPsiquico ?? '').length >= 50 ? '!text-red-500' : ''}`}
                     />
-{editedChar.protection.ipPsiquico?.length >= 50 && (
+{String(editedChar.protection.ipPsiquico ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -6786,9 +6786,9 @@ export default function CharacterEditorView({
                       value={editedChar.protection.ipMagico}
                       onChange={(e) => handleProtectionChange('ipMagico', e.target.value)}
                       onBlur={() => handleProtectionBlur('ipMagico')}
-                      className={`w-full max-w-[80px] bg-surface-container text-[#4cc9f0] text-center font-mono font-bold border border-outline-variant/60 py-1 focus:ring-1 focus:ring-primary outline-none text-xs rounded-none disabled:opacity-75 ${editedChar.protection.ipMagico?.length >= 50 ? '!text-red-500' : ''}`}
+                      className={`w-full max-w-[80px] bg-surface-container text-[#4cc9f0] text-center font-mono font-bold border border-outline-variant/60 py-1 focus:ring-1 focus:ring-primary outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.protection.ipMagico ?? '').length >= 50 ? '!text-red-500' : ''}`}
                     />
-{editedChar.protection.ipMagico?.length >= 50 && (
+{String(editedChar.protection.ipMagico ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -9376,9 +9376,9 @@ export default function CharacterEditorView({
                     value={editedChar.treasure.ouro}
                     onChange={(e) => handleTreasureChange('ouro', e.target.value)}
                     onBlur={() => handleTreasureBlur('ouro')}
-                    className={`w-full bg-transparent text-center border-none p-1 font-mono font-bold text-secondary text-sm focus:ring-0 outline-none disabled:opacity-75 ${editedChar.treasure.ouro?.length >= 50 ? '!text-red-500' : ''}`}
+                    className={`w-full bg-transparent text-center border-none p-1 font-mono font-bold text-secondary text-sm focus:ring-0 outline-none disabled:opacity-75 ${String(editedChar.treasure.ouro ?? '').length >= 50 ? '!text-red-500' : ''}`}
                   />
-{editedChar.treasure.ouro?.length >= 50 && (
+{String(editedChar.treasure.ouro ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -9401,9 +9401,9 @@ export default function CharacterEditorView({
                     value={editedChar.treasure.prata}
                     onChange={(e) => handleTreasureChange('prata', e.target.value)}
                     onBlur={() => handleTreasureBlur('prata')}
-                    className={`w-full bg-transparent text-center border-none p-1 font-mono font-bold text-secondary text-sm focus:ring-0 outline-none disabled:opacity-75 ${editedChar.treasure.prata?.length >= 50 ? '!text-red-500' : ''}`}
+                    className={`w-full bg-transparent text-center border-none p-1 font-mono font-bold text-secondary text-sm focus:ring-0 outline-none disabled:opacity-75 ${String(editedChar.treasure.prata ?? '').length >= 50 ? '!text-red-500' : ''}`}
                   />
-{editedChar.treasure.prata?.length >= 50 && (
+{String(editedChar.treasure.prata ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -9426,9 +9426,9 @@ export default function CharacterEditorView({
                     value={editedChar.treasure.bronze}
                     onChange={(e) => handleTreasureChange('bronze', e.target.value)}
                     onBlur={() => handleTreasureBlur('bronze')}
-                    className={`w-full bg-transparent text-center border-none p-1 font-mono font-bold text-secondary text-sm focus:ring-0 outline-none disabled:opacity-75 ${editedChar.treasure.bronze?.length >= 50 ? '!text-red-500' : ''}`}
+                    className={`w-full bg-transparent text-center border-none p-1 font-mono font-bold text-secondary text-sm focus:ring-0 outline-none disabled:opacity-75 ${String(editedChar.treasure.bronze ?? '').length >= 50 ? '!text-red-500' : ''}`}
                   />
-{editedChar.treasure.bronze?.length >= 50 && (
+{String(editedChar.treasure.bronze ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -12146,10 +12146,10 @@ export default function CharacterEditorView({
                                         inputMode="numeric"
                                         value={skill.gasto}
                                         onChange={(e) => handleTempSkillGastoChange(idx, e.target.value)}
-                                        className={`w-20 h-11 bg-surface-container text-center border-y border-outline-variant/60 text-sm text-on-surface font-mono focus:border-primary focus:ring-0 outline-none rounded-none ${skill.gasto?.length >= 50 ? '!text-red-500' : ''}`}
+                                        className={`w-20 h-11 bg-surface-container text-center border-y border-outline-variant/60 text-sm text-on-surface font-mono focus:border-primary focus:ring-0 outline-none rounded-none ${String(skill.gasto ?? '').length >= 50 ? '!text-red-500' : ''}`}
                                         placeholder="0"
                                       />
-{skill.gasto?.length >= 50 && (
+{String(skill.gasto ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
