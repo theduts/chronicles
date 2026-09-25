@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { api } from '../services/api';
+import { useAppStore } from '../store/useAppStore';
 
 interface AuthViewProps {
-  onLoginSuccess: (userName: string, email: string, role: 'player' | 'dm') => void;
+  onLoginSuccess?: (userName: string, email: string, role: 'player' | 'dm') => void;
   initialTab?: 'login' | 'signup';
   onNavigateTab?: (tab: 'login' | 'signup') => void;
 }
@@ -12,122 +15,105 @@ export default function AuthView({ onLoginSuccess, initialTab = 'login', onNavig
   useEffect(() => {
     setIsLoginTab(initialTab === 'login');
   }, [initialTab]);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [signupRole, setSignupRole] = useState<'player' | 'dm'>('player');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const [logins, setLogins] = useState<any>(() => {
-    try {
-      const saved = localStorage.getItem('daemon_mock_logins');
-      return saved ? JSON.parse(saved) : null;
-    } catch (e) {
-      return null;
-    }
+  const loginMutation = useMutation({
+    mutationFn: async (credentials: { email: string; password: string }) => {
+      const response = await api.post('/auth/login', credentials);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      setErrorMessage(null);
+      const userRole = data.role === 'ROLE_ADMIN' ? 'dm' : (data.role === 'ROLE_USER' ? 'player' : data.role);
+      const user = {
+        id: data.userId || String(data.id || ''),
+        username: data.username,
+        name: data.username,
+        email: data.email,
+        role: userRole,
+      };
+      useAppStore.getState().login(data.token, user);
+      if (onLoginSuccess) {
+        onLoginSuccess(user.username, user.email, userRole as 'player' | 'dm');
+      }
+    },
+    onError: (error: any) => {
+      const msg =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        'Falha ao entrar. Verifique seu e-mail/usuário e senha.';
+      setErrorMessage(msg);
+    },
   });
 
-  // Fetch initial logins from mock_login.json
-  useEffect(() => {
-    if (!logins) {
-      fetch('/data-mock/mock_login.json')
-        .then((res) => res.json())
-        .then((data) => {
-          setLogins(data);
-          localStorage.setItem('daemon_mock_logins', JSON.stringify(data));
-        })
-        .catch((err) => {
-          console.error('Error fetching mock_login.json:', err);
-          // Fallback static structure matching mock_login.json
-          const fallback = {
-            "player": {
-              "id": 1,
-              "nome_usuario": "teste_pc",
-              "email": "teste_pc@email.com",
-              "senha": "teste",
-              "role": "player"
-            },
-            "dm": {
-              "id": 2,
-              "nome_usuario": "teste_dm",
-              "email": "teste_dm@email.com",
-              "senha": "teste",
-              "role": "dm"
-            }
-          };
-          setLogins(fallback);
-          localStorage.setItem('daemon_mock_logins', JSON.stringify(fallback));
-        });
-    }
-  }, [logins]);
+  const registerMutation = useMutation({
+    mutationFn: async (payload: { username: string; email: string; password: string }) => {
+      const response = await api.post('/auth/register', payload);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      setErrorMessage(null);
+      const userRole = signupRole === 'dm' ? 'dm' : 'player';
+      const user = {
+        id: data.userId || String(data.id || ''),
+        username: data.username,
+        name: data.username,
+        email: data.email,
+        role: userRole,
+      };
+      useAppStore.getState().login(data.token, user);
+      if (onLoginSuccess) {
+        onLoginSuccess(user.username, user.email, userRole as 'player' | 'dm');
+      }
+    },
+    onError: (error: any) => {
+      const msg =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        'Erro ao criar conta. Verifique os dados informados.';
+      setErrorMessage(msg);
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
+
     if (isLoginTab) {
-      const emailOrUser = email.trim().toLowerCase();
-      const pass = password;
-
-      // Find matched user from mock logins database
-      const existingUsers = logins ? Object.values(logins) as any[] : [];
-      const matchedUser = existingUsers.find(
-        (u) =>
-          (u.email?.toLowerCase() === emailOrUser || u.nome_usuario?.toLowerCase() === emailOrUser) &&
-          u.senha === pass
-      );
-
-      if (matchedUser) {
-        onLoginSuccess(matchedUser.nome_usuario, matchedUser.email, matchedUser.role);
-      } else {
-        alert('Credenciais inválidas. Use teste_pc / teste (Jogador) ou teste_dm / teste (Mestre), ou crie uma nova conta.');
+      if (!email.trim() || !password.trim()) {
+        setErrorMessage('Por favor, informe seu usuário/e-mail e senha.');
+        return;
       }
+      loginMutation.mutate({
+        email: email.trim(),
+        password: password,
+      });
     } else {
-      // Sign up checks
       if (!fullName.trim() || !email.trim() || !password.trim()) {
-        alert('Por favor, preencha todos os campos.');
+        setErrorMessage('Por favor, preencha todos os campos.');
+        return;
+      }
+      if (password.length < 6) {
+        setErrorMessage('A senha deve ter no mínimo 6 caracteres.');
         return;
       }
       if (password !== confirmPassword) {
-        alert('As senhas digitadas não batem.');
+        setErrorMessage('As senhas digitadas não conferem.');
         return;
       }
 
-      // Check duplicate
-      const existingUsers = logins ? Object.values(logins) as any[] : [];
-      const userExists = existingUsers.some(
-        (u) =>
-          u.nome_usuario?.toLowerCase() === fullName.trim().toLowerCase() ||
-          u.email?.toLowerCase() === email.trim().toLowerCase()
-      );
-
-      if (userExists) {
-        alert('Este usuário ou email já existe.');
-        return;
-      }
-
-      // Add to mock logins
-      const newUserId = `user_${Date.now()}`;
-      const newUserObj = {
-        id: Date.now(),
-        nome_usuario: fullName.trim(),
+      registerMutation.mutate({
+        username: fullName.trim(),
         email: email.trim(),
-        senha: password,
-        role: signupRole
-      };
-
-      const updatedLogins = {
-        ...logins,
-        [newUserId]: newUserObj
-      };
-
-      setLogins(updatedLogins);
-      localStorage.setItem('daemon_mock_logins', JSON.stringify(updatedLogins));
-
-      alert(`Conta criada com sucesso como ${signupRole === 'dm' ? 'Mestre' : 'Jogador'}! Realize o login.`);
-      setIsLoginTab(true);
-      // Reset password field for security
-      setPassword('');
-      setConfirmPassword('');
+        password: password,
+      });
     }
   };
 
@@ -148,6 +134,12 @@ export default function AuthView({ onLoginSuccess, initialTab = 'login', onNavig
             Chronicles
           </h1>
         </div>
+
+        {errorMessage && (
+          <div className="bg-red-900/40 border border-primary text-red-200 px-4 py-3 text-xs rounded font-sans tracking-wide">
+            {errorMessage}
+          </div>
+        )}
 
         {isLoginTab ? (
           /* ================= LOGIN FORM ================= */
@@ -208,10 +200,12 @@ export default function AuthView({ onLoginSuccess, initialTab = 'login', onNavig
             {/* CTA action trigger Button */}
             <button
               type="submit"
-              className="w-full bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container font-sans text-xs font-bold py-4 tracking-[0.2em] transition-all hover:shadow-[0_0_15px_rgba(158,27,27,0.3)] active:scale-[0.98] group cursor-pointer border border-transparent"
+              disabled={loginMutation.isPending}
+              className="w-full bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container font-sans text-xs font-bold py-4 tracking-[0.2em] transition-all hover:shadow-[0_0_15px_rgba(158,27,27,0.3)] active:scale-[0.98] group cursor-pointer border border-transparent disabled:opacity-50"
             >
               <span className="flex items-center justify-center gap-2">
-                ENTRAR <span className="material-symbols-outlined text-sm">keyboard_double_arrow_right</span>
+                {loginMutation.isPending ? 'ENTRANDO...' : 'ENTRAR'}{' '}
+                <span className="material-symbols-outlined text-sm">keyboard_double_arrow_right</span>
               </span>
             </button>
           </form>
@@ -336,9 +330,10 @@ export default function AuthView({ onLoginSuccess, initialTab = 'login', onNavig
             {/* CTA action trigger Button */}
             <button
               type="submit"
-              className="w-full bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container font-sans text-xs font-bold py-4 tracking-[0.2em] transition-all border border-transparent active:scale-[0.98] cursor-pointer"
+              disabled={registerMutation.isPending}
+              className="w-full bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container font-sans text-xs font-bold py-4 tracking-[0.2em] transition-all border border-transparent active:scale-[0.98] cursor-pointer disabled:opacity-50"
             >
-              CRIAR CONTA »
+              {registerMutation.isPending ? 'CRIANDO CONTA...' : 'CRIAR CONTA »'}
             </button>
           </form>
         )}

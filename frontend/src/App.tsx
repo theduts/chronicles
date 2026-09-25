@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Character, Note, ActiveScreen, Campaign } from './types';
 import { INITIAL_NOTES } from './mockData';
+import { useAppStore } from './store/useAppStore';
 import Sidebar from './components/Sidebar';
 import AuthView from './components/AuthView';
 import DashboardView from './components/DashboardView';
@@ -48,38 +50,23 @@ const SCREEN_TO_ROUTE: Record<ActiveScreen, string> = {
   settings: '/configuracoes',
 };
 
-export default function App() {
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
+function MainApp() {
   const currentPath = window.location.pathname.toLowerCase();
 
-  // Authentication state - Starts null if no saved session (so 1st page is Login)
-  const [user, setUser] = useState<{ name: string; email: string; role: 'player' | 'dm' } | null>(() => {
-    try {
-      const saved = localStorage.getItem('daemon_user');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && !parsed.role) {
-          parsed.role = 'dm';
-        }
-        return parsed;
-      }
-      return null;
-    } catch (e) {
-      console.error('Error parsing user from localStorage:', e);
-      return null;
-    }
-  });
-
-  const [activeScreenState, setActiveScreenState] = useState<ActiveScreen>(() => {
-    if (ROUTE_MAP[currentPath]) {
-      return ROUTE_MAP[currentPath];
-    }
-    // 1st page is login, 2nd page is historia (dashboard)
-    return user ? 'dashboard' : 'login';
-  });
+  const { user, token, activeScreen, setActiveScreen: setStoreScreen, logout, setUser: setStoreUser } = useAppStore();
 
   // Navigate helper to keep URL and screen state in sync
   const setActiveScreen = (screen: ActiveScreen, pushHistory = true) => {
-    setActiveScreenState(screen);
+    setStoreScreen(screen);
     const route = SCREEN_TO_ROUTE[screen] || '/historia';
     if (pushHistory && window.location.pathname !== route) {
       window.history.pushState({ screen }, '', route);
@@ -89,27 +76,27 @@ export default function App() {
   // Sync initial route path on mount or user state change
   useEffect(() => {
     const path = window.location.pathname.toLowerCase();
-    if (!user) {
+    if (!token || !user) {
       const targetScreen = path === '/cadastro' || path === '/signup' ? 'signup' : 'login';
       const targetRoute = SCREEN_TO_ROUTE[targetScreen];
       if (window.location.pathname !== targetRoute) {
         window.history.replaceState({ screen: targetScreen }, '', targetRoute);
       }
-      if (activeScreenState !== targetScreen) {
-        setActiveScreenState(targetScreen);
+      if (activeScreen !== targetScreen) {
+        setStoreScreen(targetScreen);
       }
     } else {
       if (path === '/' || path === '/login' || path === '/cadastro' || path === '/signup' || !ROUTE_MAP[path]) {
         window.history.replaceState({ screen: 'dashboard' }, '', '/historia');
-        setActiveScreenState('dashboard');
+        setStoreScreen('dashboard');
       } else {
         const screenFromPath = ROUTE_MAP[path];
-        if (screenFromPath && screenFromPath !== activeScreenState) {
-          setActiveScreenState(screenFromPath);
+        if (screenFromPath && screenFromPath !== activeScreen) {
+          setStoreScreen(screenFromPath);
         }
       }
     }
-  }, [user]);
+  }, [user, token]);
 
   // Handle browser back/forward buttons
   useEffect(() => {
@@ -117,17 +104,15 @@ export default function App() {
       const path = window.location.pathname.toLowerCase();
       const mappedScreen = ROUTE_MAP[path];
       if (mappedScreen) {
-        setActiveScreenState(mappedScreen);
+        setStoreScreen(mappedScreen);
       } else {
-        setActiveScreenState(user ? 'dashboard' : 'login');
+        setStoreScreen(user && token ? 'dashboard' : 'login');
       }
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [user]);
-
-  const activeScreen = activeScreenState;
+  }, [user, token]);
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('daemon_theme_toggle') !== 'light';
@@ -257,10 +242,13 @@ export default function App() {
   // Campaign dropdown visibility filter
   const visibleCampaigns = campaigns.filter(c => {
     if (!user) return false;
-    if (user.role === 'dm') {
-      return c.dmEmail.toLowerCase() === user.email.toLowerCase() || c.dmEmail.toLowerCase() === user.name.toLowerCase() || c.dmEmail === 'teste_dm@email.com';
+    const userName = (user.name || user.username || '').toLowerCase();
+    const userEmail = (user.email || '').toLowerCase();
+    const isDM = user.role === 'dm' || user.role === 'ROLE_ADMIN';
+    if (isDM) {
+      return c.dmEmail.toLowerCase() === userEmail || c.dmEmail.toLowerCase() === userName || c.dmEmail === 'teste_dm@email.com';
     } else {
-      return c.players.some(p => p.toLowerCase() === user.email.toLowerCase() || p.toLowerCase() === user.name.toLowerCase());
+      return c.players.some(p => p.toLowerCase() === userEmail || p.toLowerCase() === userName);
     }
   });
 
@@ -326,14 +314,12 @@ export default function App() {
   }, [sidebarCollapsed]);
 
   // Auth actions
-  const handleLoginSuccess = (name: string, email: string, role: 'player' | 'dm') => {
-    const newUser = { name, email, role };
-    setUser(newUser);
+  const handleLoginSuccess = (_name: string, _email: string, _role: 'player' | 'dm') => {
     setActiveScreen('dashboard');
   };
 
   const handleLogout = () => {
-    setUser(null);
+    logout();
     setActiveScreen('login');
   };
 
@@ -762,13 +748,19 @@ export default function App() {
           onClose={() => setIsSettingsOpen(false)}
           characters={characters}
           notes={notes}
-          user={user}
+          user={{
+            name: user?.name || user?.username || '',
+            email: user?.email || '',
+            role: (user?.role === 'dm' || user?.role === 'ROLE_ADMIN' ? 'dm' : 'player') as 'player' | 'dm',
+          }}
           onUpdateUser={(updatedUser) => {
             if (updatedUser) {
-              setUser({
+              setStoreUser({
+                id: user?.id || '1',
+                username: updatedUser.name,
                 name: updatedUser.name,
                 email: updatedUser.email,
-                role: updatedUser.role || 'player'
+                role: updatedUser.role || 'player',
               });
             }
           }}
@@ -860,5 +852,13 @@ export default function App() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <MainApp />
+    </QueryClientProvider>
   );
 }
