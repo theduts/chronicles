@@ -242,4 +242,11 @@ export interface Campaign {
   ilustracao?: string; // image link or base64
 }
 
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+}
+
 export type ActiveScreen = 'login' | 'signup' | 'dashboard' | 'characters' | 'character_editor' | 'notes' | 'settings' | 'chronicles' | 'npcs' | 'bestiary' | 'campaigns' | 'campaign_history';
