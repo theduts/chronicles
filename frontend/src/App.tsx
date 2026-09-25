@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { QueryClient, QueryClientProvider, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Character, Note, ActiveScreen, Campaign } from './types';
-import { INITIAL_NOTES } from './mockData';
 import { useAppStore } from './store/useAppStore';
-import { api } from './services/api';
+import { useNavigationRouting } from './hooks/useNavigationRouting';
+import { useCharacterMutations } from './hooks/useCharacterMutations';
+import { useNoteMutations } from './hooks/useNoteMutations';
 import Sidebar from './components/Sidebar';
 import AuthView from './components/AuthView';
 import DashboardView from './components/DashboardView';
@@ -17,40 +18,6 @@ import NPCsView from './components/NPCsView';
 import BestiaryView from './components/BestiaryView';
 import CampaignsView from './components/CampaignsView';
 
-// Route mappings for each page
-const ROUTE_MAP: Record<string, ActiveScreen> = {
-  '/login': 'login',
-  '/cadastro': 'signup',
-  '/signup': 'signup',
-  '/historia': 'dashboard',
-  '/dashboard': 'dashboard',
-  '/cronicas': 'chronicles',
-  '/cronicas/historia_campanha': 'campaign_history',
-  '/cronicas/historia-campanha': 'campaign_history',
-  '/campanhas': 'campaigns',
-  '/personagens': 'characters',
-  '/personagens/editar': 'character_editor',
-  '/npcs': 'npcs',
-  '/bestiario': 'bestiary',
-  '/anotacoes': 'notes',
-  '/configuracoes': 'settings',
-};
-
-const SCREEN_TO_ROUTE: Record<ActiveScreen, string> = {
-  login: '/login',
-  signup: '/cadastro',
-  dashboard: '/historia',
-  chronicles: '/cronicas',
-  campaign_history: '/cronicas/historia_campanha',
-  campaigns: '/campanhas',
-  characters: '/personagens',
-  character_editor: '/personagens/editar',
-  npcs: '/npcs',
-  bestiary: '/bestiario',
-  notes: '/anotacoes',
-  settings: '/configuracoes',
-};
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -61,59 +28,8 @@ const queryClient = new QueryClient({
 });
 
 function MainApp() {
-  const currentPath = window.location.pathname.toLowerCase();
-
-  const { user, token, activeScreen, setActiveScreen: setStoreScreen, logout, setUser: setStoreUser } = useAppStore();
-
-  // Navigate helper to keep URL and screen state in sync
-  const setActiveScreen = (screen: ActiveScreen, pushHistory = true) => {
-    setStoreScreen(screen);
-    const route = SCREEN_TO_ROUTE[screen] || '/historia';
-    if (pushHistory && window.location.pathname !== route) {
-      window.history.pushState({ screen }, '', route);
-    }
-  };
-
-  // Sync initial route path on mount or user state change
-  useEffect(() => {
-    const path = window.location.pathname.toLowerCase();
-    if (!token || !user) {
-      const targetScreen = path === '/cadastro' || path === '/signup' ? 'signup' : 'login';
-      const targetRoute = SCREEN_TO_ROUTE[targetScreen];
-      if (window.location.pathname !== targetRoute) {
-        window.history.replaceState({ screen: targetScreen }, '', targetRoute);
-      }
-      if (activeScreen !== targetScreen) {
-        setStoreScreen(targetScreen);
-      }
-    } else {
-      if (path === '/' || path === '/login' || path === '/cadastro' || path === '/signup' || !ROUTE_MAP[path]) {
-        window.history.replaceState({ screen: 'dashboard' }, '', '/historia');
-        setStoreScreen('dashboard');
-      } else {
-        const screenFromPath = ROUTE_MAP[path];
-        if (screenFromPath && screenFromPath !== activeScreen) {
-          setStoreScreen(screenFromPath);
-        }
-      }
-    }
-  }, [user, token]);
-
-  // Handle browser back/forward buttons
-  useEffect(() => {
-    const handlePopState = () => {
-      const path = window.location.pathname.toLowerCase();
-      const mappedScreen = ROUTE_MAP[path];
-      if (mappedScreen) {
-        setStoreScreen(mappedScreen);
-      } else {
-        setStoreScreen(user && token ? 'dashboard' : 'login');
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [user, token]);
+  const { user, token, logout, setUser: setStoreUser } = useAppStore();
+  const { activeScreen, setActiveScreen } = useNavigationRouting();
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('daemon_theme_toggle') !== 'light';
@@ -139,150 +55,6 @@ function MainApp() {
     }
   });
 
-  const queryClientInstance = useQueryClient();
-
-  // Query characters from Spring Boot backend
-  const { data: serverCharacters, isLoading: isLoadingCharacters } = useQuery({
-    queryKey: ['characters'],
-    queryFn: async () => {
-      const response = await api.get<Character[]>('/characters');
-      return response.data;
-    },
-    enabled: !!token && !!user,
-  });
-
-  const [characters, setCharacters] = useState<Character[]>(() => {
-    try {
-      const saved = localStorage.getItem('daemon_characters');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
-      }
-    } catch (e) {
-      console.error('Error parsing characters from localStorage:', e);
-    }
-    return [];
-  });
-
-  useEffect(() => {
-    if (serverCharacters && Array.isArray(serverCharacters)) {
-      setCharacters(serverCharacters);
-      localStorage.setItem('daemon_characters', JSON.stringify(serverCharacters));
-    }
-  }, [serverCharacters]);
-
-  const createCharacterMutation = useMutation({
-    mutationFn: async (newChar: Character) => {
-      const response = await api.post<Character>('/characters', newChar);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClientInstance.invalidateQueries({ queryKey: ['characters'] });
-    },
-  });
-
-  const updateCharacterMutation = useMutation({
-    mutationFn: async ({ id, char }: { id: string; char: Character }) => {
-      const response = await api.put<Character>(`/characters/${id}`, char);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClientInstance.invalidateQueries({ queryKey: ['characters'] });
-    },
-  });
-
-  const submitReviewMutation = useMutation({
-    mutationFn: async ({ id, char }: { id: string; char: Character }) => {
-      const response = await api.post<Character>(`/characters/${id}/submit-review`, char);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClientInstance.invalidateQueries({ queryKey: ['characters'] });
-    },
-  });
-
-  const deleteCharacterMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await api.delete(`/characters/${id}`);
-    },
-    onSuccess: () => {
-      queryClientInstance.invalidateQueries({ queryKey: ['characters'] });
-    },
-  });
-
-  // Query notes from Spring Boot backend
-  const { data: serverNotes } = useQuery({
-    queryKey: ['notes'],
-    queryFn: async () => {
-      const response = await api.get<any[]>('/notes');
-      return response.data.map((n) => ({
-        id: String(n.id),
-        meta: n.meta || n.title || 'Anotação',
-        content: n.content || '',
-        saveBtnId: `save-${n.id}`,
-      }));
-    },
-    enabled: !!token && !!user,
-  });
-
-  const [notes, setNotes] = useState<Note[]>(() => {
-    try {
-      const saved = localStorage.getItem('daemon_notes');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
-      }
-      return INITIAL_NOTES;
-    } catch (e) {
-      console.error('Error parsing notes from localStorage:', e);
-      return INITIAL_NOTES;
-    }
-  });
-
-  useEffect(() => {
-    if (serverNotes && Array.isArray(serverNotes) && serverNotes.length > 0) {
-      setNotes(serverNotes);
-      localStorage.setItem('daemon_notes', JSON.stringify(serverNotes));
-    }
-  }, [serverNotes]);
-
-  const createNoteMutation = useMutation({
-    mutationFn: async (newNote: Note) => {
-      const payload = {
-        title: newNote.meta || 'Nova Anotação',
-        content: newNote.content || ' ',
-      };
-      const response = await api.post('/notes', payload);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClientInstance.invalidateQueries({ queryKey: ['notes'] });
-    },
-  });
-
-  const updateNoteMutation = useMutation({
-    mutationFn: async ({ id, note }: { id: string; note: Note }) => {
-      const payload = {
-        title: note.meta || 'Anotação',
-        content: note.content || ' ',
-      };
-      const response = await api.put(`/notes/${id}`, payload);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClientInstance.invalidateQueries({ queryKey: ['notes'] });
-    },
-  });
-
-  const deleteNoteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await api.delete(`/notes/${id}`);
-    },
-    onSuccess: () => {
-      queryClientInstance.invalidateQueries({ queryKey: ['notes'] });
-    },
-  });
-
   // Campaign State for Header Dropdown
   const [campaigns, setCampaigns] = useState<Campaign[]>(() => {
     try {
@@ -302,6 +74,24 @@ function MainApp() {
     } catch (e) {}
     return "1";
   });
+
+  const {
+    characters,
+    handleSaveCharacter: saveCharacterWithApi,
+    handleSilentUpdateCharacter,
+    handleDeleteCharacter,
+    handleApproveCharacter,
+    handleRejectCharacter,
+    handleImportCharacters,
+  } = useCharacterMutations(user, token, activeCampaignId);
+
+  const {
+    notes,
+    handleSaveNote,
+    handleAddNote,
+    handleDeleteNote,
+    handleImportNotes,
+  } = useNoteMutations(user, token);
 
   const [showCreateCampaignModal, setShowCreateCampaignModal] = useState(false);
   const [newCampaignName, setNewCampaignName] = useState('');
@@ -388,15 +178,6 @@ function MainApp() {
   const [isMobileUserMenuOpen, setIsMobileUserMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Persist states to local storage
-  useEffect(() => {
-    localStorage.setItem('daemon_characters', JSON.stringify(characters));
-  }, [characters]);
-
-  useEffect(() => {
-    localStorage.setItem('daemon_notes', JSON.stringify(notes));
-  }, [notes]);
-
   useEffect(() => {
     if (user) {
       localStorage.setItem('daemon_user', JSON.stringify(user));
@@ -423,109 +204,16 @@ function MainApp() {
     setActiveScreen('login');
   };
 
-  // Character modifications
   const handleSaveCharacter = (updatedChar: Character) => {
-    const isExisting = characters.some((c) => c.id === updatedChar.id);
-    if (isExisting && updatedChar.id) {
-      if (user?.role === 'dm' || user?.role === 'ROLE_ADMIN') {
-        updateCharacterMutation.mutate({ id: updatedChar.id, char: updatedChar });
-      } else {
-        submitReviewMutation.mutate({ id: updatedChar.id, char: updatedChar });
-      }
-    } else {
-      createCharacterMutation.mutate(updatedChar);
-    }
-
-    setCharacters((prev) => {
-      const idx = prev.findIndex((c) => c.id === updatedChar.id);
-      if (idx !== -1) {
-        const copy = [...prev];
-        copy[idx] = {
-          ...updatedChar,
-          isPendingDMReview: user?.role === 'dm' || user?.role === 'ROLE_ADMIN' ? false : true,
-        };
-        return copy;
-      }
-      return [updatedChar, ...prev];
+    saveCharacterWithApi(updatedChar, () => {
+      setActiveScreen('characters');
     });
-
-    // Return to characters summary
-    setActiveScreen('characters');
-  };
-
-  const handleSilentUpdateCharacter = (updatedChar: Character) => {
-    setCharacters((prev) => {
-      const idx = prev.findIndex((c) => c.id === updatedChar.id);
-      if (idx !== -1) {
-        const copy = [...prev];
-        copy[idx] = updatedChar;
-        return copy;
-      }
-      return prev;
-    });
-  };
-
-  const handleDeleteCharacter = (id: string) => {
-    deleteCharacterMutation.mutate(id);
-    setCharacters((prev) => prev.filter((c) => c.id !== id));
-  };
-
-  const handleApproveCharacter = (id: string) => {
-    setCharacters((prev) =>
-      prev.map((c) => {
-        if (c.id === id && c.isPendingDMReview && c.pendingChanges) {
-          // Merge proposed edits into the main character object and clear pending review
-          return {
-            ...c.pendingChanges,
-            isPendingDMReview: false,
-            pendingChanges: undefined
-          };
-        }
-        return c;
-      })
-    );
-  };
-
-  const handleRejectCharacter = (id: string) => {
-    setCharacters((prev) =>
-      prev.map((c) => {
-        if (c.id === id) {
-          // Discard the proposed edits and clear pending review
-          return {
-            ...c,
-            isPendingDMReview: false,
-            pendingChanges: undefined
-          };
-        }
-        return c;
-      })
-    );
-  };
-
-  // Notes modifications
-  const handleSaveNote = (updatedNote: Note) => {
-    if (updatedNote.id && !updatedNote.id.startsWith('note-')) {
-      updateNoteMutation.mutate({ id: updatedNote.id, note: updatedNote });
-    }
-    setNotes((prev) => prev.map((n) => (n.id === updatedNote.id ? updatedNote : n)));
-  };
-
-  const handleAddNote = (newNote: Note) => {
-    createNoteMutation.mutate(newNote);
-    setNotes((prev) => [newNote, ...prev]);
-  };
-
-  const handleDeleteNote = (id: string) => {
-    if (id && !id.startsWith('note-')) {
-      deleteNoteMutation.mutate(id);
-    }
-    setNotes((prev) => prev.filter((n) => n.id !== id));
   };
 
   // JSON settings restore/import
   const handleImportCampaignData = (data: { characters: Character[]; notes: Note[] }) => {
-    if (data.characters) setCharacters(data.characters);
-    if (data.notes) setNotes(data.notes);
+    if (data.characters) handleImportCharacters(data.characters);
+    if (data.notes) handleImportNotes(data.notes);
   };
 
   // Filter components based on overall top-search
@@ -539,8 +227,16 @@ function MainApp() {
     n.content.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const userRole: 'player' | 'dm' = (user?.role === 'dm' || user?.role === 'ROLE_ADMIN') ? 'dm' : 'player';
+  const currentUserSafe = user ? {
+    id: user.id,
+    name: user.name || user.username || 'Usuário',
+    email: user.email || '',
+    role: userRole,
+  } : null;
+
   // If unauthorized, showcase Login/Signup
-  if (!user) {
+  if (!user || !currentUserSafe) {
     return (
       <AuthView
         initialTab={activeScreen === 'signup' ? 'signup' : 'login'}
@@ -562,7 +258,7 @@ function MainApp() {
         collapsed={sidebarCollapsed}
         setCollapsed={setSidebarCollapsed}
         onLogout={handleLogout}
-        user={user}
+        user={currentUserSafe}
         onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
@@ -757,7 +453,7 @@ function MainApp() {
                 notes={notes}
                 setActiveScreen={setActiveScreen}
                 setCharacterUnderEditId={setCharacterUnderEditId}
-                userRole={user.role}
+                userRole={userRole}
                 onApproveCharacter={handleApproveCharacter}
               />
             )}
@@ -768,7 +464,7 @@ function MainApp() {
                 setActiveScreen={setActiveScreen}
                 setCharacterUnderEditId={setCharacterUnderEditId}
                 onDeleteCharacter={handleDeleteCharacter}
-                userRole={user.role}
+                userRole={userRole}
                 onApproveCharacter={handleApproveCharacter}
                 onRejectCharacter={handleRejectCharacter}
               />
@@ -782,7 +478,7 @@ function MainApp() {
                 onSilentUpdate={handleSilentUpdateCharacter}
                 setActiveScreen={setActiveScreen}
                 onDelete={handleDeleteCharacter}
-                userRole={user.role}
+                userRole={userRole}
                 onApprove={handleApproveCharacter}
                 onReject={handleRejectCharacter}
               />
@@ -799,7 +495,7 @@ function MainApp() {
 
             {activeScreen === 'chronicles' && (
               <ChroniclesView
-                userRole={user.role}
+                userRole={userRole}
                 onNavigateToHistory={() => setActiveScreen('campaign_history')}
               />
             )}
@@ -807,7 +503,7 @@ function MainApp() {
             {activeScreen === 'campaign_history' && (
               <CampaignHistoryView
                 onBack={() => setActiveScreen('chronicles')}
-                userRole={user.role}
+                userRole={userRole}
               />
             )}
 
@@ -815,7 +511,7 @@ function MainApp() {
               <CampaignsView
                 campaigns={campaigns}
                 setCampaigns={setCampaigns}
-                user={user}
+                user={currentUserSafe}
                 activeCampaignId={activeCampaignId}
                 setActiveCampaignId={setActiveCampaignId}
               />
