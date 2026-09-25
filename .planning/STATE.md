@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 3 Completed (Ready for Proposer Loop / Next Phase)
-last_updated: "2026-09-25T01:04:45.292Z"
+status: Phase 4 Completed (Ready for UAT / Proposer Loop)
+last_updated: "2026-09-24T22:26:00.000Z"
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 11
-  completed_plans: 5
-  percent: 40
+  completed_phases: 4
+  total_plans: 16
+  completed_plans: 15
+  percent: 80
 ---
 
 # Estado Atual do Projeto: Chronicles RPG
@@ -20,12 +20,14 @@ progress:
 - **Mapeamento do Codebase Frontend:** Concluído ([.planning/codebase/](file:///c:/Users/murilo.dutra/Documents/chronicles/.planning/codebase))
 - **Fase 1 (Frontend Hygiene & Meta-Harness):** Concluída.
 - **Fase 2 (Setup da Infraestrutura Backend Spring Boot & Docker Postgres / Flyway):** Concluída com UAT 100% aprovado.
-- **Fase 3 (Desenvolvimento da API RESTful Java + Spring Boot):** Concluída com UAT 100% aprovado (6/6 verificações UAT passadas, 4/4 planos executados e 18 testes automatizados passando).
-  - **Plano 03-01 (Segurança & Autenticação JWT):** Concluído.
-  - **Plano 03-02 (Personagens & Validação Daemon JSONB):** Concluído.
-  - **Plano 03-03 (Campanhas & Fluxo DM Review & Anotações):** Concluído (Migration V4 ON DELETE SET NULL aplicada).
-  - **Plano 03-04 (Bestiário Oficial, Grimório e Contratos):** Concluído.
-- **Próximo Passo:** Execução do Proposer Loop (`/gsd-extract-learnings`) ou avanço direto para o planejamento da Fase 4 (Integração Full-Stack React + TypeScript ↔ Spring Boot API).
+- **Fase 3 (Desenvolvimento da API RESTful Java + Spring Boot):** Concluída com UAT 100% aprovado (18 testes automatizados passando).
+- **Fase 4 (Integração Full-Stack React + TypeScript ↔ Spring Boot API):** Concluída com sucesso (5/5 planos executados).
+  - **Plano 04-01 (Setup Cliente HTTP, Interceptors & Zustand):** Concluído.
+  - **Plano 04-02 (Autenticação JWT, Roteamento & Mutations de Login/Signup):** Concluído.
+  - **Plano 04-03 (Dashboard, Character Editor & Bloqueio DM Review):** Concluído.
+  - **Plano 04-04 (Campanhas & Painel CampaignDMReview):** Concluído.
+  - **Plano 04-05 (Anotações, Bestiário Real & Exports):** Concluído.
+- **Próximo Passo:** Execução do Proposer Loop (`/gsd-extract-learnings`) ou avanço para a Fase 5 (Validação UAT, Refinamento e Polimento).
 
 ---
 

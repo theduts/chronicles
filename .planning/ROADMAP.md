@@ -45,11 +45,11 @@
 **Objetivo:** Conectar a interface React existente à API Spring Boot, substituindo os estados mockados por persistência real no Supabase Postgres via API.
 
 ### Tarefas Chave
-- [ ] Criar camada de comunicação HTTP (`src/services/api.ts`) no frontend React usando Axios ou Fetch.
-- [ ] Conectar os fluxos de Login / Cadastro de Usuários.
-- [ ] Integrar a Dashboard de fichas e o Editor de Personagem com os endpoints REST da fase 3.
-- [ ] Integrar a Dashboard de campanhas e o painel de aprovação do mestre (DM Review).
-- [ ] Integrar as telas de anotações, grimório e bestiário.
+- [x] Criar camada de comunicação HTTP (`src/services/api.ts`) no frontend React usando Axios ou Fetch.
+- [x] Conectar os fluxos de Login / Cadastro de Usuários.
+- [x] Integrar a Dashboard de fichas e o Editor de Personagem com os endpoints REST da fase 3.
+- [x] Integrar a Dashboard de campanhas e o painel de aprovação do mestre (DM Review).
+- [x] Integrar as telas de anotações, grimório e bestiário.
 
 ---
 
