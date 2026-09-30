@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Trash2, Edit3, User, Shield, Compass, BookOpen, AlertTriangle, Upload, Sparkles, CheckCircle2, SquareUserRound } from 'lucide-react';
+import { toast } from 'sonner';
+import { Search, Plus, Trash2, Edit3, User, Shield, Compass, BookOpen, AlertTriangle, Upload, Sparkles, SquareUserRound } from 'lucide-react';
 import CustomSelect from './CustomSelect';
 import Modal from './Modal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
@@ -28,43 +29,13 @@ export default function NPCsView({ activeCampaignId, campaigns }: NPCsViewProps)
       const saved = localStorage.getItem('daemon_npcs');
       if (saved) return JSON.parse(saved);
     } catch (e) {}
-    // Initial mock NPCs
-    return [
-      {
-        id: 'npc_1',
-        name: 'Galdor, o Velho',
-        race: 'Humano',
-        occupation: 'Taverneiro e Informante',
-        description: 'Um homem idoso com olhos perspicazes. Dono da estalagem e taverna mais famosa da vila.',
-        notes: 'Sabe sobre os movimentos do Pacto da Serpente nos esgotos.',
-        campaignId: '1'
-      },
-      {
-        id: 'npc_2',
-        name: 'Valéria Sombra-da-Lua',
-        race: 'Elfo Negro',
-        occupation: 'Mercadora de Artefatos Ocultos',
-        description: 'Fria, calculista, sempre vestida de seda escura. Negocia apenas com quem demonstra poder.',
-        notes: 'Possui metade do pergaminho de Arkanun.',
-        campaignId: '1'
-      },
-      {
-        id: 'npc_3',
-        name: 'Inquisidor Marcus',
-        race: 'Humano',
-        occupation: 'Comandante da Guarda Imperial',
-        description: 'Fanático pela ordem. Vê heresia em qualquer magia que não venha do Altar.',
-        notes: 'Sempre desconfiado do grupo.',
-        campaignId: '2'
-      }
-    ];
+    return [];
   });
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingNpc, setEditingNpc] = useState<NPC | null>(null);
-  const [npcToDelete, setNpcToDelete] = useState<NPC | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
 
   // Form states
   const [npcName, setNpcName] = useState('');
@@ -75,13 +46,7 @@ export default function NPCsView({ activeCampaignId, campaigns }: NPCsViewProps)
   const [npcImage, setNpcImage] = useState('');
   const [npcCampaignId, setNpcCampaignId] = useState(activeCampaignId);
 
-  // Toast timer
-  useEffect(() => {
-    if (toastMessage) {
-      const timer = setTimeout(() => setToastMessage(null), 3500);
-      return () => clearTimeout(timer);
-    }
-  }, [toastMessage]);
+  const [npcToDelete, setNpcToDelete] = useState<NPC | null>(null);
 
   // Sync campaign field when active campaign changes
   useEffect(() => {
@@ -187,7 +152,7 @@ export default function NPCsView({ activeCampaignId, campaigns }: NPCsViewProps)
 
       const updated = [newPersona, ...currentPersonas];
       localStorage.setItem('daemon_history_personas', JSON.stringify(updated));
-      setToastMessage(`"${npc.name}" foi promovido(a) a Persona na História da Campanha!`);
+      toast.success(`"${npc.name}" foi promovido(a) a Persona na História da Campanha!`);
     } catch (err) {
       console.error(err);
     }
@@ -222,13 +187,7 @@ export default function NPCsView({ activeCampaignId, campaigns }: NPCsViewProps)
 
   return (
     <div className="space-y-8 pb-24 relative">
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-[200] bg-surface-container border border-primary text-on-surface text-xs px-5 py-3 shadow-2xl flex items-center gap-3 animate-fadeIn">
-          <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-          <span className="font-sans font-medium">{toastMessage}</span>
-        </div>
-      )}
+
 
       {/* Header */}
       <div className="flex flex-col gap-4 border-b border-outline-variant pb-6">

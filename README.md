@@ -62,31 +62,27 @@ chronicles/
 
 ## 🚀 Como Executar
 
-### Pré-requisitos
-- **Node.js** (v18+ recomendado) e **npm** ou **bun**
-- **Java JDK 21** e **Maven** (para o backend)
-- Conta no [Supabase](https://supabase.com) (ou instância PostgreSQL local)
+Consulte o [Guia Completo de Execução e Deployment](docs/DEPLOYMENT.md) para instruções detalhadas sobre desenvolvimento local com Docker Compose, variáveis de ambiente e empacotamento em containers.
 
-### 1. Frontend
+### Resumo Rápido
+
+- **Pré-requisitos:** Node.js 20+, Java JDK 21 e Docker.
+- **Banco e Storage Local:** `docker compose -f docker/docker-compose.yml up -d` (Postgres na porta 4321, MinIO na 9000).
+
+#### 1. Backend (Spring Boot 3 / Java 21)
+```bash
+cd backend
+./mvnw spring-boot:run   # ou .\mvnw spring-boot:run no Windows
+```
+O Flyway aplicará as migrações automaticamente no banco de dados e o Swagger estará acessível em `http://localhost:8080/swagger-ui.html`.
+
+#### 2. Frontend (React + Vite)
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Acesse a aplicação em `http://localhost:5173`.
-
-### 2. Backend
-Configure as variáveis de conexão com o banco no `backend/src/main/resources/application.yml` ou via variáveis de ambiente:
-- `SPRING_DATASOURCE_URL`
-- `SPRING_DATASOURCE_USERNAME`
-- `SPRING_DATASOURCE_PASSWORD`
-
-Execute o Spring Boot:
-```bash
-cd backend
-mvn spring-boot:run
-```
-O Flyway executará as migrações automaticamente no banco de dados e a documentação do Swagger estará acessível em `http://localhost:8080/swagger-ui.html`.
+Acesse a aplicação no navegador em `http://localhost:4000`.
 
 ---
 

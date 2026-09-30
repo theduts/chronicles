@@ -59,6 +59,12 @@ public class CharacterMapper {
         if (request == null) return new CharacterSheet();
 
         return CharacterSheet.builder()
+                .name(request.getName() != null ? request.getName().trim() : null)
+                .race(request.getRace())
+                .classKit(request.getClassKit())
+                .level(request.getLevel())
+                .xp(request.getXp())
+                .portraitUrl(request.getPortraitUrl())
                 .sex(request.getSex())
                 .weight(request.getWeight())
                 .height(request.getHeight())

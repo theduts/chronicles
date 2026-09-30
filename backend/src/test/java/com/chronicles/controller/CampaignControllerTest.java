@@ -22,9 +22,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -32,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class CampaignControllerTest {
 
     @Autowired
@@ -166,5 +169,165 @@ class CampaignControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isPendingDMReview").value(false))
                 .andExpect(jsonPath("$.attributes.con.natural").value(13));
+
+        // 6. Verify DM CANNOT approve their own character
+        Character dmOwnChar = characterRepository.save(Character.builder()
+                .user(dmUser)
+                .campaignId(UUID.fromString(campaignId))
+                .name("DM Self Char")
+                .currentLevel(1)
+                .xp(1000)
+                .isPendingReview(true)
+                .sheet(baseSheet)
+                .proposedSheet(proposedSheet)
+                .build());
+
+        mockMvc.perform(post("/api/campaigns/" + campaignId + "/approve-character/" + dmOwnChar.getId())
+                        .header(HttpHeaders.AUTHORIZATION, dmToken))
+                .andExpect(status().isForbidden());
+
+        // 7. DM levels up player character via campaign endpoint
+        mockMvc.perform(post("/api/campaigns/" + campaignId + "/characters/" + character.getId() + "/level-up")
+                        .header(HttpHeaders.AUTHORIZATION, dmToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.level").value(2));
+    }
+
+    @Test
+    @DisplayName("Campaign membership: should invite player by email and join campaign via code endpoint")
+    void shouldInvitePlayerByEmailAndJoinByCode() throws Exception {
+        // 1. DM creates campaign
+        CampaignRequest createRequest = CampaignRequest.builder()
+                .name("Guerra Táurica")
+                .subtitulo("A marcha do general")
+                .universo("Medieval")
+                .build();
+
+        MvcResult createResult = mockMvc.perform(post("/api/campaigns")
+                        .header(HttpHeaders.AUTHORIZATION, dmToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String campaignId = objectMapper.readTree(createResult.getResponse().getContentAsString())
+                .get("id").asText();
+        String inviteCode = objectMapper.readTree(createResult.getResponse().getContentAsString())
+                .get("inviteCode").asText();
+
+        // 2. DM invites player by email
+        AddPlayerRequest emailInvite = AddPlayerRequest.builder()
+                .email(playerUser.getEmail())
+                .build();
+
+        mockMvc.perform(post("/api/campaigns/" + campaignId + "/players")
+                        .header(HttpHeaders.AUTHORIZATION, dmToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(emailInvite)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.players", hasItem(playerUser.getEmail())));
+
+        // 3. Create another player and test joining via /api/campaigns/join with inviteCode
+        String unique = UUID.randomUUID().toString().substring(0, 8);
+        User player2 = userRepository.save(User.builder()
+                .username("player2_" + unique)
+                .email("player2_" + unique + "@chronicles.com")
+                .passwordHash("hashed")
+                .role(Role.ROLE_USER)
+                .isActive(true)
+                .build());
+        String player2Token = "Bearer " + jwtService.generateToken(player2);
+
+        AddPlayerRequest joinRequest = AddPlayerRequest.builder()
+                .inviteCode(inviteCode)
+                .build();
+
+        mockMvc.perform(post("/api/campaigns/join")
+                        .header(HttpHeaders.AUTHORIZATION, player2Token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(joinRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(campaignId))
+                .andExpect(jsonPath("$.players", hasItem(player2.getEmail())));
+
+        // 4. Test joining with invalid code
+        AddPlayerRequest invalidRequest = AddPlayerRequest.builder()
+                .inviteCode("INVALID99")
+                .build();
+
+        mockMvc.perform(post("/api/campaigns/join")
+                        .header(HttpHeaders.AUTHORIZATION, player2Token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Campaign filtering by role: should separate master campaigns from player campaigns")
+    void shouldFilterCampaignsByRole() throws Exception {
+        // 1. dmUser creates Campaign A (where dmUser is DM)
+        CampaignRequest campARequest = CampaignRequest.builder()
+                .name("Campanha do Mestre A")
+                .subtitulo("Mestrada por dmUser")
+                .universo("Medieval")
+                .build();
+
+        MvcResult campAResult = mockMvc.perform(post("/api/campaigns")
+                        .header(HttpHeaders.AUTHORIZATION, dmToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(campARequest)))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String campAId = objectMapper.readTree(campAResult.getResponse().getContentAsString()).get("id").asText();
+
+        // 2. playerUser creates Campaign B (where playerUser is DM)
+        CampaignRequest campBRequest = CampaignRequest.builder()
+                .name("Campanha do Mestre B")
+                .subtitulo("Mestrada por playerUser")
+                .universo("Cyberpunk")
+                .build();
+
+        MvcResult campBResult = mockMvc.perform(post("/api/campaigns")
+                        .header(HttpHeaders.AUTHORIZATION, playerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(campBRequest)))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String campBId = objectMapper.readTree(campBResult.getResponse().getContentAsString()).get("id").asText();
+        String campBCode = objectMapper.readTree(campBResult.getResponse().getContentAsString()).get("inviteCode").asText();
+
+        // 3. dmUser joins Campaign B as a Player
+        AddPlayerRequest joinRequest = AddPlayerRequest.builder()
+                .inviteCode(campBCode)
+                .build();
+
+        mockMvc.perform(post("/api/campaigns/join")
+                        .header(HttpHeaders.AUTHORIZATION, dmToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(joinRequest)))
+                .andExpect(status().isOk());
+
+        // 4. dmUser queries with role=dm: must only see Campanha A, NOT Campanha B
+        mockMvc.perform(get("/api/campaigns")
+                        .param("role", "dm")
+                        .header(HttpHeaders.AUTHORIZATION, dmToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id").value(campAId));
+
+        // 5. dmUser queries with role=player: must only see Campanha B, NOT Campanha A
+        mockMvc.perform(get("/api/campaigns")
+                        .param("role", "player")
+                        .header(HttpHeaders.AUTHORIZATION, dmToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id").value(campBId));
+
+        // 6. dmUser queries without role: sees both campaigns
+        mockMvc.perform(get("/api/campaigns")
+                        .header(HttpHeaders.AUTHORIZATION, dmToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
     }
 }
+

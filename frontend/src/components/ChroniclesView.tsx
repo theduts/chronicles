@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, Plus, Calendar, MapPin, Eye, BookOpen, Clock, Heart, Edit3, Trash2, Upload } from 'lucide-react';
 import CustomSelect from './CustomSelect';
@@ -156,8 +157,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
   const [newFullText, setNewFullText] = useState('');
   const [newImage, setNewImage] = useState('https://lh3.googleusercontent.com/aida-public/AB6AXuApaoQQsXhFuJ7cnHYim1KAq_ihU2Sf_xG5CGjFEPgNbhiuPsddO96GWeZbOWMENEh5vNo9hBtlfWmRgQPhRtv5jxPFTbN5uyXeZ4upiymyfffad_QDcNvScGlT_8wY0rCE3FfRShqdcJQVPTHEmOYoVObV49PN2V5LgIncvPaxsJSorBU3jFWhZDeZkimJ5F3OBeN8ZV3Dio3Kby7oJK-Ey4wbx3Y_eayiVvFs8RKdviqwJ42g3eL3IbehJn2PWPa2cpxK4qYGy4E');
 
-  // Success Toast State
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
 
   // Edit/Delete State
   const [isEditing, setIsEditing] = useState(false);
@@ -187,8 +187,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
     setChronicles(prev => prev.map(c => c.id === updated.id ? updated : c));
     setSelectedChronicle(updated);
     setIsEditing(false);
-    setToastMessage(`A crônica "${updated.title}" foi atualizada.`);
-    setTimeout(() => setToastMessage(null), 3000);
+    toast.success(`A crônica "${updated.title}" foi atualizada.`);
   };
 
   const [pendingMoveDirection, setPendingMoveDirection] = useState<'forward' | 'backward' | null>(null);
@@ -241,8 +240,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
         const filtered = prev.filter(c => c.id !== chronicleToDelete.id);
         return filtered.map((c, idx) => ({ ...c, session: `SESSÃO ${toRoman(idx + 1)}` }));
       });
-      setToastMessage(`A crônica "${chronicleToDelete.title}" foi apagada dos registros.`);
-      setTimeout(() => setToastMessage(null), 3000);
+      toast.success(`A crônica "${chronicleToDelete.title}" foi apagada dos registros.`);
       setChronicleToDelete(null);
       if (selectedChronicle?.id === chronicleToDelete.id) {
         setSelectedChronicle(null);
@@ -291,8 +289,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
     setNewImage('https://lh3.googleusercontent.com/aida-public/AB6AXuApaoQQsXhFuJ7cnHYim1KAq_ihU2Sf_xG5CGjFEPgNbhiuPsddO96GWeZbOWMENEh5vNo9hBtlfWmRgQPhRtv5jxPFTbN5uyXeZ4upiymyfffad_QDcNvScGlT_8wY0rCE3FfRShqdcJQVPTHEmOYoVObV49PN2V5LgIncvPaxsJSorBU3jFWhZDeZkimJ5F3OBeN8ZV3Dio3Kby7oJK-Ey4wbx3Y_eayiVvFs8RKdviqwJ42g3eL3IbehJn2PWPa2cpxK4qYGy4E');
     
     // Toast confirmation
-    setToastMessage(`A crônica "${newTitle}" foi registrada nos tomos.`);
-    setTimeout(() => setToastMessage(null), 3000);
+    toast.success(`A crônica "${newTitle}" foi registrada nos tomos.`);
   };
 
   // handleDeleteChronicle removed as chronicles are no longer deletable via the cards
@@ -316,12 +313,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
       {/* Visual background overlays */}
       <div className="absolute right-10 top-20 w-80 h-80 bg-primary-container/5 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div id="chronicle-toast" className="fixed top-20 right-4 sm:right-8 bg-primary-container text-on-primary-container px-4 sm:px-6 py-3 sm:py-4 font-sans text-xs font-bold uppercase tracking-widest shadow-2xl border border-primary z-[999] animate-bounce max-w-[90vw] text-center">
-          {toastMessage}
-        </div>
-      )}
+
 
       {/* Header section with styling integrated */}
       <div className="flex flex-col gap-4 border-b border-outline-variant pb-6 shrink-0 relative z-10">

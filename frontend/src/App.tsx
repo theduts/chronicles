@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from './services/api';
 import { Character, Note, ActiveScreen, Campaign } from './types';
 import { useAppStore } from './store/useAppStore';
 import { useNavigationRouting } from './hooks/useNavigationRouting';
@@ -17,6 +18,8 @@ import CampaignHistoryView from './components/CampaignHistoryView';
 import NPCsView from './components/NPCsView';
 import BestiaryView from './components/BestiaryView';
 import CampaignsView from './components/CampaignsView';
+import ViewRoleToggle from './components/ViewRoleToggle';
+import ToastProvider from './components/ui/ToastProvider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,9 +30,59 @@ const queryClient = new QueryClient({
   },
 });
 
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-background text-on-surface">
+          <div className="p-6 bg-surface-container-high border border-red-500/30 rounded-lg max-w-lg shadow-xl">
+            <h2 className="text-xl font-bold text-red-400 mb-2 font-serif">Ocorreu um erro ao renderizar este módulo</h2>
+            <p className="text-xs text-on-surface-variant mb-4 font-mono">
+              {this.state.error?.message || 'Erro inesperado'}
+            </p>
+            <button
+              onClick={() => {
+                this.setState({ hasError: false, error: null });
+                window.location.reload();
+              }}
+              className="px-4 py-2 bg-primary text-on-primary text-xs font-bold uppercase tracking-wider rounded hover:bg-primary/90 transition-colors cursor-pointer"
+            >
+              Recarregar Módulo
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function MainApp() {
-  const { user, token, logout, setUser: setStoreUser } = useAppStore();
+  const { user, token, logout, setUser: setStoreUser, viewRole, toggleViewRole, characterUnderEditId, setCharacterUnderEditId } = useAppStore();
   const { activeScreen, setActiveScreen } = useNavigationRouting();
+  const userRole: 'player' | 'dm' = viewRole;
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('daemon_theme_toggle') !== 'light';
@@ -55,35 +108,60 @@ function MainApp() {
     }
   });
 
-  // Campaign State for Header Dropdown
-  const [campaigns, setCampaigns] = useState<Campaign[]>(() => {
-    try {
-      const saved = localStorage.getItem('daemon_campaigns');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return [
-      { id: "1", name: "Misericórdia Divina", dmEmail: "teste_dm@email.com", players: ["teste_pc@email.com", "MuriloDutra01@gmail.com"] },
-      { id: "2", name: "Sombras de Arkanun", dmEmail: "teste_dm@email.com", players: ["teste_pc@email.com"] }
-    ];
+  const queryClient = useQueryClient();
+
+  // Campaign State fetched from backend REST API
+  const { data: serverCampaigns } = useQuery<Campaign[]>({
+    queryKey: ['campaigns', userRole],
+    queryFn: async () => {
+      const response = await api.get<any[]>('/campaigns', {
+        params: { role: userRole }
+      });
+      return response.data.map(c => ({
+        id: String(c.id),
+        name: c.name,
+        dmEmail: c.dmEmail || '',
+        players: c.players || [],
+        subtitulo: c.subtitulo,
+        universo: c.universo,
+        lore: c.lore,
+        ilustracao: c.ilustracao,
+        inviteCode: c.inviteCode,
+        isDm: c.isDm,
+      }));
+    },
+    enabled: !!token && !!user,
   });
+
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+
+  useEffect(() => {
+    if (serverCampaigns !== undefined) {
+      setCampaigns(serverCampaigns);
+    }
+  }, [serverCampaigns]);
 
   const [activeCampaignId, setActiveCampaignId] = useState<string>(() => {
     try {
       const saved = localStorage.getItem('daemon_active_campaign_id');
-      if (saved) return saved;
+      if (saved && saved !== '1' && saved !== '2') return saved;
     } catch (e) {}
-    return "1";
+    return '';
   });
 
   const {
     characters,
+    isLoadingCharacters,
+    fieldErrors,
     handleSaveCharacter: saveCharacterWithApi,
     handleSilentUpdateCharacter,
     handleDeleteCharacter,
     handleApproveCharacter,
     handleRejectCharacter,
+    handleLevelUpCharacter,
+    levelUpCharacterMutation,
     handleImportCharacters,
-  } = useCharacterMutations(user, token, activeCampaignId);
+  } = useCharacterMutations(user, token, activeCampaignId, userRole);
 
   const {
     notes,
@@ -97,10 +175,6 @@ function MainApp() {
   const [newCampaignName, setNewCampaignName] = useState('');
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [registeredPlayers, setRegisteredPlayers] = useState<string[]>([]);
-
-  useEffect(() => {
-    localStorage.setItem('daemon_campaigns', JSON.stringify(campaigns));
-  }, [campaigns]);
 
   // Load available players from system accounts
   useEffect(() => {
@@ -118,14 +192,12 @@ function MainApp() {
             if (p && p.email) emails.push(p.email);
           });
         }
-        if (!emails.includes('teste_pc@email.com')) emails.push('teste_pc@email.com');
-        if (!emails.includes('MuriloDutra01@gmail.com')) emails.push('MuriloDutra01@gmail.com');
-        setRegisteredPlayers(Array.from(new Set(emails)));
+        setRegisteredPlayers(Array.from(new Set(emails.filter(e => !e.includes('teste_')))));
       } else {
-        setRegisteredPlayers(['teste_pc@email.com', 'MuriloDutra01@gmail.com']);
+        setRegisteredPlayers([]);
       }
     } catch (e) {
-      setRegisteredPlayers(['teste_pc@email.com', 'MuriloDutra01@gmail.com']);
+      setRegisteredPlayers([]);
     }
   }, [showCreateCampaignModal]);
 
@@ -134,11 +206,11 @@ function MainApp() {
     if (!user) return false;
     const userName = (user.name || user.username || '').toLowerCase();
     const userEmail = (user.email || '').toLowerCase();
-    const isDM = user.role === 'dm' || user.role === 'ROLE_ADMIN';
+    const isDM = userRole === 'dm';
     if (isDM) {
-      return c.dmEmail.toLowerCase() === userEmail || c.dmEmail.toLowerCase() === userName || c.dmEmail === 'teste_dm@email.com';
+      return (c.isDm === true) || (!!c.dmEmail && (c.dmEmail.toLowerCase() === userEmail || c.dmEmail.toLowerCase() === userName));
     } else {
-      return c.players.some(p => p.toLowerCase() === userEmail || p.toLowerCase() === userName);
+      return (c.players || []).some(p => p && (p.toLowerCase() === userEmail || p.toLowerCase() === userName));
     }
   });
 
@@ -149,31 +221,42 @@ function MainApp() {
         setActiveCampaignId(visibleCampaigns[0].id);
         localStorage.setItem('daemon_active_campaign_id', visibleCampaigns[0].id);
       }
+    } else {
+      setActiveCampaignId('');
+      localStorage.removeItem('daemon_active_campaign_id');
     }
-  }, [campaigns, user, activeCampaignId]);
+  }, [campaigns, user, activeCampaignId, userRole]);
+
+  const createCampaignModalMutation = useMutation({
+    mutationFn: async (payload: { name: string; subtitulo?: string; universo?: string }) => {
+      const response = await api.post<any>('/campaigns', payload);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      if (data?.id) {
+        const idStr = String(data.id);
+        setActiveCampaignId(idStr);
+        localStorage.setItem('daemon_active_campaign_id', idStr);
+      }
+    },
+  });
 
   const handleCreateCampaign = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCampaignName.trim()) return;
 
-    const newCampId = `camp_${Date.now()}`;
-    const newCamp = {
-      id: newCampId,
+    createCampaignModalMutation.mutate({
       name: newCampaignName.trim(),
-      dmEmail: user?.email || 'teste_dm@email.com',
-      players: selectedPlayers.length > 0 ? selectedPlayers : ['teste_pc@email.com', user?.email].filter(Boolean) as string[]
-    };
-
-    setCampaigns(prev => [...prev, newCamp]);
-    setActiveCampaignId(newCampId);
-    localStorage.setItem('daemon_active_campaign_id', newCampId);
+      subtitulo: '',
+      universo: 'Medieval',
+    });
 
     setNewCampaignName('');
     setSelectedPlayers([]);
     setShowCreateCampaignModal(false);
   };
 
-  const [characterUnderEditId, setCharacterUnderEditId] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileUserMenuOpen, setIsMobileUserMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -216,18 +299,34 @@ function MainApp() {
     if (data.notes) handleImportNotes(data.notes);
   };
 
-  // Filter components based on overall top-search
-  const filteredCharacters = characters.filter((c) =>
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.race.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.classKit.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter components based on overall top-search and active view role
+  const filteredCharacters = characters.filter((c) => {
+    const matchesSearch =
+      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.race.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.classKit.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!matchesSearch) return false;
+
+    if (userRole === 'player') {
+      // In player mode, only show characters owned by current user (or fallback to true if no userId assigned)
+      return !c.userId || c.userId === user?.id;
+    } else {
+      // In DM mode, show campaign characters and NEVER DM's own characters
+      return !c.userId || c.userId !== user?.id;
+    }
+  });
+
+  const handleToggleRole = () => {
+    toggleViewRole();
+    if (activeScreen === 'character_editor') {
+      setActiveScreen('characters');
+    }
+  };
 
   const filteredNotes = notes.filter((n) =>
     n.content.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const userRole: 'player' | 'dm' = (user?.role === 'dm' || user?.role === 'ROLE_ADMIN') ? 'dm' : 'player';
   const currentUserSafe = user ? {
     id: user.id,
     name: user.name || user.username || 'Usuário',
@@ -260,6 +359,7 @@ function MainApp() {
         onLogout={handleLogout}
         user={currentUserSafe}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onToggleRole={handleToggleRole}
       />
 
       {/* Main Column Wrapper */}
@@ -348,9 +448,9 @@ function MainApp() {
             className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-sans font-bold uppercase tracking-wider ${activeScreen === 'characters' || activeScreen === 'character_editor' ? 'text-primary' : 'text-on-surface-variant'}`}
           >
             <span className="material-symbols-outlined text-lg">groups</span>
-            <span>{user.role === 'dm' ? 'Personagens' : 'Meus Personagens'}</span>
+            <span>{userRole === 'dm' ? 'Personagens' : 'Meus Personagens'}</span>
           </button>
-          {user.role === 'dm' && (
+          {userRole === 'dm' && (
             <>
               <button
                 onClick={() => {
@@ -402,6 +502,11 @@ function MainApp() {
               </h3>
               
               <div className="flex flex-col gap-3">
+                <ViewRoleToggle
+                  currentRole={userRole}
+                  onToggle={handleToggleRole}
+                />
+
                 <button
                   onClick={() => {
                     setIsSettingsOpen(true);
@@ -461,27 +566,35 @@ function MainApp() {
             {activeScreen === 'characters' && (
               <CharactersListView
                 characters={filteredCharacters}
+                isLoading={isLoadingCharacters}
                 setActiveScreen={setActiveScreen}
                 setCharacterUnderEditId={setCharacterUnderEditId}
                 onDeleteCharacter={handleDeleteCharacter}
                 userRole={userRole}
                 onApproveCharacter={handleApproveCharacter}
                 onRejectCharacter={handleRejectCharacter}
+                campaigns={visibleCampaigns}
               />
             )}
 
             {activeScreen === 'character_editor' && (
-              <CharacterEditorView
-                characterId={characterUnderEditId}
-                characters={characters}
-                onSave={handleSaveCharacter}
-                onSilentUpdate={handleSilentUpdateCharacter}
-                setActiveScreen={setActiveScreen}
-                onDelete={handleDeleteCharacter}
-                userRole={userRole}
-                onApprove={handleApproveCharacter}
-                onReject={handleRejectCharacter}
-              />
+              <ErrorBoundary>
+                <CharacterEditorView
+                  characterId={characterUnderEditId}
+                  characters={characters}
+                  fieldErrors={fieldErrors}
+                  onSave={handleSaveCharacter}
+                  onSilentUpdate={handleSilentUpdateCharacter}
+                  setActiveScreen={setActiveScreen}
+                  onDelete={handleDeleteCharacter}
+                  userRole={userRole}
+                  onApprove={handleApproveCharacter}
+                  onReject={handleRejectCharacter}
+                  onLevelUp={handleLevelUpCharacter}
+                  isLevelingUp={levelUpCharacterMutation.isPending}
+                  campaigns={campaigns}
+                />
+              </ErrorBoundary>
             )}
 
             {activeScreen === 'notes' && (
@@ -509,7 +622,7 @@ function MainApp() {
 
             {activeScreen === 'campaigns' && (
               <CampaignsView
-                campaigns={campaigns}
+                campaigns={visibleCampaigns}
                 setCampaigns={setCampaigns}
                 user={currentUserSafe}
                 activeCampaignId={activeCampaignId}
@@ -518,11 +631,11 @@ function MainApp() {
             )}
 
             {activeScreen === 'npcs' && (
-              <NPCsView activeCampaignId={activeCampaignId} campaigns={campaigns} />
+              <NPCsView activeCampaignId={activeCampaignId} campaigns={visibleCampaigns} />
             )}
 
             {activeScreen === 'bestiary' && (
-              <BestiaryView activeCampaignId={activeCampaignId} campaigns={campaigns} />
+              <BestiaryView activeCampaignId={activeCampaignId} campaigns={visibleCampaigns} />
             )}
 
           </div>
@@ -655,6 +768,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <MainApp />
+      <ToastProvider />
     </QueryClientProvider>
   );
 }

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Character, ActiveScreen } from '../types';
+import { Character, ActiveScreen, Campaign } from '../types';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { AddButton } from './ActionButtons';
+import CustomSelect from './CustomSelect';
+import { CharacterCardSkeleton } from './ui/Skeleton';
 
 function CharacterCardPortrait({ url, name }: { url?: string; name: string }) {
   const [error, setError] = useState(false);
@@ -43,6 +45,8 @@ interface CharactersListViewProps {
   userRole?: 'player' | 'dm';
   onApproveCharacter?: (id: string) => void;
   onRejectCharacter?: (id: string) => void;
+  campaigns?: Campaign[];
+  isLoading?: boolean;
 }
 
 export default function CharactersListView({
@@ -53,9 +57,12 @@ export default function CharactersListView({
   userRole = 'player',
   onApproveCharacter,
   onRejectCharacter,
+  campaigns = [],
+  isLoading = false,
 }: CharactersListViewProps) {
   const [characterToDelete, setCharacterToDelete] = useState<{ id: string; name: string } | null>(null);
   const [animatingId, setAnimatingId] = useState<{ id: string; type: 'approve' | 'reject' } | null>(null);
+  const [selectedCampaignFilter, setSelectedCampaignFilter] = useState<string>('all');
   
   const triggerApprove = (id: string) => {
     setAnimatingId({ id, type: 'approve' });
@@ -85,14 +92,45 @@ export default function CharactersListView({
     setActiveScreen('character_editor');
   };
 
+  const filteredCharacters = characters.filter((char) => {
+    if (userRole === 'dm' && selectedCampaignFilter !== 'all') {
+      return String(char.campaignId) === selectedCampaignFilter;
+    }
+    return true;
+  });
+
   return (
     <div className="space-y-8 pb-24">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-outline-variant pb-6">
-        <div>
-          <h2 className="font-serif text-3xl md:text-4xl text-on-surface font-medium">
-            {userRole === 'dm' ? 'Personagens' : 'Meus Personagens'}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-outline-variant pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full md:w-auto">
+          <h2 className="font-serif text-3xl md:text-4xl text-on-surface font-medium whitespace-nowrap">
+            {userRole === 'dm' ? 'Personagens da Campanha' : 'Meus Personagens'}
           </h2>
+
+          {/* DM Campaign Filter */}
+          {userRole === 'dm' && (
+            <div className="flex items-center gap-2 bg-surface-container border border-outline-variant/60 px-3 py-1.5 rounded-sm w-full sm:w-auto min-w-[220px]">
+              <span className="material-symbols-outlined text-primary text-base shrink-0">filter_alt</span>
+              <div className="flex-1 min-w-0">
+                <CustomSelect
+                  value={selectedCampaignFilter}
+                  onChange={(e) => setSelectedCampaignFilter(e.target.value)}
+                  size="sm"
+                  variant="ghost"
+                  buttonClassName="py-0.5 px-1 text-xs text-on-surface font-sans"
+                  options={[
+                    { value: 'all', label: 'Todas as Campanhas' },
+                    ...campaigns.map((c) => ({
+                      value: c.id,
+                      label: c.name,
+                      description: c.universo
+                    }))
+                  ]}
+                />
+              </div>
+            </div>
+          )}
         </div>
         {userRole !== 'dm' && (
           <div className="hidden sm:block">
@@ -106,7 +144,20 @@ export default function CharactersListView({
 
       {/* Grid of Characters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {characters.map((char) => (
+        {isLoading ? (
+          Array.from({ length: 8 }).map((_, i) => (
+            <CharacterCardSkeleton key={i} />
+          ))
+        ) : filteredCharacters.length === 0 ? (
+          <div className="col-span-full text-center py-16 px-4 bg-surface-container-low border border-outline-variant/40 p-8 space-y-3">
+            <span className="material-symbols-outlined text-4xl text-outline-variant/60">groups</span>
+            <h3 className="font-serif text-lg text-on-surface font-semibold">Nenhum dado encontrado</h3>
+            <p className="text-xs text-on-surface-variant font-sans">
+              Não conseguimos carregar os dados. Verifique sua conexão e tente novamente.
+            </p>
+          </div>
+        ) : (
+          filteredCharacters.map((char) => (
           <div
             key={char.id}
             className={`group relative bg-surface-container transition-all duration-300 flex flex-col h-[480px] cursor-pointer overflow-hidden ${
@@ -196,7 +247,8 @@ export default function CharactersListView({
               )}
             </div>
           </div>
-        ))}
+        ))
+      )}
       </div>
 
       {/* Floating Mobile Creation Button */}

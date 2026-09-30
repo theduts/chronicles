@@ -45,6 +45,12 @@ export default function AuthView({ onLoginSuccess, initialTab = 'login', onNavig
       }
     },
     onError: (error: any) => {
+      if (error.response?.status === 429) {
+        // On 429, the countdown toast raised by the interceptor is authoritative.
+        // Clear inline banner so it does not contradict the live timer.
+        setErrorMessage(null);
+        return;
+      }
       const msg =
         error.response?.data?.detail ||
         error.response?.data?.message ||

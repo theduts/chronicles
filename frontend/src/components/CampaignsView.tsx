@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
-import { Map, Plus, Trash2, X, Link, Image as ImageIcon, Save, Sparkles, BookOpen, AlertTriangle } from 'lucide-react';
+import { Map, Plus, Trash2, X, Link, Image as ImageIcon, Save, Sparkles, BookOpen, AlertTriangle, UserPlus, Copy, Check, Users } from 'lucide-react';
 import { Campaign } from '../types';
 import CustomSelect from './CustomSelect';
 import Modal from './Modal';
@@ -36,6 +36,17 @@ export default function CampaignsView({
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
+
+  // DM Invite Modal states
+  const [campaignForInvite, setCampaignForInvite] = useState<Campaign | null>(null);
+  const [playerEmailToInvite, setPlayerEmailToInvite] = useState('');
+  const [inviteFeedback, setInviteFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [codeCopied, setCodeCopied] = useState(false);
+
+  // Player Join Modal states
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joinCode, setJoinCode] = useState('');
+  const [joinFeedback, setJoinFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Form states for creation
   const [newCampName, setNewCampName] = useState('');
@@ -104,6 +115,88 @@ export default function CampaignsView({
     },
   });
 
+  const deleteCampaignMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/campaigns/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+    },
+  });
+
+  const addPlayerMutation = useMutation({
+    mutationFn: async ({ campaignId, email }: { campaignId: string; email: string }) => {
+      const response = await api.post<Campaign>(`/campaigns/${campaignId}/players`, { email });
+      return response.data;
+    },
+    onSuccess: (updatedCampaign) => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      setCampaigns(prev => prev.map(c => c.id === updatedCampaign.id ? { ...c, ...updatedCampaign } : c));
+      if (campaignForInvite && campaignForInvite.id === updatedCampaign.id) {
+        setCampaignForInvite(prev => prev ? { ...prev, players: updatedCampaign.players } : null);
+      }
+      setInviteFeedback({ type: 'success', message: 'Jogador vinculado com sucesso!' });
+      setPlayerEmailToInvite('');
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.message || 'Erro ao vincular jogador por e-mail.';
+      setInviteFeedback({ type: 'error', message: msg });
+    },
+  });
+
+  const joinCampaignMutation = useMutation({
+    mutationFn: async (inviteCode: string) => {
+      const response = await api.post<Campaign>('/campaigns/join', { inviteCode });
+      return response.data;
+    },
+    onSuccess: (joinedCamp) => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      if (joinedCamp?.id) {
+        setCampaigns(prev => {
+          const exists = prev.some(c => c.id === joinedCamp.id);
+          return exists ? prev.map(c => c.id === joinedCamp.id ? joinedCamp : c) : [...prev, joinedCamp];
+        });
+        setActiveCampaignId(joinedCamp.id);
+        localStorage.setItem('daemon_active_campaign_id', joinedCamp.id);
+      }
+      setShowJoinModal(false);
+      setJoinCode('');
+      setJoinFeedback(null);
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.message || 'Código de convite inválido ou erro ao ingressar.';
+      setJoinFeedback({ type: 'error', message: msg });
+    },
+  });
+
+  const handleCopyCode = async () => {
+    if (!campaignForInvite?.inviteCode) return;
+    try {
+      await navigator.clipboard.writeText(campaignForInvite.inviteCode);
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy code: ', err);
+    }
+  };
+
+  const handleInvitePlayerSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!campaignForInvite || !playerEmailToInvite.trim()) return;
+    setInviteFeedback(null);
+    addPlayerMutation.mutate({
+      campaignId: campaignForInvite.id,
+      email: playerEmailToInvite.trim()
+    });
+  };
+
+  const handleJoinCampaignSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!joinCode.trim()) return;
+    setJoinFeedback(null);
+    joinCampaignMutation.mutate(joinCode.trim().toUpperCase());
+  };
+
   const handleCreateCampaign = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCampName.trim()) return;
@@ -120,23 +213,15 @@ export default function CampaignsView({
       ilustracao,
     };
 
-    createCampaignMutation.mutate(payload);
-
-    const tempId = `camp_${Date.now()}`;
-    const newCampaign: Campaign = {
-      id: tempId,
-      name: newCampName.trim(),
-      subtitulo: newCampSubtitle.trim(),
-      universo: newCampUniverse,
-      lore: newCampLore.trim(),
-      ilustracao,
-      dmEmail: user.email,
-      players: ['teste_pc@email.com', user.email],
-    };
-
-    setCampaigns(prev => [...prev, newCampaign]);
-    setActiveCampaignId(tempId);
-    localStorage.setItem('daemon_active_campaign_id', tempId);
+    createCampaignMutation.mutate(payload, {
+      onSuccess: (createdCamp) => {
+        if (createdCamp?.id) {
+          setCampaigns(prev => [...prev, createdCamp]);
+          setActiveCampaignId(createdCamp.id);
+          localStorage.setItem('daemon_active_campaign_id', createdCamp.id);
+        }
+      }
+    });
 
     // Reset fields
     setNewCampName('');
@@ -203,6 +288,9 @@ export default function CampaignsView({
   };
 
   const handleRemoveCampaign = (id: string) => {
+    if (id && !id.startsWith('camp_')) {
+      deleteCampaignMutation.mutate(id);
+    }
     setCampaigns(prev => {
       const remaining = prev.filter(c => c.id !== id);
       if (remaining.length > 0 && activeCampaignId === id) {
@@ -218,30 +306,12 @@ export default function CampaignsView({
     setSelectedCampaign(null);
   };
 
-  // Pre-populate lore and attributes on standard campaigns if they are missing
   const enrichedCampaigns = campaigns.map(camp => {
-    let subtitulo = camp.subtitulo;
-    let universo = camp.universo || 'Medieval';
-    let lore = camp.lore;
-    let ilustracao = camp.ilustracao;
-
-    if (camp.id === "1") {
-      if (!subtitulo) subtitulo = "O Julgamento dos Justos na Terra de Cinzas";
-      if (!lore) lore = "Nas profundezas do Sacro Império, a peste e a heresia caminham juntas. Os cavaleiros inquisidores buscam relíquias perdidas enquanto lidam com as forças profanas que emanam das fendas abissais.";
-      if (!ilustracao) ilustracao = DEFAULT_IMAGES.Medieval;
-    } else if (camp.id === "2") {
-      if (!subtitulo) subtitulo = "Segredos Sobrenaturais na Idade Média Tardia";
-      if (!universo) universo = "Cthullu";
-      if (!lore) lore = "Anos após a queda da Ordem do Templo, antigos segredos alquímicos e rituais profanos ressurgem nos vilarejos de Arkanun. Os investigadores enfrentam horrores cósmicos ancestrais.";
-      if (!ilustracao) ilustracao = DEFAULT_IMAGES.Cthullu;
-    }
-
+    const universo = camp.universo || 'Medieval';
     return {
       ...camp,
-      subtitulo,
       universo,
-      lore,
-      ilustracao: ilustracao || DEFAULT_IMAGES[universo]
+      ilustracao: camp.ilustracao || DEFAULT_IMAGES[universo]
     };
   });
 
@@ -258,7 +328,7 @@ export default function CampaignsView({
           </p>
         </div>
 
-        {user.role === 'dm' && (
+        {user.role === 'dm' ? (
           <div className="hidden md:flex justify-end shrink-0">
             <AddButton
               id="btn-new-campaign"
@@ -266,19 +336,38 @@ export default function CampaignsView({
               label="Nova Campanha"
             />
           </div>
+        ) : (
+          <div className="hidden md:flex justify-end shrink-0">
+            <AddButton
+              id="btn-join-campaign"
+              onClick={() => {
+                setJoinFeedback(null);
+                setJoinCode('');
+                setShowJoinModal(true);
+              }}
+              label="Entrar em Campanha"
+              icon={UserPlus}
+            />
+          </div>
         )}
       </div>
 
-      {/* Floating Add Button for Mobile */}
-      {user.role === 'dm' && (
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="md:hidden fixed bottom-[-8px] right-6 w-14 h-14 bg-primary text-on-primary rounded-full hover:bg-primary-container hover:text-on-primary-container transition-all flex items-center justify-center shadow-2xl border border-primary/50 z-40 cursor-pointer"
-          title="Nova Campanha"
-        >
-          <span className="material-symbols-outlined text-2xl">add</span>
-        </button>
-      )}
+      {/* Floating Add / Join Button for Mobile */}
+      <button
+        onClick={() => {
+          if (user.role === 'dm') {
+            setShowCreateModal(true);
+          } else {
+            setJoinFeedback(null);
+            setJoinCode('');
+            setShowJoinModal(true);
+          }
+        }}
+        className="md:hidden fixed bottom-[-8px] right-6 w-14 h-14 bg-primary text-on-primary rounded-full hover:bg-primary-container hover:text-on-primary-container transition-all flex items-center justify-center shadow-2xl border border-primary/50 z-40 cursor-pointer"
+        title={user.role === 'dm' ? "Nova Campanha" : "Entrar em Campanha"}
+      >
+        <span className="material-symbols-outlined text-2xl">{user.role === 'dm' ? 'add' : 'group_add'}</span>
+      </button>
 
       {/* Campaigns Grid */}
       <div id="campaigns-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -342,9 +431,27 @@ export default function CampaignsView({
               <span className="font-sans text-[9px] text-on-surface-variant/50 uppercase tracking-wider">
                 Mestre: <strong className="text-on-surface-variant">{camp.dmEmail === user.email ? 'Você' : camp.dmEmail}</strong>
               </span>
-              <span className="font-sans text-[10px] text-primary group-hover:underline font-bold uppercase tracking-widest flex items-center gap-1">
-                {user.role === 'dm' ? 'Editar' : 'Ver Detalhes'} →
-              </span>
+              <div className="flex items-center gap-2">
+                {(user.role === 'dm' || camp.isDm || camp.dmEmail === user.email) && (
+                  <button
+                    type="button"
+                    title="Vincular Jogadores à Campanha"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setInviteFeedback(null);
+                      setPlayerEmailToInvite('');
+                      setCodeCopied(false);
+                      setCampaignForInvite(camp);
+                    }}
+                    className="p-1.5 text-primary hover:text-on-primary hover:bg-primary/20 border border-primary/30 rounded-none transition-colors cursor-pointer flex items-center justify-center"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                  </button>
+                )}
+                <span className="font-sans text-[10px] text-primary group-hover:underline font-bold uppercase tracking-widest flex items-center gap-1">
+                  {user.role === 'dm' ? 'Editar' : 'Ver Detalhes'} →
+                </span>
+              </div>
             </div>
           </motion.div>
         ))}
@@ -353,15 +460,27 @@ export default function CampaignsView({
           <div className="col-span-full py-16 text-center border border-dashed border-outline-variant/40 bg-surface-container-lowest/20">
             <Map className="w-12 h-12 text-on-surface-variant/30 mx-auto mb-3 stroke-[1.2]" />
             <p className="font-serif text-base text-on-surface-variant font-medium">Nenhuma campanha registrada.</p>
-            {user.role === 'dm' && (
-              <div className="mt-4 flex justify-center">
+            <div className="mt-4 flex justify-center">
+              {user.role === 'dm' ? (
                 <AddButton
                   onClick={() => setShowCreateModal(true)}
                   label="Criar Nova Campanha"
                   variant="secondary"
                 />
-              </div>
-            )}
+              ) : (
+                <AddButton
+                  id="btn-join-campaign-empty"
+                  onClick={() => {
+                    setJoinFeedback(null);
+                    setJoinCode('');
+                    setShowJoinModal(true);
+                  }}
+                  label="Entrar em Campanha"
+                  variant="secondary"
+                  icon={UserPlus}
+                />
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -705,6 +824,173 @@ export default function CampaignsView({
           </>
         }
       />
+
+      {/* MODAL: Vincular Jogadores à Campanha (Visão do Mestre) */}
+      <Modal
+        isOpen={!!campaignForInvite}
+        onClose={() => setCampaignForInvite(null)}
+        title={`Vincular Jogador • ${campaignForInvite?.name || ''}`}
+        icon={<UserPlus className="w-5 h-5 text-primary" />}
+        maxWidth="max-w-lg"
+      >
+        <div className="space-y-6 font-sans text-xs">
+          {/* 1. Código da Campanha */}
+          <div className="bg-surface-container p-4 border border-outline-variant/50 space-y-2">
+            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block">
+              Código da Campanha
+            </label>
+            <p className="text-[11px] text-on-surface-variant/80 leading-relaxed">
+              Compartilhe este código com os jogadores para que eles possam ingressar através do botão <strong>"+ Entrar em campanha"</strong>:
+            </p>
+            <div className="flex items-center gap-2 mt-2">
+              <div className="flex-1 bg-surface-container-highest px-3 py-2 border border-outline-variant font-mono text-sm tracking-widest font-bold text-primary select-all">
+                {campaignForInvite?.inviteCode || 'NÃO GERADO'}
+              </div>
+              <button
+                type="button"
+                onClick={handleCopyCode}
+                className="px-3.5 py-2 border border-primary/50 bg-primary/10 hover:bg-primary hover:text-on-primary text-primary text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+                title="Copiar Código"
+              >
+                {codeCopied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-green-400" />
+                    <span>Copiado!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copiar</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* 2. Email do Jogador */}
+          <form onSubmit={handleInvitePlayerSubmit} className="space-y-3">
+            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block">
+              Email do Jogador
+            </label>
+            <p className="text-[11px] text-on-surface-variant/80 leading-relaxed">
+              Ou inclua diretamente um jogador informando o e-mail cadastrado dele:
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="email"
+                required
+                value={playerEmailToInvite}
+                onChange={(e) => setPlayerEmailToInvite(e.target.value)}
+                placeholder="jogador@email.com"
+                className="flex-1 bg-surface-container border border-outline-variant text-on-surface text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary placeholder-on-surface-variant/40 rounded-none"
+              />
+              <button
+                type="submit"
+                disabled={addPlayerMutation.isPending || !playerEmailToInvite.trim()}
+                className="px-4 py-2.5 bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container font-sans text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+              >
+                {addPlayerMutation.isPending ? 'Vinculando...' : 'Adicionar'}
+              </button>
+            </div>
+
+            {/* Feedback message */}
+            {inviteFeedback && (
+              <div
+                className={`p-2.5 text-xs border ${
+                  inviteFeedback.type === 'success'
+                    ? 'bg-green-950/40 border-green-500/50 text-green-300'
+                    : 'bg-red-950/40 border-red-500/50 text-red-300'
+                }`}
+              >
+                {inviteFeedback.message}
+              </div>
+            )}
+          </form>
+
+          {/* 3. Jogadores Atuais */}
+          <div className="border-t border-outline-variant/30 pt-4">
+            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5" />
+              Jogadores na Campanha ({campaignForInvite?.players?.length || 0})
+            </label>
+            {campaignForInvite?.players && campaignForInvite.players.length > 0 ? (
+              <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                {campaignForInvite.players.map((email, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between px-3 py-1.5 bg-surface-container border border-outline-variant/30 text-xs"
+                  >
+                    <span className="text-on-surface font-medium truncate">{email}</span>
+                    <span className="text-[9px] uppercase font-bold text-on-surface-variant/60 tracking-wider">Jogador</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[11px] text-on-surface-variant/60 italic">Nenhum jogador vinculado ainda.</p>
+            )}
+          </div>
+        </div>
+      </Modal>
+
+      {/* MODAL: Entrar em Campanha (Visão do Jogador) */}
+      <Modal
+        isOpen={showJoinModal}
+        onClose={() => {
+          setShowJoinModal(false);
+          setJoinFeedback(null);
+          setJoinCode('');
+        }}
+        title="Entrar em Campanha"
+        icon={<UserPlus className="w-5 h-5 text-primary" />}
+        maxWidth="max-w-md"
+        onSubmit={handleJoinCampaignSubmit}
+        footer={
+          <div className="flex justify-end w-full">
+            <SaveButton
+              type="submit"
+              disabled={joinCampaignMutation.isPending || !joinCode.trim()}
+              label={joinCampaignMutation.isPending ? "Ingressando..." : "Ingressar na Mesa"}
+              variant="primary-ghost"
+            />
+          </div>
+        }
+      >
+        <div className="space-y-4 font-sans text-xs">
+          <p className="text-xs text-on-surface-variant leading-relaxed">
+            Digite o código de convite fornecido pelo Mestre da crônica para ingressar no grupo de aventureiros.
+          </p>
+
+          <div>
+            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
+              Código da Campanha <span className="text-primary">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              maxLength={20}
+              value={joinCode}
+              onChange={(e) => {
+                setJoinCode(e.target.value.toUpperCase());
+                setJoinFeedback(null);
+              }}
+              placeholder="Ex: 8E54BC71"
+              className="w-full bg-surface-container border border-outline-variant text-on-surface font-mono tracking-widest text-base px-3.5 py-2.5 focus:outline-none focus:border-primary placeholder-on-surface-variant/40 uppercase rounded-none"
+            />
+          </div>
+
+          {joinFeedback && (
+            <div
+              className={`p-2.5 text-xs border ${
+                joinFeedback.type === 'success'
+                  ? 'bg-green-950/40 border-green-500/50 text-green-300'
+                  : 'bg-red-950/40 border-red-500/50 text-red-300'
+              }`}
+            >
+              {joinFeedback.message}
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

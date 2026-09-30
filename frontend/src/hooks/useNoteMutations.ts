@@ -1,12 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Note, User } from '../types';
-import { INITIAL_NOTES } from '../mockData';
 import { api } from '../services/api';
 
 export function useNoteMutations(user: User | null, token: string | null) {
   const queryClient = useQueryClient();
 
-  const { data: notes = INITIAL_NOTES, isLoading: isLoadingNotes } = useQuery<Note[]>({
+  const { data: notes = [], isLoading: isLoadingNotes } = useQuery<Note[]>({
     queryKey: ['notes'],
     queryFn: async () => {
       const response = await api.get<any[]>('/notes');
@@ -18,7 +17,6 @@ export function useNoteMutations(user: User | null, token: string | null) {
       }));
     },
     enabled: !!token && !!user,
-    initialData: INITIAL_NOTES,
   });
 
   const createNoteMutation = useMutation({
@@ -62,21 +60,21 @@ export function useNoteMutations(user: User | null, token: string | null) {
     if (updatedNote.id && !updatedNote.id.startsWith('note-')) {
       updateNoteMutation.mutate({ id: updatedNote.id, note: updatedNote });
     }
-    queryClient.setQueryData<Note[]>(['notes'], (prev = INITIAL_NOTES) =>
+    queryClient.setQueryData<Note[]>(['notes'], (prev = []) =>
       prev.map((n) => (n.id === updatedNote.id ? updatedNote : n))
     );
   };
 
   const handleAddNote = (newNote: Note) => {
     createNoteMutation.mutate(newNote);
-    queryClient.setQueryData<Note[]>(['notes'], (prev = INITIAL_NOTES) => [newNote, ...prev]);
+    queryClient.setQueryData<Note[]>(['notes'], (prev = []) => [newNote, ...prev]);
   };
 
   const handleDeleteNote = (id: string) => {
     if (id && !id.startsWith('note-')) {
       deleteNoteMutation.mutate(id);
     }
-    queryClient.setQueryData<Note[]>(['notes'], (prev = INITIAL_NOTES) => prev.filter((n) => n.id !== id));
+    queryClient.setQueryData<Note[]>(['notes'], (prev = []) => prev.filter((n) => n.id !== id));
   };
 
   const handleImportNotes = (imported: Note[]) => {

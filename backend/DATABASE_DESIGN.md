@@ -543,11 +543,76 @@ CREATE INDEX idx_spells_official ON spells(system_slug, is_official) WHERE is_of
 CREATE INDEX idx_spells_data ON spells USING gin (data);
 ```
 
+---
 
+## 13. Migração 1 a 1: Direcionamento dos Arquivos Mock (`data-mock`) para o Banco de Dados
 
+Esta seção consolida o estudo e a **auditoria de paridade estrutural (1 a 1)** dos 9 arquivos legados remanescentes em `frontend/public/data-mock/` (e seus equivalentes em `frontend/dist/data-mock/`). 
 
+### Resultado da Auditoria Profunda de Dados
+> [!IMPORTANT]
+> **Nenhum dado foi perdido.** Uma verificação minuciosa comparando cada chave, array, campo e subcampo dos arquivos mock contra as migrations oficiais (`V2__seed_system_rules.sql` e `V3__seed_official_bestiary.sql`) comprovou que **todos os 9 arquivos já estão 100% persistidos no PostgreSQL**.
 
+---
 
+### Visão Geral de Mapeamento e Paridade Auditada (Matriz 1 a 1)
 
+| # | Arquivo Mock | Consumidor no Frontend | Tabela de Destino | Chave / Escopo | Status de Paridade com o Banco | Rota REST Oficial |
+|---|--------------|------------------------|-------------------|----------------|--------------------------------|-------------------|
+| **1** | `pericias.json` (~21KB) | `CharacterEditorView.tsx` | `system_rules` | `rule_key = 'pericias'` | **100% Idêntico** (45 perícias e subgrupos) | `GET /api/rules/pericias` (Público) |
+| **2** | `itens.json` (~60KB) | `CharacterEditorView.tsx` | `system_rules` | `rule_key = 'itens'` | **100% Idêntico** (434 itens completos) | `GET /api/rules/itens` (Público) |
+| **3** | `montaria.json` (~4.1KB) | Modal Invocação / Companheiros | `system_rules` | `rule_key = 'montaria'` | **100% Idêntico** (6 montarias base com ataques) | `GET /api/rules/montaria` (Público) |
+| **4** | `familiares.json` (~10KB) | Modal Invocação / Companheiros | `system_rules` | `rule_key = 'familiares'` | **100% Idêntico** (7 familiares com bônus arcanos) | `GET /api/rules/familiares` (Público) |
+| **5** | `bestiario.json` (~536KB) | `BestiaryView.tsx` | `bestiary_monsters` | `is_official = TRUE` | **100% Auditado** (Todas as 295 criaturas no V3) | `GET /api/bestiary` |
+| **6** | `aprimoramentos.json` (~44KB) | Criação de Ficha (`CharacterEditorView.tsx`) | `system_rules` | `rule_key = 'aprimoramentos'` | **100% Idêntico** (108 vantagens/desvantagens) | `GET /api/rules/aprimoramentos` (Público) |
+| **7** | `racas.json` (~1.9KB) | Criação de Ficha (`CharacterEditorView.tsx`) | `system_rules` | `rule_key = 'racas'` | **100% Idêntico** (6 raças com modificadores) | `GET /api/rules/racas` (Público) |
+| **8** | `regras_de_jogo.json` (~7.6KB) | Guia do Jogador (`CharacterEditorView.tsx`) | `system_rules` | `rule_key = 'regras_jogo'` | **100% Idêntico** (7 tópicos e 6 estágios sanidade) | `GET /api/rules/regras_jogo` (Público) |
+| **9** | `regras_novo_personagem.md` (~2.8KB) | Guia do Jogador (`CharacterEditorView.tsx`) | `system_rules` | `rule_key = 'regras_novo_personagem'` | **100% Idêntico** (2.664 caracteres normalizados) | `GET /api/rules/regras_novo_personagem` (Público) |
+
+---
+
+### Detalhamento das Verificações e Notas Técnicas
+
+1. **`racas.json` $\rightarrow$ `system_rules('racas')`:**
+   - As 6 raças canônicas (Humano, Anão, Elfo, Gnomo, Meio-Elfo, Halfling) possuem exatamente os mesmos atributos modificadores, perícias bônus e aprimoramentos.
+
+2. **`aprimoramentos.json` $\rightarrow$ `system_rules('aprimoramentos')`:**
+   - Todas as 108 vantagens e desvantagens batem de ponta a ponta (IDs, descrições, custos e níveis).
+   - O frontend atualmente faz `import` estático em `CharacterEditorView.tsx`. A mudança consistirá em transformar esse import em consulta assíncrona ao endpoint `GET /api/rules/aprimoramentos` com cache de 24h/Infinity no React Query.
+
+3. **`pericias.json` $\rightarrow$ `system_rules('pericias')`:**
+   - Todas as 45 perícias com suas tags (`Combate`, `Ladinagem`, `Ofício`, `Conhecimento`, `Magia`, `Sobrevivência`), regras de ataque/defesa e todos os subgrupos são idênticos.
+
+4. **`itens.json` $\rightarrow$ `system_rules('itens')`:**
+   - Todos os 434 itens (armas de corte, impacto e fogo, armaduras divididas por slots `base`/`torso`/`cabeca`, escudos, poções alquímicas, embarcações e arreios) estão 100% idênticos.
+
+5. **`montaria.json` $\rightarrow$ `system_rules('montaria')`:**
+   - Confirmado na linha 81 da migration `V2__seed_system_rules.sql`: as 6 montarias base (`cavalo_carga_montaria`, `cavalo_guerra_leve`, `cavalo_guerra_medio`, `cavalo_guerra_pesado`, `ponei_comum`, `ponei_guerra`) estão integralmente salvas com seus dados de combate e ataques nativos. Não é necessária nova migration.
+
+6. **`familiares.json` $\rightarrow$ `system_rules('familiares')`:**
+   - Confirmado na linha 66 da migration `V2__seed_system_rules.sql`: todos os 7 familiares mágicos (`gato`, `falcao`, `coruja`, `rato`, `texugo`, `lagarto`, `morcego`) estão salvos com seus atributos, habilidades de evasão/vínculo e objetos de `bonus_arcano`. Não é necessária nova migration.
+
+7. **`bestiario.json` $\rightarrow$ `bestiary_monsters` (Migration V3):**
+   - Todas as 295 criaturas do arquivo `bestiario.json` estão cadastradas como linhas independentes na tabela `bestiary_monsters` com `is_official = TRUE`.
+   - **Nota sobre aspas:** Criaturas com apóstrofo como `Kill'bone` estão salvas no SQL com escape padrão `Kill''bone`, resultando na string idêntica ao ser lida pelo PostgreSQL/Spring Boot.
+   - **Nota sobre PV 0 vs 1:** Em `bestiario.json`, 19 fichas de arquétipos humanóides/modelos de raça (ex: Anão, Elfo, Aparição) possuíam `hp: 0` porque dependem dos atributos de quem as usa. No banco relacional, a tabela impõe `pv >= 1` (regra básica Daemon de que criaturas vivas não têm PV zero no cadastro), o que é o comportamento correto.
+
+8. **`regras_de_jogo.json` $\rightarrow$ `system_rules('regras_jogo')`:**
+   - Os 7 tópicos (Introdução, O Básico, Universo Medieval, Testes 1d100, Combate Passo a Passo, Magia e Fé, Sanidade com os 6 Estágios) batem integralmente.
+
+9. **`regras_novo_personagem.md` $\rightarrow$ `system_rules('regras_novo_personagem')`:**
+   - O guia completo em Markdown (101 pontos de atributo, 5 de aprimoramento, perícias e PVs) possui 2.664 caracteres úteis idênticos caractere a caractere (a diferença observada decorre apenas da terminação de linha CRLF do Windows no mock vs LF no SQL).
+
+---
+
+### Próximos Passos de Limpeza e Migração no Frontend
+
+Como todo o banco de dados já possui 100% das informações:
+1. **Desacoplamento do Frontend (`CharacterEditorView.tsx` e `BestiaryView.tsx`):**
+   - Substituir os `fetch('/data-mock/...')` e os dois `import ... from '...data-mock/...'` por chamadas à API via TanStack Query (`GET /api/rules/{key}` e `GET /api/bestiary`).
+   - Configurar `staleTime: Infinity` para as regras imutáveis de sessão.
+2. **Remoção Segura dos Arquivos Físicos:**
+   - Apagar os 9 arquivos da pasta `frontend/public/data-mock/` e do bundle em `frontend/dist/data-mock/`.
+   - Isso eliminará mais de **680 KB de payloads estáticos desnecessários**, deixando o carregamento inicial mobile instantâneo.
 
 

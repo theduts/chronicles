@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Search, Plus, Trash2, Edit3, Skull, Shield, Heart, Zap, Sparkles, AlertTriangle, Languages, Briefcase, Gift, Compass, PawPrint, Ghost, UserRound, Leaf, Hammer } from 'lucide-react';
 import { api } from '../services/api';
 import CustomSelect from './CustomSelect';
 import Modal from './Modal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { ActionButton, SaveButton, AddButton, DeleteButton } from './ActionButtons';
+import { ListRowSkeleton } from './ui/Skeleton';
 
 export function CreatureIcon({ tipo, className = "w-5 h-5" }: { tipo?: string; className?: string }) {
   const t = (tipo || '').trim().toLowerCase();
@@ -108,6 +110,124 @@ const getSafeAttributes = (entry: BestiaryEntry) => {
   };
 };
 
+const normalizeCreature = (c: any) => {
+  const nome = (c.nome || c.name || '').trim();
+  const tipo = (c.tipo || c.category || '').trim();
+  const pv = typeof c.pv === 'number' ? c.pv : (parseInt(c.pv) || (typeof c.hp === 'number' ? c.hp : (parseInt(c.hp) || 0)));
+  const ip = typeof c.ip === 'number' ? c.ip : (parseInt(c.ip) || 0);
+  const mov = c.deslocamento ?? c.movement ?? '';
+  const deslocamento = typeof mov === 'number' ? mov : (parseInt(mov) || 0);
+  const atributos = c.atributos || c.attributes || {};
+  const habilidades = c.habilidades || c.abilities || [];
+  const descricao = c.descricao || c.description || (Array.isArray(habilidades) && habilidades.length > 0
+    ? habilidades.map((h: any) => `${h.habilidade || h.name || ''}: ${h.descricao_habilidade || h.description || ''}`).join('; ')
+    : '');
+
+  return {
+    ...c,
+    nome,
+    name: nome,
+    tipo,
+    category: tipo,
+    pv,
+    hp: pv,
+    ip,
+    deslocamento,
+    movement: deslocamento,
+    descricao,
+    description: descricao,
+    observacoes: c.observacoes || '',
+    atributos: {
+      CON: atributos.CON ?? 10,
+      FR: atributos.FR ?? atributos.FOR ?? 10,
+      FOR: atributos.FOR ?? atributos.FR ?? 10,
+      DEX: atributos.DEX ?? 10,
+      AGI: atributos.AGI ?? 10,
+      INT: atributos.INT ?? 10,
+      WILL: atributos.WILL ?? 10,
+      PER: atributos.PER ?? 10,
+      CAR: atributos.CAR ?? 10,
+    },
+    attributes: {
+      CON: atributos.CON ?? 10,
+      FR: atributos.FR ?? atributos.FOR ?? 10,
+      FOR: atributos.FOR ?? atributos.FR ?? 10,
+      DEX: atributos.DEX ?? 10,
+      AGI: atributos.AGI ?? 10,
+      INT: atributos.INT ?? 10,
+      WILL: atributos.WILL ?? 10,
+      PER: atributos.PER ?? 10,
+      CAR: atributos.CAR ?? 10,
+    },
+    habilidades: Array.isArray(habilidades)
+      ? habilidades.map((h: any) => ({
+          habilidade: h.habilidade || h.name || '',
+          descricao_habilidade: h.descricao_habilidade || h.description || ''
+        }))
+      : [],
+    vantagens: Array.isArray(c.vantagens) ? c.vantagens : [],
+    desvantagens: Array.isArray(c.desvantagens) ? c.desvantagens : [],
+    idiomas: Array.isArray(c.idiomas) ? c.idiomas : [],
+    equipamentos: Array.isArray(c.equipamentos) ? c.equipamentos : [],
+    loot: Array.isArray(c.loot) ? c.loot : [],
+    resistencias: Array.isArray(c.resistencias) ? c.resistencias : [],
+    fraquezas: Array.isArray(c.fraquezas) ? c.fraquezas : [],
+    imunidades: Array.isArray(c.imunidades) ? c.imunidades : [],
+  };
+};
+
+const processCreatures = (rawList: any[]) => {
+  if (!Array.isArray(rawList)) return [];
+  const normalized = rawList.map(normalizeCreature);
+  const seen = new Set<string>();
+  return normalized.filter((item) => {
+    const key = item.nome.toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
+const isValidUUID = (id?: string | null): boolean =>
+  Boolean(id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
+
+const toBestiaryEntry = (m: any): BestiaryEntry => {
+  const attrs = m.attributes || m.atributos || {};
+  const habs = m.abilities || m.habilidades || [];
+  return {
+    id: String(m.id),
+    campaignId: m.campaignId || '',
+    name: m.name || m.nome || '',
+    hp: typeof m.pv === 'number' ? m.pv : (parseInt(m.pv) || (typeof m.hp === 'number' ? m.hp : (parseInt(m.hp) || 10))),
+    ip: typeof m.ip === 'number' ? m.ip : (parseInt(m.ip) || 0),
+    tipo: m.category || m.tipo || undefined,
+    deslocamento: typeof m.movement === 'number' ? m.movement : (parseInt(m.movement) || (typeof m.deslocamento === 'number' ? m.deslocamento : (parseInt(m.deslocamento) || undefined))),
+    skills: attrs.skills || (typeof m.skills === 'string' ? m.skills : ''),
+    description: attrs.description || m.description || m.descricao || '',
+    observacoes: attrs.observacoes || m.observacoes || undefined,
+    attributes: {
+      CON: attrs.CON ?? 10,
+      FR: attrs.FR ?? attrs.FOR ?? 10,
+      FOR: attrs.FOR ?? attrs.FR ?? 10,
+      DEX: attrs.DEX ?? 10,
+      AGI: attrs.AGI ?? 10,
+      INT: attrs.INT ?? 10,
+      WILL: attrs.WILL ?? 10,
+      PER: attrs.PER ?? 10,
+      CAR: attrs.CAR ?? 10,
+    },
+    habilidades: Array.isArray(habs) ? habs : [],
+    vantagens: Array.isArray(attrs.vantagens) ? attrs.vantagens : (Array.isArray(m.vantagens) ? m.vantagens : []),
+    desvantagens: Array.isArray(attrs.desvantagens) ? attrs.desvantagens : (Array.isArray(m.desvantagens) ? m.desvantagens : []),
+    idiomas: Array.isArray(attrs.idiomas) ? attrs.idiomas : (Array.isArray(m.idiomas) ? m.idiomas : []),
+    equipamentos: Array.isArray(attrs.equipamentos) ? attrs.equipamentos : (Array.isArray(m.equipamentos) ? m.equipamentos : []),
+    loot: Array.isArray(attrs.loot) ? attrs.loot : (Array.isArray(m.loot) ? m.loot : []),
+    resistencias: Array.isArray(attrs.resistencias) ? attrs.resistencias : (Array.isArray(m.resistencias) ? m.resistencias : []),
+    fraquezas: Array.isArray(attrs.fraquezas) ? attrs.fraquezas : (Array.isArray(m.fraquezas) ? m.fraquezas : []),
+    imunidades: Array.isArray(attrs.imunidades) ? attrs.imunidades : (Array.isArray(m.imunidades) ? m.imunidades : []),
+  };
+};
+
 interface BestiaryViewProps {
   activeCampaignId: string;
   campaigns: { id: string; name: string }[];
@@ -133,6 +253,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
   });
 
   const [baseCreatures, setBaseCreatures] = useState<any[]>([]);
+  const [isLoadingBase, setIsLoadingBase] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingEntry, setEditingEntry] = useState<BestiaryEntry | null>(null);
@@ -179,30 +300,97 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
   const [fraquezas, setFraquezas] = useState('');
   const [imunidades, setImunidades] = useState('');
 
-  // Load baseline creatures on mount
+  // Load baseline creatures and campaign custom monsters on mount or campaign change
   useEffect(() => {
-    api.get<any[]>('/bestiary')
-      .then((res) => {
+    let isMounted = true;
+    const fetchMonsters = async () => {
+      try {
+        const url = isValidUUID(activeCampaignId)
+          ? `/bestiary?campaignId=${activeCampaignId}`
+          : '/bestiary';
+        const res = await api.get<any[]>(url);
+        if (!isMounted) return;
+
         if (Array.isArray(res.data) && res.data.length > 0) {
-          setBaseCreatures(res.data);
+          const all = res.data;
+          // Official baseline creatures
+          const official = all.filter((m) => m.isOfficial !== false && !m.campaignId);
+          setBaseCreatures(processCreatures(official));
+
+          // Campaign custom monsters
+          const campaignMonsters = all.filter(
+            (m) => m.isOfficial === false || (m.campaignId && m.campaignId === activeCampaignId)
+          );
+          let loadedEntries = campaignMonsters.map(toBestiaryEntry);
+
+          // Check if there are local storage entries to migrate to the backend
+          try {
+            const saved = localStorage.getItem('daemon_bestiary');
+            if (saved) {
+              const localList = JSON.parse(saved);
+              if (Array.isArray(localList) && localList.length > 0 && isValidUUID(activeCampaignId)) {
+                const toMigrate = localList.filter(
+                  (e: any) => e.campaignId === activeCampaignId && String(e.id).startsWith('be_')
+                );
+                for (const item of toMigrate) {
+                  try {
+                    const postPayload = {
+                      name: item.name || item.nome,
+                      category: item.tipo || 'MONSTRO',
+                      pv: typeof item.hp === 'number' ? item.hp : 10,
+                      ip: typeof item.ip === 'number' ? item.ip : 0,
+                      movement: item.deslocamento ? `${item.deslocamento}m` : '0m',
+                      attributes: {
+                        ...(item.attributes || {}),
+                        skills: item.skills || '',
+                        description: item.description || '',
+                        observacoes: item.observacoes || '',
+                        vantagens: item.vantagens || [],
+                        desvantagens: item.desvantagens || [],
+                        idiomas: item.idiomas || [],
+                        equipamentos: item.equipamentos || [],
+                        loot: item.loot || [],
+                        resistencias: item.resistencias || [],
+                        fraquezas: item.fraquezas || [],
+                        imunidades: item.imunidades || [],
+                      },
+                      abilities: item.habilidades || [],
+                      campaignId: activeCampaignId,
+                    };
+                    const migRes = await api.post('/bestiary', postPayload);
+                    loadedEntries.push(toBestiaryEntry(migRes.data));
+                  } catch (e) {
+                    console.error('Falha ao migrar criatura local para a API:', e);
+                  }
+                }
+                const remaining = localList.filter((e: any) => !toMigrate.includes(e));
+                localStorage.setItem('daemon_bestiary', JSON.stringify(remaining));
+              }
+            }
+          } catch (e) {
+            console.error('Erro na migração do localStorage:', e);
+          }
+
+          setEntries(loadedEntries);
+          if (isMounted) setIsLoadingBase(false);
         } else {
-          return fetch('/data-mock/bestiario.json')
-            .then((r) => r.json())
-            .then((d) => Array.isArray(d) && setBaseCreatures(d));
+          setBaseCreatures([]);
+          if (isMounted) setIsLoadingBase(false);
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error('Erro ao buscar monstros da API:', err);
-        fetch('/data-mock/bestiario.json')
-          .then((res) => res.json())
-          .then((data) => {
-            if (Array.isArray(data)) setBaseCreatures(data);
-          })
-          .catch((e) => console.error('Fallback bestiario.json erro:', e));
-      });
+        toast.error('Não foi possível carregar as criaturas do bestiário.');
+        if (isMounted) setIsLoadingBase(false);
+      }
+    };
+
+    fetchMonsters();
+    return () => {
+      isMounted = false;
+    };
   }, [activeCampaignId]);
 
-  // Save to localStorage
+  // Save to localStorage (cache/fallback)
   const saveEntries = (updatedList: BestiaryEntry[]) => {
     setEntries(updatedList);
     localStorage.setItem('daemon_bestiary', JSON.stringify(updatedList));
@@ -286,17 +474,18 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
     setSelectedBaseName(creatureName);
     if (!creatureName) return;
 
-    const creature = baseCreatures.find((c) => c.nome === creatureName);
+    const creature = baseCreatures.find((c) => (c.nome || c.name) === creatureName);
     if (creature) {
-      setName(creature.nome || '');
-      setTipo(creature.tipo || '');
+      setName(creature.nome || creature.name || '');
+      setTipo(creature.tipo || creature.category || '');
       setHp(typeof creature.pv === 'number' ? creature.pv : (parseInt(creature.pv) || 0));
       setIp(typeof creature.ip === 'number' ? creature.ip : (parseInt(creature.ip) || 0));
-      setDeslocamento(typeof creature.deslocamento === 'number' ? creature.deslocamento : (parseInt(creature.deslocamento) || 0));
-      setDescription(creature.descricao || '');
+      const mov = creature.deslocamento ?? creature.movement;
+      setDeslocamento(typeof mov === 'number' ? mov : (parseInt(mov) || 0));
+      setDescription(creature.descricao || creature.description || '');
       setObservacoes(creature.observacoes || '');
 
-      const attrs = creature.atributos || {};
+      const attrs = creature.atributos || creature.attributes || {};
       setCon(attrs.CON ?? 10);
       setFr(attrs.FR ?? attrs.FOR ?? 10);
       setDex(attrs.DEX ?? 10);
@@ -306,15 +495,16 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
       setPer(attrs.PER ?? 10);
       setCar(attrs.CAR ?? 10);
 
-      setHabilidadesList(creature.habilidades ?? []);
-      setVantagens(creature.vantagens ? creature.vantagens.join(', ') : '');
-      setDesvantagens(creature.desvantagens ? creature.desvantagens.join(', ') : '');
-      setIdiomas(creature.idiomas ? creature.idiomas.join(', ') : '');
-      setEquipamentos(creature.equipamentos ? creature.equipamentos.join(', ') : '');
-      setLoot(creature.loot ? creature.loot.join(', ') : '');
-      setResistencias(creature.resistencias ? creature.resistencias.join(', ') : '');
-      setFraquezas(creature.fraquezas ? creature.fraquezas.join(', ') : '');
-      setImunidades(creature.imunidades ? creature.imunidades.join(', ') : '');
+      const habs = creature.habilidades || creature.abilities || [];
+      setHabilidadesList(Array.isArray(habs) ? habs : []);
+      setVantagens(Array.isArray(creature.vantagens) ? creature.vantagens.join(', ') : (creature.vantagens || ''));
+      setDesvantagens(Array.isArray(creature.desvantagens) ? creature.desvantagens.join(', ') : (creature.desvantagens || ''));
+      setIdiomas(Array.isArray(creature.idiomas) ? creature.idiomas.join(', ') : (creature.idiomas || ''));
+      setEquipamentos(Array.isArray(creature.equipamentos) ? creature.equipamentos.join(', ') : (creature.equipamentos || ''));
+      setLoot(Array.isArray(creature.loot) ? creature.loot.join(', ') : (creature.loot || ''));
+      setResistencias(Array.isArray(creature.resistencias) ? creature.resistencias.join(', ') : (creature.resistencias || ''));
+      setFraquezas(Array.isArray(creature.fraquezas) ? creature.fraquezas.join(', ') : (creature.fraquezas || ''));
+      setImunidades(Array.isArray(creature.imunidades) ? creature.imunidades.join(', ') : (creature.imunidades || ''));
     }
   };
 
@@ -335,36 +525,27 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
     setHabilidadesList(habilidadesList.filter((_, i) => i !== index));
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-
-    const attributesData = {
-      CON: con,
-      FR: fr,
-      DEX: dex,
-      AGI: agi,
-      INT: int,
-      WILL: will,
-      PER: per,
-      CAR: car
-    };
 
     const parseCommaSeparated = (val: string) => {
       return val ? val.split(',').map((s) => s.trim()).filter(Boolean) : [];
     };
 
-    const updatedEntry: Partial<BestiaryEntry> = {
-      name: name.trim(),
-      hp: hp === '' ? 10 : Number(hp),
-      ip: ip === '' ? 0 : Number(ip),
-      tipo: tipo.trim() || undefined,
-      deslocamento: deslocamento === '' ? undefined : Number(deslocamento),
+    const attributesData = {
+      CON: con,
+      FR: fr,
+      FOR: fr,
+      DEX: dex,
+      AGI: agi,
+      INT: int,
+      WILL: will,
+      PER: per,
+      CAR: car,
       skills: skills.trim(),
       description: description.trim(),
       observacoes: observacoes.trim() || undefined,
-      attributes: attributesData,
-      habilidades: habilidadesList,
       vantagens: parseCommaSeparated(vantagens),
       desvantagens: parseCommaSeparated(desvantagens),
       idiomas: parseCommaSeparated(idiomas),
@@ -375,40 +556,90 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
       imunidades: parseCommaSeparated(imunidades),
     };
 
+    const payload = {
+      name: name.trim(),
+      category: tipo.trim() || 'MONSTRO',
+      pv: hp === '' ? 10 : Math.max(1, Number(hp)),
+      ip: ip === '' ? 0 : Math.max(0, Number(ip)),
+      movement: deslocamento === '' ? undefined : `${deslocamento}m`,
+      attributes: attributesData,
+      abilities: habilidadesList,
+      campaignId: isValidUUID(activeCampaignId) ? activeCampaignId : undefined,
+    };
+
     if (editingEntry) {
-      const updated = entries.map((item) =>
-        item.id === editingEntry.id
-          ? {
-              ...item,
-              ...updatedEntry,
-            }
-          : item
-      );
-      saveEntries(updated);
+      if (isValidUUID(editingEntry.id)) {
+        try {
+          const res = await api.put(`/bestiary/${editingEntry.id}`, payload);
+          const updated = entries.map((item) =>
+            item.id === editingEntry.id ? toBestiaryEntry(res.data) : item
+          );
+          saveEntries(updated);
+        } catch (err) {
+          console.error('Erro ao atualizar criatura na API:', err);
+        }
+      } else {
+        const updated = entries.map((item) =>
+          item.id === editingEntry.id
+            ? {
+                ...item,
+                name: payload.name,
+                hp: payload.pv,
+                ip: payload.ip,
+                tipo: payload.category,
+                deslocamento: deslocamento === '' ? undefined : Number(deslocamento),
+                skills: skills.trim(),
+                description: description.trim(),
+                observacoes: observacoes.trim() || undefined,
+                attributes: attributesData,
+                habilidades: habilidadesList,
+                vantagens: parseCommaSeparated(vantagens),
+                desvantagens: parseCommaSeparated(desvantagens),
+                idiomas: parseCommaSeparated(idiomas),
+                equipamentos: parseCommaSeparated(equipamentos),
+                loot: parseCommaSeparated(loot),
+                resistencias: parseCommaSeparated(resistencias),
+                fraquezas: parseCommaSeparated(fraquezas),
+                imunidades: parseCommaSeparated(imunidades),
+              }
+            : item
+        );
+        saveEntries(updated as any);
+      }
     } else {
-      const newEntry: BestiaryEntry = {
-        id: `be_${Date.now()}`,
-        campaignId: activeCampaignId,
-        name: updatedEntry.name!,
-        hp: updatedEntry.hp!,
-        ip: updatedEntry.ip!,
-        tipo: updatedEntry.tipo,
-        deslocamento: updatedEntry.deslocamento,
-        skills: updatedEntry.skills!,
-        description: updatedEntry.description!,
-        observacoes: updatedEntry.observacoes,
-        attributes: updatedEntry.attributes,
-        habilidades: updatedEntry.habilidades,
-        vantagens: updatedEntry.vantagens,
-        desvantagens: updatedEntry.desvantagens,
-        idiomas: updatedEntry.idiomas,
-        equipamentos: updatedEntry.equipamentos,
-        loot: updatedEntry.loot,
-        resistencias: updatedEntry.resistencias,
-        fraquezas: updatedEntry.fraquezas,
-        imunidades: updatedEntry.imunidades,
-      };
-      saveEntries([...entries, newEntry]);
+      if (isValidUUID(activeCampaignId)) {
+        try {
+          const res = await api.post('/bestiary', payload);
+          const created = toBestiaryEntry(res.data);
+          saveEntries([...entries, created]);
+        } catch (err) {
+          console.error('Erro ao criar criatura na API:', err);
+        }
+      } else {
+        const newEntry: BestiaryEntry = {
+          id: `be_${Date.now()}`,
+          campaignId: activeCampaignId,
+          name: payload.name,
+          hp: payload.pv,
+          ip: payload.ip,
+          tipo: payload.category,
+          deslocamento: deslocamento === '' ? undefined : Number(deslocamento),
+          skills: skills.trim(),
+          description: description.trim(),
+          observacoes: observacoes.trim() || undefined,
+          attributes: attributesData,
+          habilidades: habilidadesList,
+          vantagens: parseCommaSeparated(vantagens),
+          desvantagens: parseCommaSeparated(desvantagens),
+          idiomas: parseCommaSeparated(idiomas),
+          equipamentos: parseCommaSeparated(equipamentos),
+          loot: parseCommaSeparated(loot),
+          resistencias: parseCommaSeparated(resistencias),
+          fraquezas: parseCommaSeparated(fraquezas),
+          imunidades: parseCommaSeparated(imunidades),
+        };
+        saveEntries([...entries, newEntry]);
+      }
     }
     setShowModal(false);
   };
@@ -420,8 +651,15 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
     }
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (beastToDelete) {
+      if (isValidUUID(beastToDelete.id)) {
+        try {
+          await api.delete(`/bestiary/${beastToDelete.id}`);
+        } catch (err) {
+          console.error('Erro ao excluir criatura na API:', err);
+        }
+      }
       const updated = entries.filter((item) => item.id !== beastToDelete.id);
       saveEntries(updated);
       setBeastToDelete(null);
@@ -431,29 +669,35 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
   // Filter entries by active campaign and search query
   const filteredEntries = entries.filter((item) => {
     const matchesCampaign = item.campaignId === activeCampaignId;
+    const s = searchTerm.toLowerCase();
     const matchesSearch =
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.tipo && item.tipo.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (item.skills && item.skills.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (item.observacoes && item.observacoes.toLowerCase().includes(searchTerm.toLowerCase()));
+      (item.name || '').toLowerCase().includes(s) ||
+      (item.description || '').toLowerCase().includes(s) ||
+      (item.tipo && item.tipo.toLowerCase().includes(s)) ||
+      (item.skills && item.skills.toLowerCase().includes(s)) ||
+      (item.observacoes && item.observacoes.toLowerCase().includes(s));
     return matchesCampaign && matchesSearch;
   });
 
   const activeCampaignName = campaigns.find((c) => c.id === activeCampaignId)?.name || 'Campanha Ativa';
 
   const filteredBaseCreatures = baseCreatures.filter((item) => {
-    const matchesSearch = modalSearchBase === '' || 
-      item.nome.toLowerCase().includes(modalSearchBase.toLowerCase()) ||
-      (item.tipo && item.tipo.toLowerCase().includes(modalSearchBase.toLowerCase())) ||
-      (item.descricao && item.descricao.toLowerCase().includes(modalSearchBase.toLowerCase()));
+    const nome = (item.nome || item.name || '').toLowerCase();
+    const tipo = (item.tipo || item.category || '').toLowerCase();
+    const desc = (item.descricao || item.description || '').toLowerCase();
+    const search = (modalSearchBase || '').toLowerCase().trim();
+
+    const matchesSearch = search === '' || 
+      nome.includes(search) ||
+      tipo.includes(search) ||
+      desc.includes(search);
 
     if (modalSelectedType === 'Todos') {
       return matchesSearch;
     }
 
-    const t = (item.tipo || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const sel = modalSelectedType.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const t = tipo.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const sel = (modalSelectedType || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
     let matchesType = false;
     if (sel === 'animal') matchesType = t.includes('animal');
@@ -465,6 +709,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
     else if (sel === 'monstro') matchesType = t.includes('monstro');
     else if (sel === 'morto vivo') matchesType = t.includes('morto');
     else if (sel === 'planta') matchesType = t.includes('planta') || t.includes('fung');
+    else matchesType = t.includes(sel);
 
     return matchesSearch && matchesType;
   });
@@ -726,23 +971,31 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                   {/* Select Dropdown & Info */}
                   <div className="space-y-2 pt-3 border-t border-outline-variant/10">
                     <label className="text-[9px] font-bold text-primary uppercase tracking-wider block">Selecione o Modelo Encontrado</label>
-                    <CustomSelect
-                      value={selectedBaseName}
-                      onChange={(e) => handleLoadBaseCreature(e.target.value)}
-                      placeholder="-- Selecione um modelo do Bestiário --"
-                      id="select-base-creature"
-                      variant="parchment"
-                      options={[
-                        { value: "", label: "-- Selecione um modelo do Bestiário --" },
-                        ...filteredBaseCreatures.map((item) => ({
-                          value: item.nome,
-                          label: `${item.nome} (${item.tipo || 'Sem Tipo'})`
-                        }))
-                      ]}
-                    />
-                    <p className="text-[10px] text-outline leading-tight font-sans">
-                      * Selecionar uma criatura irá preencher automaticamente todos os atributos e habilidades do bestiário oficial. ({filteredBaseCreatures.length} modelos encontrados)
-                    </p>
+                    {isLoadingBase ? (
+                      <div className="space-y-2 py-2">
+                        <ListRowSkeleton />
+                      </div>
+                    ) : (
+                      <>
+                        <CustomSelect
+                          value={selectedBaseName}
+                          onChange={(e) => handleLoadBaseCreature(e.target.value)}
+                          placeholder="-- Selecione um modelo do Bestiário --"
+                          id="select-base-creature"
+                          variant="parchment"
+                          options={[
+                            { value: "", label: "-- Selecione um modelo do Bestiário --" },
+                            ...filteredBaseCreatures.map((item) => ({
+                              value: item.nome || item.name || '',
+                              label: `${item.nome || item.name} (${item.tipo || item.category || 'Sem Tipo'})`
+                            }))
+                          ]}
+                        />
+                        <p className="text-[10px] text-outline leading-tight font-sans">
+                          * Selecionar uma criatura irá preencher automaticamente todos os atributos e habilidades do bestiário oficial. ({filteredBaseCreatures.length} modelos encontrados)
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
               )}

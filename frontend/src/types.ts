@@ -63,6 +63,7 @@ export interface Character {
   xp: number;
   portraitUrl: string;
   campaignId?: string;
+  userId?: string;
   attributes: CharacterAttributes;
   statusPoints: {
     vida: StatPoint;
@@ -241,6 +242,8 @@ export interface Campaign {
   universo?: 'Medieval' | 'Cyberpunk' | 'Cthullu' | 'Outro';
   lore?: string;
   ilustracao?: string; // image link or base64
+  inviteCode?: string;
+  isDm?: boolean;
 }
 
 export interface User {

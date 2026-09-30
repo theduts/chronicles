@@ -2,6 +2,7 @@ package com.chronicles.service;
 
 import com.chronicles.domain.*;
 import com.chronicles.domain.Character;
+import com.chronicles.domain.jsonb.CharacterSheet;
 import com.chronicles.dto.campaign.AddPlayerRequest;
 import com.chronicles.dto.campaign.CampaignRequest;
 import com.chronicles.dto.campaign.CampaignResponse;
@@ -32,8 +33,21 @@ public class CampaignService {
 
     @Transactional(readOnly = true)
     public List<CampaignResponse> getCampaignsForUser(User user) {
-        return campaignRepository.findAllForUser(user.getId())
-                .stream()
+        return getCampaignsForUser(user, null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CampaignResponse> getCampaignsForUser(User user, String role) {
+        List<Campaign> campaigns;
+        if ("dm".equalsIgnoreCase(role) || "mestre".equalsIgnoreCase(role)) {
+            campaigns = campaignRepository.findAllByDmId(user.getId());
+        } else if ("player".equalsIgnoreCase(role) || "jogador".equalsIgnoreCase(role)) {
+            campaigns = campaignRepository.findAllByPlayerUserId(user.getId());
+        } else {
+            campaigns = campaignRepository.findAllForUser(user.getId());
+        }
+
+        return campaigns.stream()
                 .map(c -> toResponse(c, user))
                 .toList();
     }
@@ -94,6 +108,25 @@ public class CampaignService {
     }
 
     @Transactional
+    public void deleteCampaign(UUID id, User user) {
+        Campaign campaign = campaignRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Campanha não encontrada"));
+
+        if (!campaign.getDm().getId().equals(user.getId()) && user.getRole() != Role.ROLE_ADMIN) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Apenas o Mestre pode excluir a campanha");
+        }
+
+        characterRepository.findAll().stream()
+                .filter(c -> id.equals(c.getCampaignId()))
+                .forEach(c -> {
+                    c.setCampaignId(null);
+                    characterRepository.save(c);
+                });
+
+        campaignRepository.delete(campaign);
+    }
+
+    @Transactional
     public CampaignResponse addPlayer(UUID id, AddPlayerRequest request, User user) {
         Campaign campaign = campaignRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Campanha não encontrada"));
@@ -134,6 +167,34 @@ public class CampaignService {
     }
 
     @Transactional
+    public CampaignResponse joinByInviteCode(String inviteCode, User user) {
+        if (inviteCode == null || inviteCode.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código de convite obrigatório");
+        }
+
+        Campaign campaign = campaignRepository.findByInviteCode(inviteCode.trim().toUpperCase())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Campanha não encontrada com este código de convite"));
+
+        if (campaign.getDm().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O criador da campanha já é o Mestre");
+        }
+
+        if (campaignPlayerRepository.existsByCampaignIdAndUserId(campaign.getId(), user.getId())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Você já faz parte desta campanha");
+        }
+
+        CampaignPlayer campaignPlayer = CampaignPlayer.builder()
+                .id(new CampaignPlayerId(campaign.getId(), user.getId()))
+                .campaign(campaign)
+                .user(user)
+                .build();
+
+        campaignPlayerRepository.save(campaignPlayer);
+
+        return toResponse(campaign, user);
+    }
+
+    @Transactional
     public CharacterResponse approveCharacter(UUID campaignId, UUID characterId, User user) {
         Campaign campaign = campaignRepository.findById(campaignId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Campanha não encontrada"));
@@ -144,6 +205,10 @@ public class CampaignService {
 
         Character character = characterRepository.findById(characterId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Personagem não encontrado"));
+
+        if (character.getUser().getId().equals(user.getId()) && user.getRole() != Role.ROLE_ADMIN) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "O Mestre não pode aprovar ou rejeitar suas próprias fichas");
+        }
 
         if (character.getCampaignId() == null || !character.getCampaignId().equals(campaignId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este personagem não pertence a esta campanha");
@@ -157,8 +222,20 @@ public class CampaignService {
         character.setSheetLastLevel(character.getSheet());
 
         // Apply proposed evolution
-        character.setSheet(character.getProposedSheet());
-        character.setProposedSheet(null);
+        CharacterSheet proposed = character.getProposedSheet();
+        if (proposed != null) {
+            if (proposed.getName() != null && !proposed.getName().isBlank()) {
+                character.setName(proposed.getName().trim());
+            }
+            if (proposed.getRace() != null) character.setRace(proposed.getRace());
+            if (proposed.getClassKit() != null) character.setClassKit(proposed.getClassKit());
+            if (proposed.getLevel() != null) character.setCurrentLevel(proposed.getLevel());
+            if (proposed.getXp() != null) character.setXp(proposed.getXp());
+            if (proposed.getPortraitUrl() != null) character.setPortraitUrl(proposed.getPortraitUrl());
+
+            character.setSheet(proposed);
+            character.setProposedSheet(null);
+        }
         character.setIsPendingReview(false);
 
         Character saved = characterRepository.save(character);
@@ -176,6 +253,10 @@ public class CampaignService {
 
         Character character = characterRepository.findById(characterId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Personagem não encontrado"));
+
+        if (character.getUser().getId().equals(user.getId()) && user.getRole() != Role.ROLE_ADMIN) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "O Mestre não pode aprovar ou rejeitar suas próprias fichas");
+        }
 
         if (character.getCampaignId() == null || !character.getCampaignId().equals(campaignId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este personagem não pertence a esta campanha");

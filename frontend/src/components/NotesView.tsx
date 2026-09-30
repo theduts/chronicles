@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Note } from '../types';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { ActionButton, SaveButton, AddButton, DeleteButton } from './ActionButtons';
@@ -25,7 +26,7 @@ export default function NotesView({
   onAddNote,
   onDeleteNote,
 }: NotesViewProps) {
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
   const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
   const [activeNote, setActiveNote] = useState<Note | null>(null);
   const [isNewNote, setIsNewNote] = useState<boolean>(false);
@@ -33,12 +34,7 @@ export default function NotesView({
 
   const editorRef = useRef<HTMLDivElement>(null);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage((current) => (current === msg ? null : current));
-    }, 3000);
-  };
+
 
   // Populate editorRef when activeNote opens
   useEffect(() => {
@@ -73,7 +69,7 @@ export default function NotesView({
       setIsNewNote(false);
     }
     setNoteToDelete(null);
-    showToast('Anotação removida');
+    toast.success('Anotação removida');
   };
 
   const handleSaveActiveNote = () => {
@@ -83,7 +79,7 @@ export default function NotesView({
 
     if (cleanText.length === 0) {
       if (isNewNote) {
-        showToast('Anotações sem texto não serão salvas');
+        toast.warning('Anotações sem texto não serão salvas');
         setActiveNote(null);
         setIsNewNote(false);
         return;
@@ -103,7 +99,7 @@ export default function NotesView({
 
     setActiveNote(null);
     setIsNewNote(false);
-    showToast('Anotação salva!');
+    toast.success('Anotação salva!');
   };
 
   const handleCloseModal = () => {
@@ -113,7 +109,7 @@ export default function NotesView({
     const cleanText = getCleanText(currentHtml).trim();
 
     if (isNewNote && cleanText.length === 0) {
-      showToast('Anotações sem texto não serão salvas');
+      toast.warning('Anotações sem texto não serão salvas');
     }
 
     setActiveNote(null);
@@ -168,13 +164,7 @@ export default function NotesView({
 
   return (
     <div className="space-y-8 pb-24 max-w-7xl mx-auto px-1">
-      {/* Toast Popup Notification */}
-      {toastMessage && (
-        <div className="fixed top-20 right-8 bg-primary-container text-on-primary-container px-6 py-4 font-sans text-xs font-bold uppercase tracking-widest shadow-2xl border border-primary z-[999] animate-bounce flex items-center gap-2">
-          <span className="material-symbols-outlined text-base">info</span>
-          {toastMessage}
-        </div>
-      )}
+
 
       {/* Header action panel */}
       <div className="flex flex-col gap-4 border-b border-outline-variant pb-6 shrink-0 relative z-10">
@@ -429,8 +419,9 @@ export default function NotesView({
                 ref={editorRef}
                 contentEditable={true}
                 onPaste={handlePaste}
-                style={{ fontSize: `${editorFontSize}px`, color: '#1e1b1a' }}
-                className="min-h-[300px] w-full outline-none text-[#1e1b1a] leading-relaxed font-sans focus:ring-0 custom-scrollbar p-3 bg-surface-container border border-primary/20 rounded [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_*]:!bg-transparent [&_*]:!text-[#1e1b1a]"
+                data-placeholder="Escreva sua anotação aqui..."
+                style={{ fontSize: `${editorFontSize}px` }}
+                className="min-h-[300px] w-full outline-none text-on-surface leading-relaxed font-sans focus:ring-0 custom-scrollbar p-3 bg-surface-container border border-primary/20 rounded caret-primary [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_*]:!bg-transparent [&_*]:!text-on-surface empty:before:content-[attr(data-placeholder)] empty:before:text-on-surface-variant/50 empty:before:pointer-events-none"
               />
             </div>
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ActiveScreen } from '../types';
+import ViewRoleToggle from './ViewRoleToggle';
 
 interface SidebarProps {
   activeScreen: ActiveScreen;
@@ -9,6 +10,7 @@ interface SidebarProps {
   onLogout: () => void;
   user: { name: string; email: string; role?: 'player' | 'dm' };
   onOpenSettings: () => void;
+  onToggleRole?: () => void;
 }
 
 export default function Sidebar({
@@ -19,6 +21,7 @@ export default function Sidebar({
   onLogout,
   user,
   onOpenSettings,
+  onToggleRole,
 }: SidebarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -129,6 +132,16 @@ export default function Sidebar({
             ? "absolute left-full bottom-2 ml-2 w-48 bg-surface-container border border-outline-variant shadow-2xl p-2 flex flex-col gap-1 z-50 rounded-none animate-fadeIn"
             : "absolute bottom-full left-3 right-3 mb-2 bg-surface-container border border-outline-variant shadow-2xl p-2 flex flex-col gap-1 z-50 rounded-none animate-fadeIn"
           }>
+            {/* Switch Role View Toggle */}
+            {onToggleRole && (
+              <div className="border-b border-outline-variant/30 pb-3 mb-2">
+                <ViewRoleToggle
+                  currentRole={user.role || 'player'}
+                  onToggle={onToggleRole}
+                />
+              </div>
+            )}
+
             {/* Set active screen to settings and close menu */}
             <button
               onClick={() => {
@@ -163,7 +176,7 @@ export default function Sidebar({
             ${collapsed ? 'justify-center rounded-none' : 'rounded-none'}
             ${menuOpen ? 'bg-surface-container-high text-primary border-l-2 border-primary' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high border-l-2 border-transparent'}
           `}
-          title={collapsed ? user.name : undefined}
+          title={collapsed ? `${user.name} (${user.role === 'dm' ? 'Mestre' : 'Jogador'})` : undefined}
         >
           <span className="material-symbols-outlined text-xl shrink-0">
             account_circle

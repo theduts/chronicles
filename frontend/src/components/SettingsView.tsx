@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { Character, Note } from '../types';
 import { User, Mail, Lock, Sun, Moon, X, Check, Shield, AlertTriangle, HelpCircle } from 'lucide-react';
 import Toggle from './Toggle';
@@ -42,7 +43,6 @@ export default function SettingsView({
   
   // Confirmation state
   const [isConfirmingChange, setIsConfirmingChange] = useState(false);
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   if (!isOpen) return null;
 
@@ -80,22 +80,13 @@ export default function SettingsView({
     setIsEditUserOpen(false);
     
     // Show visual confirmation toast
-    setShowSuccessToast(true);
-    setTimeout(() => {
-      setShowSuccessToast(false);
-    }, 4000);
+    toast.success('Alterações de credenciais aplicadas e confirmadas!');
   };
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm backdrop-blur-md z-[500] flex items-center justify-center p-4 overflow-y-auto animate-fadeIn font-sans">
       
-      {/* Toast de Sucesso */}
-      {showSuccessToast && (
-        <div className="fixed top-6 right-6 bg-surface-container-highest text-primary px-6 py-4 font-sans text-xs font-bold uppercase tracking-widest shadow-2xl border border-primary z-[700] flex items-center gap-3 animate-slideDown">
-          <Check className="w-4 h-4 text-emerald-400" />
-          <span>Alterações de credenciais aplicadas e confirmadas!</span>
-        </div>
-      )}
+
 
       {/* Main Settings Modal Box */}
       <div 

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ShieldCheck, ShieldAlert, Check, X, User, Sparkles, RefreshCw } from 'lucide-react';
 import { api } from '../services/api';
 import { Character } from '../types';
+import { ListRowSkeleton } from './ui/Skeleton';
 
 interface CampaignDMReviewProps {
   campaignId: string;
@@ -29,7 +30,9 @@ export default function CampaignDMReview({
     refetchInterval: 10000,
   });
 
-  const pendingCharacters = characters.filter((c) => !!c.isPendingDMReview);
+  const pendingCharacters = characters.filter(
+    (c) => !!c.isPendingDMReview && (!c.campaignId || String(c.campaignId) === String(campaignId))
+  );
 
   const approveMutation = useMutation({
     mutationFn: async (characterId: string) => {
@@ -126,8 +129,11 @@ export default function CampaignDMReview({
 
       {/* Loading state */}
       {isLoading && (
-        <div className="py-12 text-center font-sans text-xs uppercase tracking-widest text-on-surface-variant">
-          Carregando fichas pendentes da campanha...
+        <div className="space-y-4">
+          <ListRowSkeleton />
+          <ListRowSkeleton />
+          <ListRowSkeleton />
+          <ListRowSkeleton />
         </div>
       )}
 

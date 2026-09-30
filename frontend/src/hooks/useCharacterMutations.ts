@@ -1,14 +1,26 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Character, User } from '../types';
 import { api } from '../services/api';
+import * as errorUtils from './useApiErrorToast';
+import { toast } from 'sonner';
 
-export function useCharacterMutations(user: User | null, token: string | null, activeCampaignId: string) {
+export function useCharacterMutations(
+  user: User | null,
+  token: string | null,
+  activeCampaignId: string,
+  userRole: 'player' | 'dm' = 'player'
+) {
   const queryClient = useQueryClient();
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const clearFieldErrors = () => setFieldErrors({});
 
   const { data: characters = [], isLoading: isLoadingCharacters, refetch: refetchCharacters } = useQuery<Character[]>({
-    queryKey: ['characters'],
+    queryKey: ['characters', userRole],
     queryFn: async () => {
-      const response = await api.get<Character[]>('/characters');
+      const response = await api.get<Character[]>('/characters', {
+        params: { role: userRole }
+      });
       return response.data;
     },
     enabled: !!token && !!user,
@@ -23,6 +35,16 @@ export function useCharacterMutations(user: User | null, token: string | null, a
       queryClient.invalidateQueries({ queryKey: ['characters'] });
       queryClient.invalidateQueries({ queryKey: ['campaign-characters'] });
     },
+    onError: (err: unknown) => {
+      const fieldMap = errorUtils.extractFieldErrors(err);
+      if (fieldMap) {
+        setFieldErrors(fieldMap);
+      } else {
+        errorUtils.showApiErrorToast(err);
+      }
+      queryClient.invalidateQueries({ queryKey: ['characters'] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-characters'] });
+    },
   });
 
   const updateCharacterMutation = useMutation({
@@ -34,6 +56,16 @@ export function useCharacterMutations(user: User | null, token: string | null, a
       queryClient.invalidateQueries({ queryKey: ['characters'] });
       queryClient.invalidateQueries({ queryKey: ['campaign-characters'] });
     },
+    onError: (err: unknown) => {
+      const fieldMap = errorUtils.extractFieldErrors(err);
+      if (fieldMap) {
+        setFieldErrors(fieldMap);
+      } else {
+        errorUtils.showApiErrorToast(err);
+      }
+      queryClient.invalidateQueries({ queryKey: ['characters'] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-characters'] });
+    },
   });
 
   const submitReviewMutation = useMutation({
@@ -42,6 +74,16 @@ export function useCharacterMutations(user: User | null, token: string | null, a
       return response.data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['characters'] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-characters'] });
+    },
+    onError: (err: unknown) => {
+      const fieldMap = errorUtils.extractFieldErrors(err);
+      if (fieldMap) {
+        setFieldErrors(fieldMap);
+      } else {
+        errorUtils.showApiErrorToast(err);
+      }
       queryClient.invalidateQueries({ queryKey: ['characters'] });
       queryClient.invalidateQueries({ queryKey: ['campaign-characters'] });
     },
@@ -79,9 +121,27 @@ export function useCharacterMutations(user: User | null, token: string | null, a
     },
   });
 
+  const levelUpCharacterMutation = useMutation({
+    mutationFn: async ({ id, char }: { id: string; char?: Partial<Character> }) => {
+      const response = await api.post(`/characters/${id}/level-up`, char);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['characters'] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-characters'] });
+      toast.success(`Personagem evoluído com sucesso para o Nível ${data.level}!`);
+    },
+    onError: (error: any) => {
+      queryClient.invalidateQueries({ queryKey: ['characters'] });
+      const msg = error.response?.data?.detail || error.response?.data?.message || 'Falha ao evoluir o personagem.';
+      toast.error(msg);
+    },
+  });
+
   const handleSaveCharacter = (updatedChar: Character, onSaved?: () => void) => {
+    clearFieldErrors();
     const isExisting = characters.some((c) => c.id === updatedChar.id);
-    const isDM = user?.role === 'dm' || user?.role === 'ROLE_ADMIN';
+    const isDM = userRole === 'dm' || user?.role === 'ROLE_ADMIN';
 
     if (isExisting && updatedChar.id) {
       if (isDM) {
@@ -94,7 +154,7 @@ export function useCharacterMutations(user: User | null, token: string | null, a
     }
 
     // Optimistic cache update
-    queryClient.setQueryData<Character[]>(['characters'], (prev = []) => {
+    queryClient.setQueryData<Character[]>(['characters', userRole], (prev = []) => {
       const idx = prev.findIndex((c) => c.id === updatedChar.id);
       if (idx !== -1) {
         const copy = [...prev];
@@ -111,7 +171,7 @@ export function useCharacterMutations(user: User | null, token: string | null, a
   };
 
   const handleSilentUpdateCharacter = (updatedChar: Character) => {
-    queryClient.setQueryData<Character[]>(['characters'], (prev = []) => {
+    queryClient.setQueryData<Character[]>(['characters', userRole], (prev = []) => {
       const idx = prev.findIndex((c) => c.id === updatedChar.id);
       if (idx !== -1) {
         const copy = [...prev];
@@ -143,6 +203,17 @@ export function useCharacterMutations(user: User | null, token: string | null, a
     }
   };
 
+  const handleLevelUpCharacter = (id: string, updatedChar?: Character, onComplete?: () => void) => {
+    levelUpCharacterMutation.mutate(
+      { id, char: updatedChar },
+      {
+        onSuccess: () => {
+          onComplete?.();
+        },
+      }
+    );
+  };
+
   const handleImportCharacters = (imported: Character[]) => {
     queryClient.setQueryData(['characters'], imported);
   };
@@ -150,6 +221,8 @@ export function useCharacterMutations(user: User | null, token: string | null, a
   return {
     characters,
     isLoadingCharacters,
+    fieldErrors,
+    clearFieldErrors,
     refetchCharacters,
     createCharacterMutation,
     updateCharacterMutation,
@@ -157,11 +230,13 @@ export function useCharacterMutations(user: User | null, token: string | null, a
     deleteCharacterMutation,
     approveCharacterMutation,
     rejectCharacterMutation,
+    levelUpCharacterMutation,
     handleSaveCharacter,
     handleSilentUpdateCharacter,
     handleDeleteCharacter,
     handleApproveCharacter,
     handleRejectCharacter,
+    handleLevelUpCharacter,
     handleImportCharacters,
   };
 }

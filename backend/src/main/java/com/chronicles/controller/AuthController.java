@@ -7,8 +7,10 @@ import com.chronicles.dto.auth.LoginRequest;
 import com.chronicles.dto.auth.RegisterRequest;
 import com.chronicles.repository.UserRepository;
 import com.chronicles.security.JwtService;
+import com.chronicles.service.LoginRateLimitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,6 +35,7 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final LoginRateLimitService loginRateLimitService;
 
     @PostMapping("/register")
     @Operation(summary = "Registrar novo usuário", description = "Cria uma nova conta de usuário e retorna o token JWT.")
@@ -71,21 +74,29 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "Autenticar usuário", description = "Autentica com e-mail/username e senha, retornando o token JWT.")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+        String ipAddress = httpRequest.getRemoteAddr();
         String identifier = request.email().trim();
+
+        loginRateLimitService.checkNotBlocked(ipAddress, identifier);
 
         User user = userRepository.findByEmail(identifier.toLowerCase())
                 .or(() -> userRepository.findByUsername(identifier))
-                .orElseThrow(() -> new BadCredentialsException("E-mail ou senha inválidos"));
+                .orElseGet(() -> {
+                    loginRateLimitService.recordFailure(ipAddress, identifier);
+                    throw new BadCredentialsException("E-mail ou senha inválidos");
+                });
 
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(user.getEmail(), request.password())
             );
         } catch (BadCredentialsException ex) {
+            loginRateLimitService.recordFailure(ipAddress, identifier);
             throw new BadCredentialsException("E-mail ou senha inválidos");
         }
 
+        loginRateLimitService.recordSuccess(ipAddress, identifier);
         String token = jwtService.generateToken(user);
 
         return ResponseEntity.ok(AuthResponse.of(

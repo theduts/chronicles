@@ -14,7 +14,11 @@ import java.util.UUID;
 public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
     List<Campaign> findAllByDmId(UUID dmId);
     Optional<Campaign> findByInviteCode(String inviteCode);
+    boolean existsByIdAndDmId(UUID id, UUID dmId);
 
     @Query("SELECT DISTINCT c FROM Campaign c LEFT JOIN c.players p WHERE c.dm.id = :userId OR p.user.id = :userId")
     List<Campaign> findAllForUser(@Param("userId") UUID userId);
+
+    @Query("SELECT DISTINCT c FROM Campaign c JOIN c.players p WHERE p.user.id = :userId")
+    List<Campaign> findAllByPlayerUserId(@Param("userId") UUID userId);
 }

@@ -27,9 +27,12 @@ public class CharacterController {
     private final CharacterService characterService;
 
     @GetMapping
-    @Operation(summary = "Listar personagens do usuário", description = "Retorna todos os personagens pertencentes ao usuário autenticado.")
-    public ResponseEntity<List<CharacterResponse>> getMyCharacters(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(characterService.getCharactersForUser(user));
+    @Operation(summary = "Listar personagens do usuário", description = "Retorna todos os personagens pertencentes ao usuário autenticado ou vinculados às suas campanhas dependendo da role.")
+    public ResponseEntity<List<CharacterResponse>> getMyCharacters(
+            @RequestParam(required = false) String role,
+            @AuthenticationPrincipal User user
+    ) {
+        return ResponseEntity.ok(characterService.getCharactersForUser(user, role));
     }
 
     @GetMapping("/{id}")
@@ -79,5 +82,15 @@ public class CharacterController {
             @AuthenticationPrincipal User user
     ) {
         return ResponseEntity.ok(characterService.submitForReview(id, request, user));
+    }
+
+    @PostMapping("/{id}/level-up")
+    @Operation(summary = "Evoluir nível do personagem pelo Mestre", description = "Permite que apenas o Mestre da campanha em que o personagem está atrelado aprove/execute a evolução de nível.")
+    public ResponseEntity<CharacterResponse> levelUpCharacter(
+            @PathVariable UUID id,
+            @RequestBody(required = false) CharacterRequest request,
+            @AuthenticationPrincipal User user
+    ) {
+        return ResponseEntity.ok(characterService.levelUpCharacter(id, request, user));
     }
 }

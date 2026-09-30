@@ -1,7 +1,9 @@
 package com.chronicles.exception;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
@@ -81,6 +83,24 @@ public class GlobalExceptionHandler {
         problemDetail.setType(URI.create("https://chronicles.rpg/errors/bad-argument"));
         problemDetail.setProperty("timestamp", Instant.now());
         return problemDetail;
+    }
+
+    // Returns ResponseEntity<ProblemDetail> specifically to carry the numeric Retry-After HTTP header
+    @ExceptionHandler(LoginRateLimitException.class)
+    public ResponseEntity<ProblemDetail> handleLoginRateLimit(LoginRateLimitException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.TOO_MANY_REQUESTS,
+                "Muitas tentativas de login. Tente novamente em instantes."
+        );
+        problemDetail.setTitle("Bloqueio Temporário");
+        problemDetail.setType(URI.create("https://chronicles.rpg/errors/rate-limited"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty("retryAfterSeconds", ex.getRetryAfterSeconds());
+
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.getRetryAfterSeconds()))
+                .body(problemDetail);
     }
 
     @ExceptionHandler(Exception.class)

@@ -15,6 +15,13 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CharacterSheet {
+    private String name;
+    private String race;
+    private String classKit;
+    private Integer level;
+    private Integer xp;
+    private String portraitUrl;
+
     private String sex;
     private String weight;
     private String height;

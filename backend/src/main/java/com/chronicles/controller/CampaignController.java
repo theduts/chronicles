@@ -4,8 +4,10 @@ import com.chronicles.domain.User;
 import com.chronicles.dto.campaign.AddPlayerRequest;
 import com.chronicles.dto.campaign.CampaignRequest;
 import com.chronicles.dto.campaign.CampaignResponse;
+import com.chronicles.dto.character.CharacterRequest;
 import com.chronicles.dto.character.CharacterResponse;
 import com.chronicles.service.CampaignService;
+import com.chronicles.service.CharacterService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,11 +29,15 @@ import java.util.UUID;
 public class CampaignController {
 
     private final CampaignService campaignService;
+    private final CharacterService characterService;
 
     @GetMapping
-    @Operation(summary = "Listar campanhas", description = "Retorna todas as campanhas em que o usuário atua como Mestre ou Jogador.")
-    public ResponseEntity<List<CampaignResponse>> getMyCampaigns(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(campaignService.getCampaignsForUser(user));
+    @Operation(summary = "Listar campanhas", description = "Retorna todas as campanhas em que o usuário atua como Mestre ou Jogador, permitindo filtrar por papel ('dm' ou 'player').")
+    public ResponseEntity<List<CampaignResponse>> getMyCampaigns(
+            @RequestParam(required = false) String role,
+            @AuthenticationPrincipal User user
+    ) {
+        return ResponseEntity.ok(campaignService.getCampaignsForUser(user, role));
     }
 
     @GetMapping("/{id}")
@@ -63,6 +69,16 @@ public class CampaignController {
         return ResponseEntity.ok(campaignService.updateCampaign(id, request, user));
     }
 
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir campanha", description = "Exclui uma campanha existente (somente Mestre).")
+    public ResponseEntity<Void> deleteCampaign(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal User user
+    ) {
+        campaignService.deleteCampaign(id, user);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{id}/players")
     @Operation(summary = "Adicionar ou ingressar jogador na campanha", description = "Adiciona jogador por convite direto do Mestre ou via código de convite.")
     public ResponseEntity<CampaignResponse> addPlayer(
@@ -72,6 +88,16 @@ public class CampaignController {
     ) {
         return ResponseEntity.ok(campaignService.addPlayer(id, request, user));
     }
+
+    @PostMapping("/join")
+    @Operation(summary = "Ingressar em campanha via código", description = "Permite que um jogador ingresse em uma campanha usando apenas o código de convite.")
+    public ResponseEntity<CampaignResponse> joinCampaign(
+            @RequestBody AddPlayerRequest request,
+            @AuthenticationPrincipal User user
+    ) {
+        return ResponseEntity.ok(campaignService.joinByInviteCode(request.getInviteCode(), user));
+    }
+
 
     @PostMapping("/{id}/approve-character/{characterId}")
     @Operation(summary = "Aprovar evolução de ficha pelo Mestre", description = "Aprova as alterações pendentes de uma ficha, consolidando o novo nível e criando snapshot de rollback.")
@@ -91,5 +117,16 @@ public class CampaignController {
             @AuthenticationPrincipal User user
     ) {
         return ResponseEntity.ok(campaignService.rejectCharacter(id, characterId, user));
+    }
+
+    @PostMapping("/{id}/characters/{characterId}/level-up")
+    @Operation(summary = "Evoluir nível do personagem pelo Mestre da campanha", description = "Permite que o Mestre da campanha aprove/execute a evolução de nível de um personagem da campanha.")
+    public ResponseEntity<CharacterResponse> levelUpCharacter(
+            @PathVariable UUID id,
+            @PathVariable UUID characterId,
+            @RequestBody(required = false) CharacterRequest request,
+            @AuthenticationPrincipal User user
+    ) {
+        return ResponseEntity.ok(characterService.levelUpCharacter(characterId, request, user));
     }
 }

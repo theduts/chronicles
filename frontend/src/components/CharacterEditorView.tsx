@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'motion/react';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '../services/api';
 import { Trash2, Shirt, PawPrint, TrendingUp, BookOpen, BookMarked, Download, Edit, Unlock, Lock } from 'lucide-react';
-import { Character, CharacterAttributes, AttributeRow, StatPoint, SkillRow, ActiveScreen, Spell, CompanionSkill, CompanionAnimal, MontariaEspecial, Familiar } from '../types';
+import { Character, CharacterAttributes, AttributeRow, StatPoint, SkillRow, ActiveScreen, Spell, CompanionSkill, CompanionAnimal, MontariaEspecial, Familiar, Campaign } from '../types';
 import CustomSelect from './CustomSelect';
 import Modal from './Modal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { ActionButton, SaveButton, AddButton, EditButton, DeleteButton } from './ActionButtons';
-import aprimoramentosData from '../../public/data-mock/aprimoramentos.json';
-import racasData from '../../public/data-mock/racas.json';
 
 interface AprimoramentoNivel {
   nivel: number;
@@ -26,20 +27,10 @@ interface AprimoramentoJSONEntry {
   niveis?: AprimoramentoNivel[];
 }
 
-const aprimoramentosList: AprimoramentoJSONEntry[] = Object.values(aprimoramentosData as Record<string, any>).map((item: any) => ({
-  id: item.id || '',
-  name: item.nome || item.name || item.id || '',
-  tipo: item.tipo || 'POSITIVO',
-  tem_niveis: !!item.tem_niveis,
-  custo: item.custo,
-  descricao: item.descricao,
-  niveis: item.niveis,
-}));
-
-const getEnhancementCost = (str: string, tipo: 'POSITIVO' | 'NEGATIVO') => {
+const getEnhancementCostUtil = (str: string, tipo: 'POSITIVO' | 'NEGATIVO', list: AprimoramentoJSONEntry[]) => {
   if (!str || typeof str !== 'string' || !str.trim()) return { cost: 0, name: '' };
   
-  const sortedList = [...aprimoramentosList].sort((a, b) => b.name.length - a.name.length);
+  const sortedList = [...list].sort((a, b) => b.name.length - a.name.length);
   const cleanStr = str.trim().toLowerCase();
   
   for (const apr of sortedList) {
@@ -726,6 +717,11 @@ interface CharacterEditorViewProps {
   userRole?: 'player' | 'dm';
   onApprove?: (id: string) => void;
   onReject?: (id: string) => void;
+  campaigns?: Campaign[];
+  fieldErrors?: Record<string, string>;
+  onClearFieldErrors?: () => void;
+  onLevelUp?: (id: string, updatedChar?: Character, onComplete?: () => void) => void;
+  isLevelingUp?: boolean;
 }
 
 const PORTRAIT_PRESETS = [
@@ -812,10 +808,123 @@ const DEFAULT_NEW_CHARACTER = (): Character => ({
   }
 });
 
+const normalizeStatPoint = (rawPoint: any, defaultPoint: StatPoint): StatPoint => {
+  if (rawPoint && typeof rawPoint === 'object') {
+    return {
+      ...defaultPoint,
+      ...rawPoint,
+      valorFinal: rawPoint.valorFinal !== null && rawPoint.valorFinal !== undefined 
+        ? rawPoint.valorFinal 
+        : defaultPoint.valorFinal,
+      danoSofrido: rawPoint.danoSofrido !== null && rawPoint.danoSofrido !== undefined 
+        ? rawPoint.danoSofrido 
+        : (defaultPoint.danoSofrido ?? 0),
+      magiaExaurida: rawPoint.magiaExaurida !== null && rawPoint.magiaExaurida !== undefined 
+        ? rawPoint.magiaExaurida 
+        : (defaultPoint.magiaExaurida ?? 0),
+      feExaurida: rawPoint.feExaurida !== null && rawPoint.feExaurida !== undefined 
+        ? rawPoint.feExaurida 
+        : (defaultPoint.feExaurida ?? 0),
+      esforcoMental: rawPoint.esforcoMental !== null && rawPoint.esforcoMental !== undefined 
+        ? rawPoint.esforcoMental 
+        : (defaultPoint.esforcoMental ?? 0),
+      estadoMental: rawPoint.estadoMental || defaultPoint.estadoMental || 'Saudável',
+    };
+  }
+  if (typeof rawPoint === 'number' || typeof rawPoint === 'string') {
+    return {
+      ...defaultPoint,
+      valorFinal: rawPoint,
+    };
+  }
+  return { ...defaultPoint };
+};
+
+const normalizeAttributeRow = (rawAttr: any, defaultAttr: AttributeRow): AttributeRow => {
+  if (rawAttr && typeof rawAttr === 'object') {
+    return {
+      ...defaultAttr,
+      ...rawAttr,
+      natural: rawAttr.natural ?? defaultAttr.natural,
+      penalidade: rawAttr.penalidade ?? defaultAttr.penalidade,
+      bonusRacial: rawAttr.bonusRacial ?? defaultAttr.bonusRacial,
+      pontosGastos: rawAttr.pontosGastos ?? defaultAttr.pontosGastos,
+      penalidadeManual: rawAttr.penalidadeManual ?? defaultAttr.penalidadeManual ?? 0,
+      penalidadeExtra: rawAttr.penalidadeExtra ?? defaultAttr.penalidadeExtra ?? 0,
+      bonusRacialManual: rawAttr.bonusRacialManual ?? defaultAttr.bonusRacialManual ?? (rawAttr.bonusRacial ?? 0),
+      bonusRacialExtra: rawAttr.bonusRacialExtra ?? defaultAttr.bonusRacialExtra ?? 0,
+      valorAmpliado: rawAttr.valorAmpliado ?? defaultAttr.valorAmpliado ?? 0,
+      pctNatural: rawAttr.pctNatural || defaultAttr.pctNatural || '0%',
+      pctAmpliado: rawAttr.pctAmpliado || defaultAttr.pctAmpliado || '0%',
+    };
+  }
+  return { ...defaultAttr };
+};
+
+export const normalizeCharacter = (raw: any): Character => {
+  const base = DEFAULT_NEW_CHARACTER();
+  if (!raw || typeof raw !== 'object') return base;
+
+  const rawStatus = (raw.statusPoints && typeof raw.statusPoints === 'object') ? raw.statusPoints : {};
+  const rawAttrs = (raw.attributes && typeof raw.attributes === 'object') ? raw.attributes : {};
+  const rawProt = (raw.protection && typeof raw.protection === 'object') ? raw.protection : {};
+  const rawTreasure = (raw.treasure && typeof raw.treasure === 'object') ? raw.treasure : {};
+
+  return {
+    ...base,
+    ...raw,
+    attributes: {
+      con: normalizeAttributeRow(rawAttrs.con, base.attributes.con),
+      for: normalizeAttributeRow(rawAttrs.for, base.attributes.for),
+      des: normalizeAttributeRow(rawAttrs.des, base.attributes.des),
+      agi: normalizeAttributeRow(rawAttrs.agi, base.attributes.agi),
+      int: normalizeAttributeRow(rawAttrs.int, base.attributes.int),
+      per: normalizeAttributeRow(rawAttrs.per, base.attributes.per),
+      will: normalizeAttributeRow(rawAttrs.will, base.attributes.will),
+      car: normalizeAttributeRow(rawAttrs.car, base.attributes.car),
+    },
+    statusPoints: {
+      vida: normalizeStatPoint(rawStatus.vida, base.statusPoints.vida),
+      heroicos: normalizeStatPoint(rawStatus.heroicos, base.statusPoints.heroicos),
+      magia: normalizeStatPoint(rawStatus.magia, base.statusPoints.magia),
+      fe: normalizeStatPoint(rawStatus.fe, base.statusPoints.fe),
+      psi: normalizeStatPoint(rawStatus.psi, base.statusPoints.psi),
+      willPoints: normalizeStatPoint(rawStatus.willPoints, base.statusPoints.willPoints),
+    },
+    protection: {
+      ...base.protection,
+      ...rawProt,
+      durabilidadeArmadura: {
+        ...base.protection.durabilidadeArmadura,
+        ...(rawProt.durabilidadeArmadura || {}),
+      },
+    },
+    treasure: {
+      ouro: Number(rawTreasure.ouro) || 0,
+      prata: Number(rawTreasure.prata) || 0,
+      bronze: Number(rawTreasure.bronze) || 0,
+    },
+    aprimoramentosPositivos: Array.isArray(raw.aprimoramentosPositivos)
+      ? raw.aprimoramentosPositivos
+      : base.aprimoramentosPositivos,
+    aprimoramentosNegativos: Array.isArray(raw.aprimoramentosNegativos)
+      ? raw.aprimoramentosNegativos
+      : base.aprimoramentosNegativos,
+    skills: Array.isArray(raw.skills) ? raw.skills : [],
+    spells: Array.isArray(raw.spells) ? raw.spells : [],
+    items: Array.isArray(raw.items) ? raw.items : base.items,
+    armors: Array.isArray(raw.armors) ? raw.armors : [],
+    campaignGenres: {
+      ...base.campaignGenres,
+      ...(raw.campaignGenres || {}),
+    },
+  };
+};
+
 const getAttrSanityPenalty = (attrKey: keyof CharacterAttributes, char: Character): number => {
-  const willPts = Number(char.attributes.will.pontosGastos) || 0;
+  const willPts = Number(char?.attributes?.will?.pontosGastos) || 0;
   const calculatedSanidadeVal = 100 + willPts;
-  const loucura = calculatedSanidadeVal - (Number(char.statusPoints.psi.esforcoMental) || 0);
+  const loucura = calculatedSanidadeVal - (Number(char?.statusPoints?.psi?.esforcoMental) || 0);
 
   if (attrKey === 'int') {
     if (loucura >= 50 && loucura < 75) return 1;
@@ -840,12 +949,85 @@ export default function CharacterEditorView({
   userRole = 'player',
   onApprove,
   onReject,
+  campaigns: propCampaigns,
+  fieldErrors = {},
+  onClearFieldErrors = () => {},
+  onLevelUp,
+  isLevelingUp = false,
 }: CharacterEditorViewProps) {
   const [editedChar, setEditedChar] = useState<Character>(DEFAULT_NEW_CHARACTER());
+
+  const renderFieldError = (fieldName: string) => {
+    const errorMsg = fieldErrors[fieldName];
+    if (!errorMsg) return null;
+    return (
+      <p className="text-primary text-sm font-medium leading-tight mt-1 text-left">
+        {errorMsg}
+      </p>
+    );
+  };
+
+  // Fetch system rules from database API
+  const { data: racasData = {} } = useQuery<Record<string, any>>({
+    queryKey: ['system-rules', 'racas'],
+    queryFn: async () => {
+      const res = await api.get('/rules/racas');
+      return res.data || {};
+    },
+    staleTime: 1000 * 60 * 60 * 24,
+  });
+
+  const { data: aprimoramentosData = {} } = useQuery<Record<string, any>>({
+    queryKey: ['system-rules', 'aprimoramentos'],
+    queryFn: async () => {
+      const res = await api.get('/rules/aprimoramentos');
+      return res.data || {};
+    },
+    staleTime: 1000 * 60 * 60 * 24,
+  });
+
+  const aprimoramentosList: AprimoramentoJSONEntry[] = useMemo(() => {
+    return Object.values(aprimoramentosData as Record<string, any>).map((item: any) => ({
+      id: item.id || '',
+      name: item.nome || item.name || item.id || '',
+      tipo: item.tipo || 'POSITIVO',
+      tem_niveis: !!item.tem_niveis,
+      custo: item.custo,
+      descricao: item.descricao,
+      niveis: item.niveis,
+    }));
+  }, [aprimoramentosData]);
+
+  const getEnhancementCost = (str: string, tipo: 'POSITIVO' | 'NEGATIVO') => {
+    return getEnhancementCostUtil(str, tipo, aprimoramentosList);
+  };
+
+  // Fetch all campaigns user is attached to (as DM or player)
+  const { data: serverUserCampaigns = [] } = useQuery<Campaign[]>({
+    queryKey: ['campaigns-for-character'],
+    queryFn: async () => {
+      try {
+        const response = await api.get<any[]>('/campaigns');
+        return response.data.map((c: any) => ({
+          id: String(c.id),
+          name: c.name,
+          dmEmail: c.dmEmail || '',
+          players: c.players || [],
+          subtitulo: c.subtitulo,
+          universo: c.universo,
+          lore: c.lore,
+          ilustracao: c.ilustracao,
+          inviteCode: c.inviteCode,
+          isDm: c.isDm,
+        }));
+      } catch (e) {
+        return [];
+      }
+    },
+  });
+
+  const availableCampaigns = propCampaigns && propCampaigns.length > 0 ? propCampaigns : serverUserCampaigns;
   const [originalChar, setOriginalChar] = useState<Character | null>(null);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('Crônica de alma selada com sucesso !');
-  const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [fichaAnimStatus, setFichaAnimStatus] = useState<'idle' | 'approving' | 'rejecting'>('idle');
 
@@ -969,7 +1151,7 @@ export default function CharacterEditorView({
     if (!onApprove) return;
     setFichaAnimStatus('approving');
     setTimeout(() => {
-      onApprove(editedChar.id);
+      onApprove(characterId || editedChar.id);
       setFichaAnimStatus('idle');
     }, 1200);
   };
@@ -978,7 +1160,7 @@ export default function CharacterEditorView({
     if (!onReject) return;
     setFichaAnimStatus('rejecting');
     setTimeout(() => {
-      onReject(editedChar.id);
+      onReject(characterId || editedChar.id);
       setFichaAnimStatus('idle');
     }, 1200);
   };
@@ -1069,14 +1251,6 @@ export default function CharacterEditorView({
     return baseClass;
   };
 
-  useEffect(() => {
-    if (showToast) {
-      const timer = setTimeout(() => {
-        setShowToast(false);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [showToast, toastMessage, toastType]);
   const [isEnhancementModalOpen, setIsEnhancementModalOpen] = useState(false);
   const [enhancementModalType, setEnhancementModalType] = useState<'POSITIVO' | 'NEGATIVO'>('POSITIVO');
   const [enhancementSearchQuery, setEnhancementSearchQuery] = useState('');
@@ -1090,10 +1264,14 @@ export default function CharacterEditorView({
   // Perícias Modal states
   const [isPericiasModalOpen, setIsPericiasModalOpen] = useState(false);
   const [periciaSearchQuery, setPericiaSearchQuery] = useState('');
-  const [mockPericias, setMockPericias] = useState<any[]>([]);
-  const [levelUpRules, setLevelUpRules] = useState<any>(null);
-  const [showLevelUpConfirmModal, setShowLevelUpConfirmModal] = useState(false);
-
+  const { data: mockPericias = [] } = useQuery<any[]>({
+    queryKey: ['system-rules', 'pericias'],
+    queryFn: async () => {
+      const res = await api.get('/rules/pericias');
+      return Array.isArray(res.data) ? res.data : [];
+    },
+    staleTime: 1000 * 60 * 60 * 24,
+  });
   const DEFAULT_LEVELUP_RULES = {
     "niveis_personagem": {
       "1": { "exp_necessaria": 0, "pv_bonus": 1, "atributos": 1, "aprimoramentos": 0, "pericias": 0, "pontos_magia": 0, "focus": 0 },
@@ -1113,6 +1291,17 @@ export default function CharacterEditorView({
       "15": { "exp_necessaria": 2200, "pv_bonus": 1, "atributos": 1, "aprimoramentos": 0, "pericias": 35, "pontos_magia": 1, "focus": 1 }
     }
   };
+
+  const { data: levelUpRules = DEFAULT_LEVELUP_RULES } = useQuery({
+    queryKey: ['system-rules', 'levelup'],
+    queryFn: async () => {
+      const response = await api.get('/rules/levelup');
+      return response.data;
+    },
+    staleTime: 1000 * 60 * 60 * 24,
+    initialData: DEFAULT_LEVELUP_RULES,
+  });
+  const [showLevelUpConfirmModal, setShowLevelUpConfirmModal] = useState(false);
   const [showCreatePericiaForm, setShowCreatePericiaForm] = useState(false);
   const [justLeveledUp, setJustLeveledUp] = useState(false);
   const [newPericiaName, setNewPericiaName] = useState('');
@@ -1182,8 +1371,6 @@ export default function CharacterEditorView({
   const [tempCaminhos, setTempCaminhos] = useState<{ nome: string; valor: number }[]>([]);
 
   // Armor/Shields state hooks
-  const [armadurasCatalog, setArmadurasCatalog] = useState<any[]>([]);
-  const [modificadoresCatalog, setModificadoresCatalog] = useState<any[]>([]);
   const [isArmadurasCollapsed, setIsArmadurasCollapsed] = useState(true);
   const [isMinhasArmadurasCollapsed, setIsMinhasArmadurasCollapsed] = useState(false);
   const [armaduraSearchQuery, setArmaduraSearchQuery] = useState('');
@@ -1211,7 +1398,19 @@ export default function CharacterEditorView({
   const [isMontariaModalOpen, setIsMontariaModalOpen] = useState(false);
   const [tempNomeMontaria, setTempNomeMontaria] = useState('');
   const [tempAnimalMontariaId, setTempAnimalMontariaId] = useState('');
-  const [montariasBase, setMontariasBase] = useState<any[]>([]);
+  const { data: montariaRule } = useQuery<{ montarias_base: any[] }>({
+    queryKey: ['system-rules', 'montaria'],
+    queryFn: async () => {
+      const res = await api.get('/rules/montaria');
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 60 * 24,
+  });
+  const montariasBase = useMemo(() => {
+    return montariaRule?.montarias_base && Array.isArray(montariaRule.montarias_base)
+      ? montariaRule.montarias_base
+      : [];
+  }, [montariaRule]);
 
   // Familiar state hooks
   const [isFamiliarModalOpen, setIsFamiliarModalOpen] = useState(false);
@@ -1232,7 +1431,23 @@ export default function CharacterEditorView({
   });
   const [tempFamiliarPericias, setTempFamiliarPericias] = useState<{ pericia: string; chance_acerto: number; dano: string }[]>([]);
   const [tempFamiliarHabilidades, setTempFamiliarHabilidades] = useState<{ habilidade: string; efeito: string }[]>([]);
-  const [familiaresBase, setFamiliaresBase] = useState<any[]>([]);
+  const { data: familiaresRule } = useQuery<{ familiares: Record<string, any> }>({
+    queryKey: ['system-rules', 'familiares'],
+    queryFn: async () => {
+      const res = await api.get('/rules/familiares');
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 60 * 24,
+  });
+  const familiaresBase = useMemo(() => {
+    if (familiaresRule && familiaresRule.familiares) {
+      return Object.entries(familiaresRule.familiares).map(([id, item]: [string, any]) => ({
+        id,
+        ...item
+      }));
+    }
+    return [];
+  }, [familiaresRule]);
 
   // Familiar custom editing inputs
   const [newFamPericia, setNewFamPericia] = useState('');
@@ -1247,7 +1462,53 @@ export default function CharacterEditorView({
   const [isFamiliarDiffModalOpen, setIsFamiliarDiffModalOpen] = useState(false);
 
   // Inventory Items state hooks
-  const [itensCatalog, setItensCatalog] = useState<any[]>([]);
+  const { data: itensCatalog = [] } = useQuery<any[]>({
+    queryKey: ['system-rules', 'itens'],
+    queryFn: async () => {
+      const res = await api.get('/rules/itens');
+      return Array.isArray(res.data) ? res.data : [];
+    },
+    staleTime: 1000 * 60 * 60 * 24,
+  });
+
+  const armadurasCatalog = useMemo(() => {
+    return itensCatalog
+      .filter((item: any) => item.categoria === "armadura" || item.categoria === "escudo")
+      .map((item: any) => {
+        const precoStr = item.preco !== undefined ? String(item.preco) : "0";
+        const parsedPreco = parseInt(precoStr.replace(/\./g, ''), 10) || 0;
+        return {
+          nome: item.item || item.nome || "",
+          slot: item.equipamento?.slot || "",
+          ip: item.equipamento?.ip !== undefined ? Number(item.equipamento.ip) : 0,
+          penalidade_dex: item.equipamento?.penalidade_dex !== undefined ? Number(item.equipamento.penalidade_dex) : 0,
+          penalidade_agi: item.equipamento?.penalidade_agi !== undefined ? Number(item.equipamento.penalidade_agi) : 0,
+          obs: item.equipamento?.obs || item.obs || "",
+          preco_pp: parsedPreco,
+          categoria: item.categoria
+        };
+      });
+  }, [itensCatalog]);
+
+  const modificadoresCatalog = useMemo(() => {
+    return itensCatalog
+      .filter((item: any) => item.categoria && item.categoria.toLowerCase().includes("modificador"))
+      .map((item: any) => {
+        const precoStr = item.preco !== undefined ? String(item.preco) : "0";
+        const parsedPreco = parseInt(precoStr.replace(/\./g, ''), 10) || 0;
+        return {
+          nome: item.item || item.nome || "",
+          modificador_dex: item.equipamento?.modificador_dex !== undefined ? Number(item.equipamento.modificador_dex) : 0,
+          modificador_agi: item.equipamento?.modificador_agi !== undefined ? Number(item.equipamento.modificador_agi) : 0,
+          preco_adicional_pp: parsedPreco,
+          preco_pp: parsedPreco,
+          descricao: item.descricao || "",
+          efeito_dano: item.equipamento?.efeito_dano || "",
+          efeito_dano_adicional: item.equipamento?.efeito_dano_adicional || "",
+          categoria: item.categoria
+        };
+      });
+  }, [itensCatalog]);
   const [isItensModalOpen, setIsItensModalOpen] = useState(false);
   const [openedFromCard, setOpenedFromCard] = useState<'armas' | 'armaduras' | 'itens' | null>(null);
   const [isCustomItemModalOpen, setIsCustomItemModalOpen] = useState(false);
@@ -1434,9 +1695,7 @@ export default function CharacterEditorView({
     if (typeof currentItem !== 'object' || !currentItem) return;
 
     if (currentItem.isCustom) {
-      setToastType('error');
-      setToastMessage('Itens customizados não podem ser definidos como Arma Preferencial.');
-      setShowToast(true);
+      toast.error('Itens customizados não podem ser definidos como Arma Preferencial.');
       return;
     }
 
@@ -1462,9 +1721,7 @@ export default function CharacterEditorView({
       });
 
       if (!hasMatchingSkill) {
-        setToastType('error');
-        setToastMessage(`Você precisa ter a Perícia de Combate e o Subgrupo condizente com esta arma (${classification.subgrupo_arma}) para ativá-la como Arma Preferencial!`);
-        setShowToast(true);
+        toast.error(`Você precisa ter a Perícia de Combate e o Subgrupo condizente com esta arma (${classification.subgrupo_arma}) para ativá-la como Arma Preferencial!`);
         return;
       }
     }
@@ -1607,9 +1864,7 @@ export default function CharacterEditorView({
         caminhos: tempCaminhos.map(c => ({ ...c }))
       }
     }));
-    setToastType('success');
-    setToastMessage('Focos alocados com sucesso!');
-    setShowToast(true);
+    toast.success('Focos alocados com sucesso!');
   };
 
   const getPathAffinityBadge = (pathName: string): { label: string; bgClass: string; textClass: string; borderClass: string } | null => {
@@ -1688,9 +1943,7 @@ export default function CharacterEditorView({
 
   const handleSaveSpell = () => {
     if (!editingSpell || !editingSpell.name || !editingSpell.name.trim()) {
-      setToastType('error');
-      setToastMessage('O feitiço precisa de um nome.');
-      setShowToast(true);
+      toast.error('O feitiço precisa de um nome.');
       return;
     }
 
@@ -1812,9 +2065,7 @@ export default function CharacterEditorView({
     setEditingSpell(null);
     setIsAddingSpell(false);
     
-    setToastType('success');
-    setToastMessage('Feitiço escrito com sucesso.');
-    setShowToast(true);
+    toast.success('Feitiço escrito com sucesso.');
   };
 
   const handleStartEditSpell = (spell?: Spell) => {
@@ -1905,9 +2156,7 @@ export default function CharacterEditorView({
       };
     });
     setSpellToDelete(null);
-    setToastType('success');
-    setToastMessage('Feitiço apagado do grimório.');
-    setShowToast(true);
+    toast.success('Feitiço apagado do grimório.');
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1915,9 +2164,55 @@ export default function CharacterEditorView({
   const bgContentRef = useRef<HTMLDivElement>(null);
 
   const [portraitError, setPortraitError] = useState(false);
-  const [regrasMarkdown, setRegrasMarkdown] = useState('');
-  const [comoJogarIntro, setComoJogarIntro] = useState<{ title: string; subtitle: string } | null>(null);
-  const [comoJogarItems, setComoJogarItems] = useState<{ id: number; title: string; content: string }[]>([]);
+  const { data: regrasNovoPersonagemRule } = useQuery<{ markdown: string }>({
+    queryKey: ['system-rules', 'regras_novo_personagem'],
+    queryFn: async () => {
+      const res = await api.get('/rules/regras_novo_personagem');
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 60 * 24,
+  });
+  const regrasMarkdown = regrasNovoPersonagemRule?.markdown || '# Guia de Criação de Personagem\nCarregando regras oficiais...';
+
+  const { data: regrasJogoRule = [] } = useQuery<any[]>({
+    queryKey: ['system-rules', 'regras_jogo'],
+    queryFn: async () => {
+      const res = await api.get('/rules/regras_jogo');
+      return Array.isArray(res.data) ? res.data : [];
+    },
+    staleTime: 1000 * 60 * 60 * 24,
+  });
+
+  const comoJogarIntro = useMemo(() => {
+    if (Array.isArray(regrasJogoRule)) {
+      const introObj = regrasJogoRule.find((item: any) => 'introdução_title' in item);
+      if (introObj) {
+        return {
+          title: introObj.introdução_title,
+          subtitle: introObj.introdução_subtitle,
+        };
+      }
+    }
+    return null;
+  }, [regrasJogoRule]);
+
+  const comoJogarItems = useMemo(() => {
+    if (Array.isArray(regrasJogoRule)) {
+      const items: { id: number; title: string; content: string }[] = [];
+      for (let i = 1; i <= 6; i++) {
+        const itemObj = regrasJogoRule.find((item: any) => `title${i}` in item);
+        if (itemObj) {
+          items.push({
+            id: i,
+            title: itemObj[`title${i}`],
+            content: itemObj[`content${i}`],
+          });
+        }
+      }
+      return items;
+    }
+    return [];
+  }, [regrasJogoRule]);
   const [openItems, setOpenItems] = useState<Record<number, boolean>>({});
   const [focusedField, setFocusedField] = useState<{ attrKey: keyof CharacterAttributes, field: 'penalidade' | 'bonusRacial' } | null>(null);
 
@@ -1954,24 +2249,18 @@ export default function CharacterEditorView({
 
     const totalPoints = Object.values(tempCompanionAttributes).reduce((a, b) => a + b, 0);
     if (totalPoints > maxCompanionAttrs) {
-      setToastType('error');
-      setToastMessage(`Você distribuiu ${totalPoints} pontos de atributos. O limite máximo é de ${maxCompanionAttrs} pontos para o nível ${companionL}!`);
-      setShowToast(true);
+      toast.error(`Você distribuiu ${totalPoints} pontos de atributos. O limite máximo é de ${maxCompanionAttrs} pontos para o nível ${companionL}!`);
       return;
     }
     
     if (tempCompanionAttributes.int > 2) {
-      setToastType('error');
-      setToastMessage("A Inteligência de um Companheiro Animal não pode ser superior a 2!");
-      setShowToast(true);
+      toast.error("A Inteligência de um Companheiro Animal não pode ser superior a 2!");
       return;
     }
 
     const totalSkillPoints = tempCompanionSkills.reduce((sum, s) => sum + (Number(s.pontosGastos) || 0), 0);
     if (totalSkillPoints > maxCompanionSkills) {
-      setToastType('error');
-      setToastMessage(`Você distribuiu ${totalSkillPoints} pontos de perícia. O limite máximo é de ${maxCompanionSkills} pontos para o nível ${companionL}!`);
-      setShowToast(true);
+      toast.error(`Você distribuiu ${totalSkillPoints} pontos de perícia. O limite máximo é de ${maxCompanionSkills} pontos para o nível ${companionL}!`);
       return;
     }
     
@@ -1986,9 +2275,7 @@ export default function CharacterEditorView({
     }));
     
     setIsCompanionModalOpen(false);
-    setToastType('success');
-    setToastMessage("Ficha do Companheiro Animal salva com sucesso!");
-    setShowToast(true);
+    toast.success("Ficha do Companheiro Animal salva com sucesso!");
   };
 
   const handleOpenMontariaModal = () => {
@@ -2011,9 +2298,7 @@ export default function CharacterEditorView({
       }
     }));
     setIsMontariaModalOpen(false);
-    setToastType('success');
-    setToastMessage("Ficha da Montaria Especial salva com sucesso!");
-    setShowToast(true);
+    toast.success("Ficha da Montaria Especial salva com sucesso!");
   };
 
   const handleOpenFamiliarModal = () => {
@@ -2069,25 +2354,19 @@ export default function CharacterEditorView({
         (tempFamiliarAtributos.CAR || 0);
 
       if (totalAttrPoints > 42) {
-        setToastType('error');
-        setToastMessage(`Você distribuiu ${totalAttrPoints} pontos de atributos. O limite máximo para o familiar customizado é de 42 pontos!`);
-        setShowToast(true);
+        toast.error(`Você distribuiu ${totalAttrPoints} pontos de atributos. O limite máximo para o familiar customizado é de 42 pontos!`);
         return;
       }
 
       const totalSkillPoints = tempFamiliarPericias.reduce((sum, p) => sum + (p.chance_acerto || 0), 0);
       if (totalSkillPoints > 25) {
-        setToastType('error');
-        setToastMessage(`Você distribuiu ${totalSkillPoints} pontos de perícia. O limite máximo para o familiar customizado é de 25 pontos!`);
-        setShowToast(true);
+        toast.error(`Você distribuiu ${totalSkillPoints} pontos de perícia. O limite máximo para o familiar customizado é de 25 pontos!`);
         return;
       }
 
       const customAbilities = tempFamiliarHabilidades.filter(h => !isBaseFamiliarAbility(h.habilidade));
       if (customAbilities.length > 1) {
-        setToastType('error');
-        setToastMessage(`Você adicionou ${customAbilities.length} habilidades especiais customizadas. O limite máximo para o familiar customizado é de 1 habilidade customizada!`);
-        setShowToast(true);
+        toast.error(`Você adicionou ${customAbilities.length} habilidades especiais customizadas. O limite máximo para o familiar customizado é de 1 habilidade customizada!`);
         return;
       }
     }
@@ -2111,9 +2390,7 @@ export default function CharacterEditorView({
       }
     }));
     setIsFamiliarModalOpen(false);
-    setToastType('success');
-    setToastMessage("Ficha do Familiar salva com sucesso!");
-    setShowToast(true);
+    toast.success("Ficha do Familiar salva com sucesso!");
   };
 
   const handleUpdateCompanionSkill = (id: string, field: keyof CompanionSkill, value: any) => {
@@ -2147,9 +2424,7 @@ export default function CharacterEditorView({
       return;
     }
     if (currentHas && !hasAcertoCriticoOnMount.current) {
-      setToastType('success');
-      setToastMessage("Acerto Crítico Aprimorado - Identifique no inventário qual arma receberá o aprimoramento!");
-      setShowToast(true);
+      toast.success("Acerto Crítico Aprimorado - Identifique no inventário qual arma receberá o aprimoramento!");
     }
     hasAcertoCriticoOnMount.current = currentHas;
   }, [editedChar.aprimoramentosPositivos]);
@@ -2199,9 +2474,7 @@ export default function CharacterEditorView({
       return;
     }
     if (currentHas && !hasArmaAmuletoMagicoOnMount.current) {
-      setToastType('success');
-      setToastMessage("Arma ou Amuleto Mágico - Identifique no inventário qual arma ou item customizado receberá o aprimoramento!");
-      setShowToast(true);
+      toast.success("Arma ou Amuleto Mágico - Identifique no inventário qual arma ou item customizado receberá o aprimoramento!");
     }
     hasArmaAmuletoMagicoOnMount.current = currentHas;
   }, [editedChar.aprimoramentosPositivos]);
@@ -2251,9 +2524,7 @@ export default function CharacterEditorView({
       return;
     }
     if (currentHas && !hasArmaAmuletoMalditoOnMount.current) {
-      setToastType('warning');
-      setToastMessage("Arma ou Amuleto Maldito - Identifique no inventário qual arma ou item customizado receberá o aprimoramento");
-      setShowToast(true);
+      toast.warning("Arma ou Amuleto Maldito - Identifique no inventário qual arma ou item customizado receberá o aprimoramento");
       setHasPendingMagicEnchant(true);
       setEditedChar(prev => ({ ...prev, has_pending_magic_enchant: true }));
     }
@@ -2306,9 +2577,7 @@ export default function CharacterEditorView({
       return;
     }
     if (currentHas && !hasArmaPreferencialOnMount.current) {
-      setToastType('success');
-      setToastMessage("Arma preferêncial: Identifique no inventário qual arma receberá o aprimoramento.");
-      setShowToast(true);
+      toast.success("Arma preferêncial: Identifique no inventário qual arma receberá o aprimoramento.");
     }
     hasArmaPreferencialOnMount.current = currentHas;
   }, [editedChar.aprimoramentosPositivos]);
@@ -2347,9 +2616,7 @@ export default function CharacterEditorView({
       return;
     }
     if (currentHas && !hasAcuideArmaOnMount.current) {
-      setToastType('success');
-      setToastMessage("Acuide com Arma - Identifique no inventário qual arma receberá o aprimoramento.");
-      setShowToast(true);
+      toast.success("Acuide com Arma - Identifique no inventário qual arma receberá o aprimoramento.");
     }
     hasAcuideArmaOnMount.current = currentHas;
   }, [editedChar.aprimoramentosPositivos]);
@@ -2386,9 +2653,7 @@ export default function CharacterEditorView({
       return;
     }
     if (currentHas && !hasBibliotecaOnMount.current) {
-      setToastType('success');
-      setToastMessage("Biblioteca - Você pode escolher mais de um subgrupo de conhecimento nas perícias Ciências Proibidas, Ciências e Conhecimentos.");
-      setShowToast(true);
+      toast.success("Biblioteca - Você pode escolher mais de um subgrupo de conhecimento nas perícias Ciências Proibidas, Ciências e Conhecimentos.");
     }
     hasBibliotecaOnMount.current = currentHas;
   }, [editedChar.aprimoramentosPositivos]);
@@ -2400,8 +2665,8 @@ export default function CharacterEditorView({
       let hasDuplicates = false;
       const seenGroups = new Set<string>();
       for (const s of editedChar.skills || []) {
-        const grp = s.group.toLowerCase().trim();
-        if (isLibrarySkillName(grp)) {
+        const grp = (s?.group || '').toLowerCase().trim();
+        if (grp && isLibrarySkillName(grp)) {
           if (seenGroups.has(grp)) {
             hasDuplicates = true;
             break;
@@ -2414,8 +2679,8 @@ export default function CharacterEditorView({
         setEditedChar(prev => {
           const keepSeen = new Set<string>();
           const cleanedSkills = (prev.skills || []).filter(s => {
-            const grp = s.group.toLowerCase().trim();
-            if (isLibrarySkillName(grp)) {
+            const grp = (s?.group || '').toLowerCase().trim();
+            if (grp && isLibrarySkillName(grp)) {
               if (keepSeen.has(grp)) {
                 return false; // remove duplicates
               }
@@ -2428,138 +2693,6 @@ export default function CharacterEditorView({
       }
     }
   }, [editedChar.aprimoramentosPositivos]);
-
-  useEffect(() => {
-    fetch('/data-mock/regras_novo_personagem.md')
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to load rules');
-        return res.text();
-      })
-      .then(text => setRegrasMarkdown(text))
-      .catch(err => {
-        console.error('Error fetching rules:', err);
-        setRegrasMarkdown('# Guia de Criação de Personagem\nNão foi possível carregar as regras oficiais no momento.');
-      });
-  }, []);
-
-  useEffect(() => {
-    fetch('/data-mock/regras_de_jogo.json')
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to load game rules');
-        return res.json();
-      })
-      .then(data => {
-        if (Array.isArray(data)) {
-          const introObj = data.find(item => 'introdução_title' in item);
-          if (introObj) {
-            setComoJogarIntro({
-              title: introObj.introdução_title,
-              subtitle: introObj.introdução_subtitle
-            });
-          }
-          
-          const items: { id: number; title: string; content: string }[] = [];
-          for (let i = 1; i <= 6; i++) {
-            const itemObj = data.find(item => `title${i}` in item);
-            if (itemObj) {
-              items.push({
-                id: i,
-                title: itemObj[`title${i}`],
-                content: itemObj[`content${i}`]
-              });
-            }
-          }
-          setComoJogarItems(items);
-        }
-      })
-      .catch(err => {
-        console.error('Error fetching game rules:', err);
-      });
-  }, []);
-
-  useEffect(() => {
-    fetch('/data-mock/pericias.json')
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to load pericias');
-        return res.json();
-      })
-      .then(data => {
-        if (Array.isArray(data)) {
-          setMockPericias(data);
-        }
-      })
-      .catch(err => {
-        console.error('Error fetching pericias:', err);
-      });
-  }, []);
-
-  useEffect(() => {
-    fetch('/data-mock/levelup.json')
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to load levelup rules');
-        return res.json();
-      })
-      .then(data => {
-        setLevelUpRules(data);
-      })
-      .catch(err => {
-        console.error('Error fetching levelup rules:', err);
-      });
-  }, []);
-
-  useEffect(() => {
-    fetch('/data-mock/itens.json')
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to load itens');
-        return res.json();
-      })
-      .then(data => {
-        if (Array.isArray(data)) {
-          setItensCatalog(data);
-          // 1. Map armaduras e escudos
-          const armadurasAndEscudos = data
-            .filter((item: any) => item.categoria === "armadura" || item.categoria === "escudo")
-            .map((item: any) => {
-              const precoStr = item.preco !== undefined ? String(item.preco) : "0";
-              const parsedPreco = parseInt(precoStr.replace(/\./g, ''), 10) || 0;
-              return {
-                nome: item.item || item.nome || "",
-                slot: item.equipamento?.slot || "",
-                ip: item.equipamento?.ip !== undefined ? Number(item.equipamento.ip) : 0,
-                penalidade_dex: item.equipamento?.penalidade_dex !== undefined ? Number(item.equipamento.penalidade_dex) : 0,
-                penalidade_agi: item.equipamento?.penalidade_agi !== undefined ? Number(item.equipamento.penalidade_agi) : 0,
-                obs: item.equipamento?.obs || item.obs || "",
-                preco_pp: parsedPreco,
-                categoria: item.categoria
-              };
-            });
-          setArmadurasCatalog(armadurasAndEscudos);
-
-          // 2. Map all modifiers
-          const modificadores = data
-            .filter((item: any) => item.categoria && item.categoria.toLowerCase().includes("modificador"))
-            .map((item: any) => {
-              const precoStr = item.preco !== undefined ? String(item.preco) : "0";
-              const parsedPreco = parseInt(precoStr.replace(/\./g, ''), 10) || 0;
-              return {
-                nome: item.item || item.nome || "",
-                modificador_dex: item.equipamento?.modificador_dex !== undefined ? Number(item.equipamento.modificador_dex) : 0,
-                modificador_agi: item.equipamento?.modificador_agi !== undefined ? Number(item.equipamento.modificador_agi) : 0,
-                preco_adicional_pp: parsedPreco,
-                preco_pp: parsedPreco,
-                descricao: item.descricao || "",
-                efeito_dano: item.equipamento?.efeito_dano || "",
-                efeito_dano_adicional: item.equipamento?.efeito_dano_adicional || "",
-                categoria: item.categoria
-              };
-            });
-          setModificadoresCatalog(modificadores);
-        }
-      })
-      .catch(err => {
-        console.error('Error fetching armaduras/itens:', err);
-      });
-  }, []);
 
   // Hydrate raw string items of editedChar with full item definitions from itensCatalog when it is loaded
   useEffect(() => {
@@ -2597,47 +2730,11 @@ export default function CharacterEditorView({
     }
   }, [itensCatalog, editedChar?.id]);
 
-  useEffect(() => {
-    fetch('/data-mock/montaria.json')
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to load montaria.json');
-        return res.json();
-      })
-      .then(data => {
-        if (data && Array.isArray(data.montarias_base)) {
-          setMontariasBase(data.montarias_base);
-        }
-      })
-      .catch(err => {
-        console.error('Error fetching montaria:', err);
-      });
-  }, []);
-
-  useEffect(() => {
-    fetch('/data-mock/familiares.json')
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to load familiares.json');
-        return res.json();
-      })
-      .then(data => {
-        if (data && data.familiares) {
-          const list = Object.entries(data.familiares).map(([id, item]: [string, any]) => ({
-            id,
-            ...item
-          }));
-          setFamiliaresBase(list);
-        }
-      })
-      .catch(err => {
-        console.error('Error fetching familiares:', err);
-      });
-  }, []);
-
   // Dynamic sanity state, attributes penalty sync, and armor modifiers calculations
   useEffect(() => {
-    const willPts = Number(editedChar.attributes.will.pontosGastos) || 0;
+    const willPts = Number(editedChar.attributes?.will?.pontosGastos) || 0;
     const calculatedSanidadeVal = 100 + willPts;
-    const loucura = calculatedSanidadeVal - (Number(editedChar.statusPoints.psi.esforcoMental) || 0);
+    const loucura = calculatedSanidadeVal - (Number(editedChar.statusPoints?.psi?.esforcoMental) || 0);
 
     let mentalStatus = "Saudável";
     let intPenalty = 0;
@@ -2698,39 +2795,39 @@ export default function CharacterEditorView({
       }
     });
 
-    const expectedIntPenalty = (Number(editedChar.attributes.int.penalidadeManual) || 0) + intPenalty + (Number(editedChar.attributes.int.penalidadeExtra) || 0);
-    const expectedWillPenalty = (Number(editedChar.attributes.will.penalidadeManual) || 0) + willPenalty + (Number(editedChar.attributes.will.penalidadeExtra) || 0);
-    const expectedCarPenalty = (Number(editedChar.attributes.car.penalidadeManual) || 0) + carPenalty + (Number(editedChar.attributes.car.penalidadeExtra) || 0);
-    const expectedDesPenalty = (Number(editedChar.attributes.des.penalidadeManual) || 0) + totalArmorDexPenalty + (Number(editedChar.attributes.des.penalidadeExtra) || 0);
-    const expectedAgiPenalty = (Number(editedChar.attributes.agi.penalidadeManual) || 0) + totalArmorAgiPenalty + (Number(editedChar.attributes.agi.penalidadeExtra) || 0);
+    const expectedIntPenalty = (Number(editedChar.attributes?.int?.penalidadeManual) || 0) + intPenalty + (Number(editedChar.attributes?.int?.penalidadeExtra) || 0);
+    const expectedWillPenalty = (Number(editedChar.attributes?.will?.penalidadeManual) || 0) + willPenalty + (Number(editedChar.attributes?.will?.penalidadeExtra) || 0);
+    const expectedCarPenalty = (Number(editedChar.attributes?.car?.penalidadeManual) || 0) + carPenalty + (Number(editedChar.attributes?.car?.penalidadeExtra) || 0);
+    const expectedDesPenalty = (Number(editedChar.attributes?.des?.penalidadeManual) || 0) + totalArmorDexPenalty + (Number(editedChar.attributes?.des?.penalidadeExtra) || 0);
+    const expectedAgiPenalty = (Number(editedChar.attributes?.agi?.penalidadeManual) || 0) + totalArmorAgiPenalty + (Number(editedChar.attributes?.agi?.penalidadeExtra) || 0);
 
-    const baseIpPsiquico = editedChar.protection.baseIpPsiquico !== undefined 
+    const baseIpPsiquico = editedChar.protection?.baseIpPsiquico !== undefined 
       ? Number(editedChar.protection.baseIpPsiquico) || 0 
-      : Number(editedChar.protection.ipPsiquico) || 0;
+      : Number(editedChar.protection?.ipPsiquico) || 0;
 
-    const baseIpEscudo = editedChar.protection.baseIpEscudo !== undefined 
+    const baseIpEscudo = editedChar.protection?.baseIpEscudo !== undefined 
       ? Number(editedChar.protection.baseIpEscudo) || 0 
-      : Number(editedChar.protection.ipEscudo) || 0;
+      : Number(editedChar.protection?.ipEscudo) || 0;
 
     const expectedIpPsiquico = baseIpPsiquico + totalArmorIpArmadura;
     const expectedIpEscudo = baseIpEscudo + totalArmorIpEscudo;
 
-    const currentIntPenalty = Number(editedChar.attributes.int.penalidade) || 0;
-    const currentWillPenalty = Number(editedChar.attributes.will.penalidade) || 0;
-    const currentCarPenalty = Number(editedChar.attributes.car.penalidade) || 0;
-    const currentDesPenalty = Number(editedChar.attributes.des.penalidade) || 0;
-    const currentAgiPenalty = Number(editedChar.attributes.agi.penalidade) || 0;
-    const currentIpPsiquico = Number(editedChar.protection.ipPsiquico) || 0;
-    const currentIpEscudo = Number(editedChar.protection.ipEscudo) || 0;
-    const currentMentalStatus = editedChar.statusPoints.psi.estadoMental || '';
+    const currentIntPenalty = Number(editedChar.attributes?.int?.penalidade) || 0;
+    const currentWillPenalty = Number(editedChar.attributes?.will?.penalidade) || 0;
+    const currentCarPenalty = Number(editedChar.attributes?.car?.penalidade) || 0;
+    const currentDesPenalty = Number(editedChar.attributes?.des?.penalidade) || 0;
+    const currentAgiPenalty = Number(editedChar.attributes?.agi?.penalidade) || 0;
+    const currentIpPsiquico = Number(editedChar.protection?.ipPsiquico) || 0;
+    const currentIpEscudo = Number(editedChar.protection?.ipEscudo) || 0;
+    const currentMentalStatus = editedChar.statusPoints?.psi?.estadoMental || '';
 
     const heroicosLevel = getPontosHeroicosLevel(editedChar.aprimoramentosPositivos);
     const charLevel = Number(editedChar.level) || 1;
-    let expectedHeroicosValorFinal = Number(editedChar.statusPoints.heroicos.valorFinal) || 0;
+    let expectedHeroicosValorFinal = Number(editedChar.statusPoints?.heroicos?.valorFinal) || 0;
     if (heroicosLevel !== null) {
       expectedHeroicosValorFinal = heroicosLevel * charLevel;
     }
-    const currentHeroicosValorFinal = Number(editedChar.statusPoints.heroicos.valorFinal) || 0;
+    const currentHeroicosValorFinal = Number(editedChar.statusPoints?.heroicos?.valorFinal) || 0;
 
     const isPotencializarActive = hasPotencializarMagia(editedChar.aprimoramentosPositivos);
     const spellsNeedUpdate = (editedChar.spells || []).some(spell => {
@@ -2903,7 +3000,7 @@ export default function CharacterEditorView({
 
         const currentHeroicosLvl = getPontosHeroicosLevel(updated.aprimoramentosPositivos);
         const currentCharLvl = Number(updated.level) || 1;
-        let finalHeroicosValorFinal = Number(updated.statusPoints.heroicos.valorFinal) || 0;
+        let finalHeroicosValorFinal = Number(updated.statusPoints?.heroicos?.valorFinal) || 0;
         if (currentHeroicosLvl !== null) {
           finalHeroicosValorFinal = currentHeroicosLvl * currentCharLvl;
         }
@@ -2911,11 +3008,11 @@ export default function CharacterEditorView({
         updated.statusPoints = {
           ...updated.statusPoints,
           psi: {
-            ...updated.statusPoints.psi,
+            ...updated.statusPoints?.psi,
             estadoMental: mentalStatus,
           },
           heroicos: {
-            ...updated.statusPoints.heroicos,
+            ...updated.statusPoints?.heroicos,
             valorFinal: finalHeroicosValorFinal,
           },
         };
@@ -3022,40 +3119,40 @@ export default function CharacterEditorView({
       });
     }
   }, [
-    editedChar.attributes.will.pontosGastos,
-    editedChar.statusPoints.psi.esforcoMental,
-    editedChar.attributes.int.natural,
-    editedChar.attributes.will.natural,
-    editedChar.attributes.car.natural,
-    editedChar.attributes.des.natural,
-    editedChar.attributes.agi.natural,
-    editedChar.attributes.int.bonusRacial,
-    editedChar.attributes.will.bonusRacial,
-    editedChar.attributes.car.bonusRacial,
-    editedChar.attributes.des.bonusRacial,
-    editedChar.attributes.agi.bonusRacial,
-    editedChar.attributes.int.penalidadeManual,
-    editedChar.attributes.will.penalidadeManual,
-    editedChar.attributes.car.penalidadeManual,
-    editedChar.attributes.des.penalidadeManual,
-    editedChar.attributes.agi.penalidadeManual,
-    editedChar.attributes.int.penalidadeExtra,
-    editedChar.attributes.will.penalidadeExtra,
-    editedChar.attributes.car.penalidadeExtra,
-    editedChar.attributes.des.penalidadeExtra,
-    editedChar.attributes.agi.penalidadeExtra,
-    editedChar.protection.ipPsiquico,
-    editedChar.protection.ipEscudo,
-    editedChar.protection.baseIpPsiquico,
-    editedChar.protection.baseIpEscudo,
-    JSON.stringify(editedChar.armors),
-    JSON.stringify(editedChar.items),
-    JSON.stringify(editedChar.aprimoramentosPositivos),
-    JSON.stringify(editedChar.aprimoramentosNegativos),
-    JSON.stringify(editedChar.spells),
+    editedChar.attributes?.will?.pontosGastos,
+    editedChar.statusPoints?.psi?.esforcoMental,
+    editedChar.attributes?.int?.natural,
+    editedChar.attributes?.will?.natural,
+    editedChar.attributes?.car?.natural,
+    editedChar.attributes?.des?.natural,
+    editedChar.attributes?.agi?.natural,
+    editedChar.attributes?.int?.bonusRacial,
+    editedChar.attributes?.will?.bonusRacial,
+    editedChar.attributes?.car?.bonusRacial,
+    editedChar.attributes?.des?.bonusRacial,
+    editedChar.attributes?.agi?.bonusRacial,
+    editedChar.attributes?.int?.penalidadeManual,
+    editedChar.attributes?.will?.penalidadeManual,
+    editedChar.attributes?.car?.penalidadeManual,
+    editedChar.attributes?.des?.penalidadeManual,
+    editedChar.attributes?.agi?.penalidadeManual,
+    editedChar.attributes?.int?.penalidadeExtra,
+    editedChar.attributes?.will?.penalidadeExtra,
+    editedChar.attributes?.car?.penalidadeExtra,
+    editedChar.attributes?.des?.penalidadeExtra,
+    editedChar.attributes?.agi?.penalidadeExtra,
+    editedChar.protection?.ipPsiquico,
+    editedChar.protection?.ipEscudo,
+    editedChar.protection?.baseIpPsiquico,
+    editedChar.protection?.baseIpEscudo,
+    JSON.stringify(editedChar.armors || []),
+    JSON.stringify(editedChar.items || []),
+    JSON.stringify(editedChar.aprimoramentosPositivos || []),
+    JSON.stringify(editedChar.aprimoramentosNegativos || []),
+    JSON.stringify(editedChar.spells || []),
     JSON.stringify(editedChar.familiar),
     editedChar.level,
-    editedChar.statusPoints.heroicos.valorFinal
+    editedChar.statusPoints?.heroicos?.valorFinal
   ]);
 
   // Lock status and save status state machine
@@ -3073,6 +3170,26 @@ export default function CharacterEditorView({
 
   // Level & XP fields (can be changed when unlocked)
   const isLevelLocked = !isNew && isLocked;
+
+  const handleCampaignChange = (campaignIdStr: string) => {
+    if (userRole === 'dm') return; // DM cannot change character campaign
+    const val = campaignIdStr ? campaignIdStr : undefined;
+    setEditedChar((prev) => {
+      const updated = {
+        ...prev,
+        campaignId: val,
+      };
+      if (characterId && isLocked) {
+        if (onSilentUpdate) {
+          onSilentUpdate(updated);
+        } else if (onSave) {
+          onSave(updated);
+        }
+        toast.success(val ? 'Personagem vinculado à campanha com sucesso!' : 'Personagem desvinculado da campanha.');
+      }
+      return updated;
+    });
+  };
 
   // Sync modal portrait url with state
   // Calculations for Aprimoramentos
@@ -3453,11 +3570,12 @@ export default function CharacterEditorView({
 
   // Clean and parse fields to pure numbers before submitting or downloading
   const cleanCharacterForSaving = (char: Character): Character => {
-    const finalChar = JSON.parse(JSON.stringify(char));
+    const finalChar = normalizeCharacter(char);
 
     // Attributes
     for (const key of Object.keys(finalChar.attributes) as Array<keyof CharacterAttributes>) {
       const attr = finalChar.attributes[key];
+      if (!attr) continue;
       attr.natural = Math.max(0, Math.round(Number(attr.natural)) || 0);
       attr.penalidade = Math.max(0, Math.round(Number(attr.penalidade)) || 0);
       attr.bonusRacial = Math.max(0, Math.round(Number(attr.bonusRacial)) || 0);
@@ -3471,6 +3589,7 @@ export default function CharacterEditorView({
     // Status Points
     for (const key of Object.keys(finalChar.statusPoints) as Array<keyof Character['statusPoints']>) {
       const val = finalChar.statusPoints[key];
+      if (!val) continue;
       val.valorFinal = Math.max(0, Math.round(Number(val.valorFinal)) || 0);
       if (val.danoSofrido !== undefined) val.danoSofrido = Math.max(0, Math.round(Number(val.danoSofrido)) || 0);
       if (val.magiaExaurida !== undefined) val.magiaExaurida = Math.max(0, Math.round(Number(val.magiaExaurida)) || 0);
@@ -3479,22 +3598,26 @@ export default function CharacterEditorView({
     }
 
     // Protection
-    finalChar.protection.ipCinetico = Math.max(0, Math.round(Number(finalChar.protection.ipCinetico)) || 0);
-    finalChar.protection.ipBalistico = Math.max(0, Math.round(Number(finalChar.protection.ipBalistico)) || 0);
-    finalChar.protection.ipEscudo = Math.max(0, Math.round(Number(finalChar.protection.ipEscudo)) || 0);
-    finalChar.protection.ipPsiquico = Math.max(0, Math.round(Number(finalChar.protection.ipPsiquico)) || 0);
-    finalChar.protection.ipMagico = Math.max(0, Math.round(Number(finalChar.protection.ipMagico)) || 0);
+    finalChar.protection.ipCinetico = Math.max(0, Math.round(Number(finalChar.protection?.ipCinetico)) || 0);
+    finalChar.protection.ipBalistico = Math.max(0, Math.round(Number(finalChar.protection?.ipBalistico)) || 0);
+    finalChar.protection.ipEscudo = Math.max(0, Math.round(Number(finalChar.protection?.ipEscudo)) || 0);
+    finalChar.protection.ipPsiquico = Math.max(0, Math.round(Number(finalChar.protection?.ipPsiquico)) || 0);
+    finalChar.protection.ipMagico = Math.max(0, Math.round(Number(finalChar.protection?.ipMagico)) || 0);
+    if (!finalChar.protection.durabilidadeArmadura) {
+      finalChar.protection.durabilidadeArmadura = { atual: 0, total: 0 };
+    }
     finalChar.protection.durabilidadeArmadura.atual = Math.max(0, Math.round(Number(finalChar.protection.durabilidadeArmadura.atual)) || 0);
     finalChar.protection.durabilidadeArmadura.total = Math.max(0, Math.round(Number(finalChar.protection.durabilidadeArmadura.total)) || 0);
 
     // Skills
-    finalChar.skills = finalChar.skills.map((skill: any) => ({
+    finalChar.skills = (finalChar.skills || []).map((skill: any) => ({
       ...skill,
       atributo: Math.max(0, Math.round(Number(skill.atributo)) || 0),
       gasto: Math.max(0, Math.round(Number(skill.gasto)) || 0),
     }));
 
     // Treasure
+    if (!finalChar.treasure) finalChar.treasure = { ouro: 0, prata: 0, bronze: 0 };
     finalChar.treasure.ouro = Math.max(0, Math.round(Number(finalChar.treasure.ouro)) || 0);
     finalChar.treasure.prata = Math.max(0, Math.round(Number(finalChar.treasure.prata)) || 0);
     finalChar.treasure.bronze = Math.max(0, Math.round(Number(finalChar.treasure.bronze)) || 0);
@@ -3505,12 +3628,16 @@ export default function CharacterEditorView({
   // Export character sheet as localized JSON
   const handleExportCharacter = () => {
     const finalChar = cleanCharacterForSaving(editedChar);
-    const conPts = Number(finalChar.attributes.con.pontosGastos) || 0;
-    const forPts = Number(finalChar.attributes.for.pontosGastos) || 0;
-    finalChar.statusPoints.vida.valorFinal = Math.ceil((conPts + forPts) / 2);
+    const conPts = Number(finalChar.attributes?.con?.pontosGastos) || 0;
+    const forPts = Number(finalChar.attributes?.for?.pontosGastos) || 0;
+    if (finalChar.statusPoints?.vida) {
+      finalChar.statusPoints.vida.valorFinal = Math.ceil((conPts + forPts) / 2);
+    }
 
-    const willPts = Number(finalChar.attributes.will.pontosGastos) || 0;
-    finalChar.statusPoints.psi.valorFinal = 100 + willPts;
+    const willPts = Number(finalChar.attributes?.will?.pontosGastos) || 0;
+    if (finalChar.statusPoints?.psi) {
+      finalChar.statusPoints.psi.valorFinal = 100 + willPts;
+    }
 
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(finalChar, null, 2));
     const downloadAnchor = document.createElement('a');
@@ -3523,11 +3650,15 @@ export default function CharacterEditorView({
   };
 
   const handleConfirmLevelUp = () => {
+    if (userRole !== 'dm') {
+      toast.error("Apenas o modo Mestre pode aprovar a evolução.");
+      setShowLevelUpConfirmModal(false);
+      return;
+    }
+
     const nextLevel = (Number(editedChar.level) || 1) + 1;
     if (nextLevel > 15) {
-      setToastType('error');
-      setToastMessage("O nível máximo permitido é 15!");
-      setShowToast(true);
+      toast.error("O nível máximo permitido é 15!");
       setShowLevelUpConfirmModal(false);
       return;
     }
@@ -3550,27 +3681,30 @@ export default function CharacterEditorView({
 
     // Sync to parent list immediately so players and other views get updated
     const finalChar = cleanCharacterForSaving(updated);
-    const conPts = Number(finalChar.attributes.con.pontosGastos) || 0;
-    const forPts = Number(finalChar.attributes.for.pontosGastos) || 0;
-    finalChar.statusPoints.vida.valorFinal = Math.ceil((conPts + forPts) / 2);
-
-    const willPts = Number(finalChar.attributes.will.pontosGastos) || 0;
-    finalChar.statusPoints.psi.valorFinal = 100 + willPts;
-
-    if (onSilentUpdate) {
-      onSilentUpdate(finalChar);
-    } else if (onSave) {
-      onSave(finalChar);
+    const conPts = Number(finalChar.attributes?.con?.pontosGastos) || 0;
+    const forPts = Number(finalChar.attributes?.for?.pontosGastos) || 0;
+    if (finalChar.statusPoints?.vida) {
+      finalChar.statusPoints.vida.valorFinal = Math.ceil((conPts + forPts) / 2);
     }
 
-    setToastType('success');
-    setToastMessage(`Personagem evoluído com sucesso para o Nível ${nextLevel}!`);
-    setShowToast(true);
-    setShowLevelUpConfirmModal(false);
-    
-    if (userRole === 'player') {
-      setJustLeveledUp(true);
+    const willPts = Number(finalChar.attributes?.will?.pontosGastos) || 0;
+    if (finalChar.statusPoints?.psi) {
+      finalChar.statusPoints.psi.valorFinal = 100 + willPts;
+    }
+
+    if (onLevelUp && characterId) {
+      onLevelUp(characterId, finalChar, () => {
+        setShowLevelUpConfirmModal(false);
+        setJustLeveledUp(false);
+      });
     } else {
+      if (onSilentUpdate) {
+        onSilentUpdate(finalChar);
+      } else if (onSave) {
+        onSave(finalChar);
+      }
+      toast.success(`Personagem evoluído com sucesso para o Nível ${nextLevel}!`);
+      setShowLevelUpConfirmModal(false);
       setJustLeveledUp(false);
     }
   };
@@ -3673,17 +3807,11 @@ export default function CharacterEditorView({
         missingLabels.push("Saldo de Perícias Negativo");
       }
 
-      setToastMessage(`Corrija os campos para salvar: ${missingLabels.join(', ')}`);
-      setToastType('error');
-      setShowToast(true);
+      toast.error(`Corrija os campos para salvar: ${missingLabels.join(', ')}`);
 
       setTimeout(() => {
         setShakeSave(false);
       }, 500);
-
-      setTimeout(() => {
-        setShowToast(false);
-      }, 5000);
 
       return;
     }
@@ -3698,8 +3826,6 @@ export default function CharacterEditorView({
   };
 
   const executeActualSave = () => {
-    setToastType('success');
-    setToastMessage('Crônica de alma selada com sucesso !');
     setSaveStatus('loading');
     setTimeout(() => {
       setSaveStatus('success');
@@ -3710,17 +3836,21 @@ export default function CharacterEditorView({
         } else if (!isNew) {
           finalChar.isPendingDMReview = true;
         }
-        const conPts = Number(finalChar.attributes.con.pontosGastos) || 0;
-        const forPts = Number(finalChar.attributes.for.pontosGastos) || 0;
-        finalChar.statusPoints.vida.valorFinal = Math.ceil((conPts + forPts) / 2);
+        const conPts = Number(finalChar.attributes?.con?.pontosGastos) || 0;
+        const forPts = Number(finalChar.attributes?.for?.pontosGastos) || 0;
+        if (finalChar.statusPoints?.vida) {
+          finalChar.statusPoints.vida.valorFinal = Math.ceil((conPts + forPts) / 2);
+        }
 
-        const willPts = Number(finalChar.attributes.will.pontosGastos) || 0;
-        finalChar.statusPoints.psi.valorFinal = 100 + willPts;
+        const willPts = Number(finalChar.attributes?.will?.pontosGastos) || 0;
+        if (finalChar.statusPoints?.psi) {
+          finalChar.statusPoints.psi.valorFinal = 100 + willPts;
+        }
 
         onSave(finalChar);
         setIsLocked(true);
         setSaveStatus('idle');
-        setShowToast(true);
+        toast.success('Crônica de alma selada com sucesso !');
       }, 1000); // 1s success visualization
     }, 1200); // At least 1 second loading (1.2s)
   };
@@ -3747,15 +3877,21 @@ export default function CharacterEditorView({
               
               if (storedState) {
                 const currentL = Number(match.level) || 1;
-                const currentPending = !!match.isPendingDMReview;
                 const storedL = Number(storedState.level) || 1;
-                const storedPending = !!storedState.isPendingDMReview;
                 
-                if (currentL > storedL || (storedPending && !currentPending)) {
+                // Only trigger evolution notification if the level actually increased
+                if (currentL > storedL) {
                   setJustLeveledUp(true);
                 } else {
                   setJustLeveledUp(false);
                 }
+
+                // Update stored state
+                states[characterId] = {
+                  level: currentL,
+                  isPendingDMReview: !!match.isPendingDMReview
+                };
+                localStorage.setItem('character_seen_states', JSON.stringify(states));
               } else {
                 // Initialize seen state
                 states[characterId] = {
@@ -3770,12 +3906,10 @@ export default function CharacterEditorView({
               setJustLeveledUp(false);
             }
           } else if (originalChar) {
-            // Live update while viewing the sheet
-            const wasPending = originalChar.isPendingDMReview;
-            const isPending = match.isPendingDMReview;
+            // Live update while viewing the sheet: only trigger if level actually increased
             const levelIncreased = (Number(match.level) || 1) > (Number(originalChar.level) || 1);
             
-            if ((wasPending && !isPending) || levelIncreased) {
+            if (levelIncreased) {
               setJustLeveledUp(true);
             }
           }
@@ -3783,28 +3917,42 @@ export default function CharacterEditorView({
           setJustLeveledUp(false);
         }
 
-        loadedCharacterIdRef.current = characterId;
         if (match) {
+          loadedCharacterIdRef.current = characterId;
           setOriginalChar(match);
           
           // Decide what to load into editedChar
           let sourceChar = match;
           if (userRole === 'dm') {
-            // If DM is viewing a pending character, show the proposed changes so they can inspect them
+            // If DM is viewing a pending character, merge the proposed changes with the character metadata so they can inspect them
             if (match.isPendingDMReview && match.pendingChanges) {
-              sourceChar = match.pendingChanges;
+              sourceChar = {
+                ...match,
+                ...match.pendingChanges,
+                id: match.id,
+                name: match.pendingChanges.name ?? match.name,
+                race: match.pendingChanges.race ?? match.race,
+                classKit: match.pendingChanges.classKit ?? match.classKit,
+                level: match.pendingChanges.level ?? match.level,
+                xp: match.pendingChanges.xp ?? match.xp,
+                portraitUrl: match.pendingChanges.portraitUrl ?? match.portraitUrl,
+                campaignId: match.campaignId,
+                userId: match.userId,
+                isPendingDMReview: true,
+                pendingChanges: match.pendingChanges,
+              };
             }
           } else {
             // If player is viewing, since we default to locked, show pre-edit (approved) data
             sourceChar = match;
           }
 
-          // Deep copy
-          const copied = JSON.parse(JSON.stringify(sourceChar)) as Character;
+          // Deep copy and full normalization
+          const copied = normalizeCharacter(sourceChar);
           // Make sure penalidadeManual is initialized for all attributes
-          const willPts = Number(copied.attributes.will.pontosGastos) || 0;
+          const willPts = Number(copied.attributes?.will?.pontosGastos) || 0;
           const calculatedSanidadeVal = 100 + willPts;
-          const loucura = calculatedSanidadeVal - (Number(copied.statusPoints.psi.esforcoMental) || 0);
+          const loucura = calculatedSanidadeVal - (Number(copied.statusPoints?.psi?.esforcoMental) || 0);
 
           let intSanityPenalty = 0;
           let willSanityPenalty = 0;
@@ -4352,6 +4500,7 @@ export default function CharacterEditorView({
   // Handler for statusPoints
   const handleStatusChange = (statusKey: keyof Character['statusPoints'], field: string, value: any) => {
     setEditedChar((prev) => {
+      const normalized = normalizeCharacter(prev);
       let finalVal = value;
       if (field !== 'estadoMental') {
         const strVal = String(value).replace(/[^0-9]/g, '');
@@ -4362,11 +4511,11 @@ export default function CharacterEditorView({
         }
       }
       return {
-        ...prev,
+        ...normalized,
         statusPoints: {
-          ...prev.statusPoints,
+          ...normalized.statusPoints,
           [statusKey]: {
-            ...prev.statusPoints[statusKey],
+            ...(normalized.statusPoints?.[statusKey] || {}),
             [field]: finalVal,
           },
         },
@@ -4376,20 +4525,21 @@ export default function CharacterEditorView({
 
   const handleStatusBlur = (statusKey: keyof Character['statusPoints'], field: string) => {
     setEditedChar((prev) => {
-      if (field === 'estadoMental') return prev;
-      const currentVal = prev.statusPoints[statusKey][field as keyof StatPoint];
-      const strVal = String(currentVal).trim();
+      const normalized = normalizeCharacter(prev);
+      if (field === 'estadoMental') return normalized;
+      const currentVal = normalized.statusPoints?.[statusKey]?.[field as keyof StatPoint];
+      const strVal = String(currentVal ?? '').trim();
       let finalValue = 0;
       const numVal = Math.round(Number(strVal));
       if (!isNaN(numVal)) {
         finalValue = Math.max(0, numVal);
       }
       return {
-        ...prev,
+        ...normalized,
         statusPoints: {
-          ...prev.statusPoints,
+          ...normalized.statusPoints,
           [statusKey]: {
-            ...prev.statusPoints[statusKey],
+            ...(normalized.statusPoints?.[statusKey] || {}),
             [field]: finalValue,
           },
         },
@@ -4466,9 +4616,7 @@ export default function CharacterEditorView({
         armors,
       };
     });
-    setToastType('success');
-    setToastMessage(`Adicionado ${item.nome} ao inventário.`);
-    setShowToast(true);
+    toast.success(`Adicionado ${item.nome} ao inventário.`);
   };
 
   const getItemSlot = (item: any) => {
@@ -4528,9 +4676,7 @@ export default function CharacterEditorView({
     });
 
     if (validationFailed && errorMessage) {
-      setToastType('error');
-      setToastMessage(errorMessage);
-      setShowToast(true);
+      toast.error(errorMessage);
     }
   };
 
@@ -4642,9 +4788,7 @@ export default function CharacterEditorView({
                weaponKeywords.some(kw => groupLower.includes(kw));
       });
       if (!hasArmasBrancas) {
-        setToastType('error');
-        setToastMessage("Pra utilizar uma arma, é necessário a perícia Armas Brancas ou Armas Brancas de Longo Alcance");
-        setShowToast(true);
+        toast.error("Pra utilizar uma arma, é necessário a perícia Armas Brancas ou Armas Brancas de Longo Alcance");
       }
     }
 
@@ -4672,9 +4816,7 @@ export default function CharacterEditorView({
     });
 
     if (!isWeaponWarning) {
-      setToastType('success');
-      setToastMessage(`Adicionado "${itemObj.item}" ao inventário.`);
-      setShowToast(true);
+      toast.success(`Adicionado "${itemObj.item}" ao inventário.`);
     }
   };
 
@@ -4687,9 +4829,7 @@ export default function CharacterEditorView({
         items: newItems
       };
     });
-    setToastType('success');
-    setToastMessage("Item removido.");
-    setShowToast(true);
+    toast.success("Item removido.");
   };
 
   const handleMoveItem = (indexInItems: number, itemObj: any) => {
@@ -4710,9 +4850,7 @@ export default function CharacterEditorView({
           items
         };
       });
-      setToastType('success');
-      setToastMessage(`Arma "${itemObj.item}" movida para o card de Armas.`);
-      setShowToast(true);
+      toast.success(`Arma "${itemObj.item}" movida para o card de Armas.`);
     } else if (itemObj.categoria === 'armadura' || itemObj.categoria === 'escudo') {
       // É uma Armadura: move para o card ARMADURAS & ESCUDOS.
       setEditedChar((prev) => {
@@ -4738,9 +4876,7 @@ export default function CharacterEditorView({
           armors
         };
       });
-      setToastType('success');
-      setToastMessage(`Armadura "${itemObj.item}" movida para o card de Armaduras & Escudos.`);
-      setShowToast(true);
+      toast.success(`Armadura "${itemObj.item}" movida para o card de Armaduras & Escudos.`);
     }
   };
 
@@ -4758,9 +4894,7 @@ export default function CharacterEditorView({
         items
       };
     });
-    setToastType('success');
-    setToastMessage("Arma movida para a mochila (Outros Itens).");
-    setShowToast(true);
+    toast.success("Arma movida para a mochila (Outros Itens).");
   };
 
   const handleMoveArmorToMochila = (armorId: string) => {
@@ -4788,9 +4922,7 @@ export default function CharacterEditorView({
         items
       };
     });
-    setToastType('success');
-    setToastMessage("Armadura movida para a mochila (Outros Itens).");
-    setShowToast(true);
+    toast.success("Armadura movida para a mochila (Outros Itens).");
   };
 
   const handleAddArmorFromModal = (catalogItem: any) => {
@@ -5091,9 +5223,7 @@ export default function CharacterEditorView({
       const maxSub = getBibliotecaSubgroupLimit(bibliotecaLevel);
       const currentSpecialCount = tempSkills.filter(s => isLibrarySkillName(s.group)).length;
       if (currentSpecialCount >= maxSub) {
-        setToastType('error');
-        setToastMessage(`Biblioteca nível ${bibliotecaLevel} permite no máximo ${maxSub} subgrupos no total.`);
-        setShowToast(true);
+        toast.error(`Biblioteca nível ${bibliotecaLevel} permite no máximo ${maxSub} subgrupos no total.`);
         return;
       }
     }
@@ -5154,17 +5284,13 @@ export default function CharacterEditorView({
   // Create custom skill and add to the temporary list
   const handleCreateCustomSkill = () => {
     if (!newPericiaName || !newPericiaName.trim()) {
-      setToastType('error');
-      setToastMessage('O nome da perícia é obrigatório.');
-      setShowToast(true);
+      toast.error('O nome da perícia é obrigatório.');
       return;
     }
 
     const name = newPericiaName.trim();
     if (tempSkills.some(s => s.group.toLowerCase().trim() === name.toLowerCase().trim())) {
-      setToastType('error');
-      setToastMessage('Essa perícia já foi selecionada.');
-      setShowToast(true);
+      toast.error('Essa perícia já foi selecionada.');
       return;
     }
 
@@ -5202,9 +5328,7 @@ export default function CharacterEditorView({
     setNewPericiaDesc('');
     setShowCreatePericiaForm(false);
 
-    setToastType('success');
-    setToastMessage('Perícia personalizada criada com sucesso!');
-    setShowToast(true);
+    toast.success('Perícia personalizada criada com sucesso!');
   };
 
   // Update temporary skill row (gasto input change)
@@ -5357,15 +5481,18 @@ export default function CharacterEditorView({
     if (!finalChar.id) {
       finalChar.id = `char-${Date.now()}`;
     }
-    const conPts = Number(finalChar.attributes.con.pontosGastos) || 0;
-    const forPts = Number(finalChar.attributes.for.pontosGastos) || 0;
-    finalChar.statusPoints.vida.valorFinal = Math.ceil((conPts + forPts) / 2);
+    const conPts = Number(finalChar.attributes?.con?.pontosGastos) || 0;
+    const forPts = Number(finalChar.attributes?.for?.pontosGastos) || 0;
+    if (finalChar.statusPoints?.vida) {
+      finalChar.statusPoints.vida.valorFinal = Math.ceil((conPts + forPts) / 2);
+    }
 
-    const willPts = Number(finalChar.attributes.will.pontosGastos) || 0;
-    finalChar.statusPoints.psi.valorFinal = 100 + willPts;
+    const willPts = Number(finalChar.attributes?.will?.pontosGastos) || 0;
+    if (finalChar.statusPoints?.psi) {
+      finalChar.statusPoints.psi.valorFinal = 100 + willPts;
+    }
 
     onSave(finalChar);
-    setShowToast(true);
   };
 
   const handleCustomPortraitSubmit = (e: React.FormEvent) => {
@@ -5377,11 +5504,11 @@ export default function CharacterEditorView({
     }
   };
 
-  const conPts = Number(editedChar.attributes.con.pontosGastos) || 0;
-  const forPts = Number(editedChar.attributes.for.pontosGastos) || 0;
+  const conPts = Number(editedChar.attributes?.con?.pontosGastos) || 0;
+  const forPts = Number(editedChar.attributes?.for?.pontosGastos) || 0;
   const calculatedHP = Math.ceil((conPts + forPts) / 2) + extraPvBonus;
 
-  const willPts = Number(editedChar.attributes.will.pontosGastos) || 0;
+  const willPts = Number(editedChar.attributes?.will?.pontosGastos) || 0;
   const calculatedSanidade = 100 + willPts;
 
   const isMagicCharacter = (() => {
@@ -5482,9 +5609,9 @@ export default function CharacterEditorView({
     }
   }, [isGrimorioModalOpen, isSavedAllocationValid]);
 
-  const intVal = Number(editedChar.attributes.int.valorAmpliado) || 0;
-  const willVal = Number(editedChar.attributes.will.valorAmpliado) || 0;
-  const perVal = Number(editedChar.attributes.per.valorAmpliado) || 0;
+  const intVal = Number(editedChar.attributes?.int?.valorAmpliado ?? 0) || 0;
+  const willVal = Number(editedChar.attributes?.will?.valorAmpliado ?? 0) || 0;
+  const perVal = Number(editedChar.attributes?.per?.valorAmpliado ?? 0) || 0;
   const calculatedMP = isMagicCharacter ? (intVal + willVal + perVal + pmBonus + extraPmBonus) : 0;
 
   // Sync calculated MP and Focus points back to character statusPoints
@@ -5492,26 +5619,29 @@ export default function CharacterEditorView({
     if (!isMagicCharacter) return;
     
     const needsUpdate = 
-      Number(editedChar.statusPoints.magia.valorFinal) !== calculatedMP || 
-      Number(editedChar.statusPoints.fe.valorFinal) !== totalFocusPoints;
+      Number(editedChar.statusPoints?.magia?.valorFinal ?? 0) !== calculatedMP || 
+      Number(editedChar.statusPoints?.fe?.valorFinal ?? 0) !== totalFocusPoints;
 
     if (needsUpdate) {
-      setEditedChar(prev => ({
-        ...prev,
-        statusPoints: {
-          ...prev.statusPoints,
-          magia: {
-            ...prev.statusPoints.magia,
-            valorFinal: calculatedMP
-          },
-          fe: {
-            ...prev.statusPoints.fe,
-            valorFinal: totalFocusPoints
+      setEditedChar(prev => {
+        const normalized = normalizeCharacter(prev);
+        return {
+          ...normalized,
+          statusPoints: {
+            ...normalized.statusPoints,
+            magia: {
+              ...normalized.statusPoints.magia,
+              valorFinal: calculatedMP
+            },
+            fe: {
+              ...normalized.statusPoints.fe,
+              valorFinal: totalFocusPoints
+            }
           }
-        }
-      }));
+        };
+      });
     }
-  }, [isMagicCharacter, calculatedMP, totalFocusPoints, editedChar.statusPoints.magia.valorFinal, editedChar.statusPoints.fe.valorFinal]);
+  }, [isMagicCharacter, calculatedMP, totalFocusPoints, editedChar.statusPoints?.magia?.valorFinal, editedChar.statusPoints?.fe?.valorFinal]);
 
   // Inject default enhancements based on class selection
   useEffect(() => {
@@ -5562,29 +5692,8 @@ export default function CharacterEditorView({
 
   return (
     <div className="space-y-8 pb-32 max-w-7xl mx-auto px-1">
-      {/* Toast Notifier */}
-      {showToast && (
-        <div className={`fixed top-24 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md sm:left-auto sm:right-8 sm:translate-x-0 sm:w-auto px-6 py-4 font-sans text-xs font-bold uppercase tracking-wider shadow-2xl border z-[9999] animate-bounce rounded-none flex items-center justify-between gap-4 text-left ${
-          toastType === 'error'
-            ? 'bg-[#591e1e] text-primary border-primary'
-            : toastType === 'warning'
-            ? 'bg-[#3e2723] text-[#ffe082] border-[#ffe082]'
-            : 'bg-[#1b4332] text-[#d8f3dc] border-[#52b788]'
-        }`}>
-          <div className="flex-grow leading-snug">
-            {toastMessage}
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowToast(false)}
-            className="text-on-surface/70 hover:text-on-surface font-sans text-[11px] font-extrabold uppercase bg-transparent border border-white/20 hover:border-white/40 px-2 py-0.5 ml-2 cursor-pointer shrink-0 transition-colors"
-          >
-            X
-          </button>
-        </div>
-      )}
 
-      {editedChar.isPendingDMReview && userRole === 'dm' && (
+      {(editedChar.isPendingDMReview || characters.find((c) => c.id === characterId)?.isPendingDMReview) && userRole === 'dm' && (
         <div className={`transition-all duration-300 p-4 text-left flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl border ${
           fichaAnimStatus === 'approving'
             ? 'bg-[#1b4332] border-[#52b788]'
@@ -5652,7 +5761,7 @@ export default function CharacterEditorView({
         </div>
       )}
 
-      {editedChar.isPendingDMReview && userRole === 'player' && (
+      {(editedChar.isPendingDMReview || characters.find((c) => c.id === characterId)?.isPendingDMReview) && userRole === 'player' && (
         <div className="bg-amber-950/20 border border-amber-500/30 p-4 text-left flex flex-col sm:flex-row sm:items-center gap-3.5 shadow-md">
           <span className="material-symbols-outlined text-amber-500 animate-pulse text-2xl shrink-0 self-start sm:self-center">pending_actions</span>
           <div className="space-y-1">
@@ -5715,20 +5824,34 @@ export default function CharacterEditorView({
                 const nextLocked = !isLocked;
                 setIsLocked(nextLocked);
                 if (!nextLocked) {
-                  // Unlocking: load pendingChanges or match
+                  // Unlocking: load pendingChanges merged with match
                   const match = characters.find((c) => c.id === characterId);
                   if (match) {
-                    const toLoad = match.pendingChanges || match;
-                    setEditedChar(JSON.parse(JSON.stringify(toLoad)));
+                    const toLoad = match.pendingChanges
+                      ? {
+                          ...match,
+                          ...match.pendingChanges,
+                          id: match.id,
+                          name: match.pendingChanges.name ?? match.name,
+                          race: match.pendingChanges.race ?? match.race,
+                          classKit: match.pendingChanges.classKit ?? match.classKit,
+                          level: match.pendingChanges.level ?? match.level,
+                          xp: match.pendingChanges.xp ?? match.xp,
+                          portraitUrl: match.portraitUrl,
+                          campaignId: match.campaignId,
+                          userId: match.userId,
+                          isPendingDMReview: match.isPendingDMReview,
+                          pendingChanges: match.pendingChanges,
+                        }
+                      : match;
+                    setEditedChar(normalizeCharacter(toLoad));
                   }
-                  setToastType('warning');
-                  setToastMessage('Essas mudanças não são oficiais. O seu DM precisa analisar e validar.');
-                  setShowToast(true);
+                  toast.warning('Essas mudanças não são oficiais. O seu DM precisa analisar e validar.');
                 } else {
                   // Locking: load match (approved)
                   const match = characters.find((c) => c.id === characterId);
                   if (match) {
-                    setEditedChar(JSON.parse(JSON.stringify(match)));
+                    setEditedChar(normalizeCharacter(match));
                   }
                 }
               }}
@@ -5755,6 +5878,30 @@ export default function CharacterEditorView({
               title="Exportar Personagem"
             />
           )}
+
+          {/* Campaign Selector on PC/Tablet (Menu Superior) */}
+          <div className="flex items-center gap-2 bg-surface-container border border-outline-variant/60 px-2.5 py-0.5 rounded-sm min-w-[210px] max-w-[280px]">
+            <span className="material-symbols-outlined text-primary text-base shrink-0" title="Campanha">map</span>
+            <div className="flex-1 min-w-0">
+              <CustomSelect
+                value={editedChar.campaignId || ''}
+                onChange={(e) => handleCampaignChange(e.target.value)}
+                placeholder="Sem Campanha"
+                disabled={userRole === 'dm'}
+                size="sm"
+                variant="ghost"
+                buttonClassName={`py-1 px-1 text-xs text-on-surface ${userRole === 'dm' ? 'opacity-80 cursor-not-allowed' : ''}`}
+                options={[
+                  { value: '', label: 'Sem Campanha' },
+                  ...availableCampaigns.map((c) => ({
+                    value: c.id,
+                    label: c.name,
+                    description: c.isDm ? 'Mestre' : (c.universo || 'Jogador')
+                  }))
+                ]}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Right Side: Deletar Button (Far right on Tablet/PC) */}
@@ -5846,24 +5993,24 @@ export default function CharacterEditorView({
             <div className="lg:col-span-8 space-y-8 bg-surface-container border border-outline-variant p-4 sm:p-6 md:p-8 parchment-texture sheet-left-col">
               {/* Section: Demographics */}
               <div className="grid grid-cols-12 gap-x-4 gap-y-6 sheet-block-basic-data">
-            <div className={highlightClass('name', `col-span-12 border-b ${validationErrors.includes('name') ? 'border-red-500 border-b-2 bg-red-500/10 px-2' : 'border-outline-variant'} pb-1 flex items-baseline transition-all duration-300 px-1`)}>
-              <label className="font-sans text-[10px] font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">NOME</label>
-              <>
-<input maxLength={50}
-                type="text"
-                disabled={isCoreLocked}
-                value={editedChar.name}
-                onChange={(e) => handleDemographicChange('name', e.target.value)}
-                placeholder=""
-                className={`w-full bg-transparent border-none p-0 font-serif text-primary text-xl font-bold focus:ring-0 outline-none disabled:opacity-75 ${editedChar.name?.length >= 50 ? '!text-red-500' : ''}`}
-              />
-{editedChar.name?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
-        Limite atingido (50)
-      </div>
-    )}
-</>
-              
+            <div className={highlightClass('name', `col-span-12 border-b ${validationErrors.includes('name') || fieldErrors.name ? 'border-primary border-b-2 bg-primary/10 px-2' : 'border-outline-variant'} pb-1 flex flex-col transition-all duration-300 px-1`)}>
+              <div className="flex items-baseline w-full">
+                <label className="font-sans text-[10px] font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">NOME</label>
+                <input maxLength={50}
+                  type="text"
+                  disabled={isCoreLocked}
+                  value={editedChar.name ?? ''}
+                  onChange={(e) => handleDemographicChange('name', e.target.value)}
+                  placeholder=""
+                  className={`w-full bg-transparent border-none p-0 font-serif text-primary text-xl font-bold focus:ring-0 outline-none disabled:opacity-75 ${(editedChar.name || '').length >= 50 ? '!text-red-500' : ''}`}
+                />
+              </div>
+              {(editedChar.name || '').length >= 50 && (
+                <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+                  Limite atingido (50)
+                </div>
+              )}
+              {renderFieldError('name')}
             </div>
 
             <div className={highlightClass('sex', `col-span-12 sm:col-span-4 border-b ${validationErrors.includes('sex') ? 'border-red-500 border-b-2 bg-red-500/10 px-2' : 'border-outline-variant'} pb-1 flex flex-col justify-end min-h-11 transition-all duration-300 px-1`)}>
@@ -5872,7 +6019,7 @@ export default function CharacterEditorView({
                 {isCoreLocked ? (
                   <input
                     type="text"
-                    value={editedChar.sex}
+                    value={editedChar.sex ?? ''}
                     readOnly
                     disabled
                     className="w-full bg-transparent border-none p-0 text-on-surface font-sans text-sm focus:ring-0 outline-none"
@@ -5926,7 +6073,7 @@ export default function CharacterEditorView({
                 {isCoreLocked ? (
                   <input
                     type="text"
-                    value={editedChar.race}
+                    value={editedChar.race ?? ''}
                     readOnly
                     disabled
                     className="w-full bg-transparent border-none p-0 text-on-surface font-sans text-sm focus:ring-0 outline-none"
@@ -5962,12 +6109,12 @@ export default function CharacterEditorView({
 <>
 <input maxLength={50}
                   type="text"
-                  value={editedChar.race === 'Outro' ? '' : editedChar.race}
+                  value={editedChar.race === 'Outro' ? '' : (editedChar.race ?? '')}
                   onChange={(e) => handleDemographicChange('race', e.target.value)}
                   placeholder="Especifique a raça..."
-                  className={`${editedChar.race?.length >= 50 ? '!text-red-500 !font-bold' : ''} w-full bg-transparent border-none p-0 text-amber-100 font-sans text-xs focus:ring-0 outline-none mt-1 border-b border-outline-variant/40 ${editedChar.race?.length >= 50 ? '!text-red-500' : ''}`}
+                  className={`${(editedChar.race || '').length >= 50 ? '!text-red-500 !font-bold' : ''} w-full bg-transparent border-none p-0 text-amber-100 font-sans text-xs focus:ring-0 outline-none mt-1 border-b border-outline-variant/40 ${(editedChar.race || '').length >= 50 ? '!text-red-500' : ''}`}
                 />
-{editedChar.race?.length >= 50 && (
+{(editedChar.race || '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -6028,7 +6175,7 @@ export default function CharacterEditorView({
                 {isCoreLocked ? (
                   <input
                     type="text"
-                    value={editedChar.classKit}
+                    value={editedChar.classKit ?? ''}
                     readOnly
                     disabled
                     className="w-full bg-transparent border-none p-0 text-on-surface font-sans text-sm focus:ring-0 outline-none"
@@ -6071,12 +6218,12 @@ export default function CharacterEditorView({
 <>
 <input maxLength={50}
                   type="text"
-                  value={editedChar.classKit === 'Outro' ? '' : editedChar.classKit}
+                  value={editedChar.classKit === 'Outro' ? '' : (editedChar.classKit ?? '')}
                   onChange={(e) => handleDemographicChange('classKit', e.target.value)}
                   placeholder="Especifique a classe..."
-                  className={`w-full bg-transparent border-outline-variant/40 p-0 text-amber-100 font-sans text-xs focus:ring-0 outline-none mt-1 border-b ${editedChar.classKit?.length >= 50 ? '!text-red-500 !font-bold' : ''} ${editedChar.classKit?.length >= 50 ? '!text-red-500' : ''}`}
+                  className={`w-full bg-transparent border-outline-variant/40 p-0 text-amber-100 font-sans text-xs focus:ring-0 outline-none mt-1 border-b ${(editedChar.classKit || '').length >= 50 ? '!text-red-500 !font-bold' : ''}`}
                 />
-{editedChar.classKit?.length >= 50 && (
+{(editedChar.classKit || '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -6143,7 +6290,7 @@ export default function CharacterEditorView({
               </div>
             </div>
 
-            <div className={highlightClass('level', "col-span-12 sm:col-span-6 border-b border-outline-variant pb-1 flex flex-col justify-end min-h-11 px-1")}>
+            <div className={highlightClass('level', `col-span-12 sm:col-span-6 border-b ${fieldErrors.level ? 'border-primary border-b-2 bg-primary/10' : 'border-outline-variant'} pb-1 flex flex-col justify-end min-h-11 px-1`)}>
               <div className="flex items-center w-full gap-2">
                 <label className="font-sans text-[10px] font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">NÍVEL</label>
                 <div className="flex-1 flex items-center justify-center relative">
@@ -6151,7 +6298,7 @@ export default function CharacterEditorView({
                     type="text"
                     inputMode="numeric"
                     readOnly={true}
-                    value={editedChar.level}
+                    value={editedChar.level ?? 1}
                     className="w-full bg-transparent border-none p-0 text-primary font-mono text-sm text-center focus:ring-0 outline-none cursor-not-allowed"
                     title="O nível do personagem só pode ser alterado pelo botão Level-up"
                   />
@@ -6161,9 +6308,7 @@ export default function CharacterEditorView({
                     type="button"
                     onClick={() => {
                       if ((Number(editedChar.level) || 1) >= 15) {
-                        setToastType('error');
-                        setToastMessage("Nível máximo (15) já atingido!");
-                        setShowToast(true);
+                        toast.error("Nível máximo (15) já atingido!");
                       } else {
                         setShowLevelUpConfirmModal(true);
                       }
@@ -6176,29 +6321,28 @@ export default function CharacterEditorView({
                   </button>
                 )}
               </div>
+              {renderFieldError('level')}
             </div>
 
-            <div className={highlightClass('xp', "col-span-12 sm:col-span-6 border-b border-outline-variant pb-1 flex flex-col justify-end min-h-11 px-1")}>
+            <div className={highlightClass('xp', `col-span-12 sm:col-span-6 border-b ${fieldErrors.xp ? 'border-primary border-b-2 bg-primary/10' : 'border-outline-variant'} pb-1 flex flex-col justify-end min-h-11 px-1`)}>
               <div className="flex items-baseline w-full">
                 <label className="font-sans text-[10px] font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">XP</label>
-                <>
-<input maxLength={50}
+                <input maxLength={50}
                   type="text"
                   inputMode="numeric"
                   disabled={isLevelLocked}
-                  value={editedChar.xp}
+                  value={editedChar.xp ?? 0}
                   onChange={(e) => handleDemographicChange('xp', e.target.value)}
                   onBlur={() => handleDemographicBlur('xp')}
                   className={`w-full bg-transparent border-none p-0 text-on-surface font-mono text-sm text-center focus:ring-0 outline-none ${String(editedChar.xp ?? '').length >= 50 ? '!text-red-500' : ''}`}
                 />
-{String(editedChar.xp ?? '').length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
-        Limite atingido (50)
-      </div>
-    )}
-</>
-              
               </div>
+              {String(editedChar.xp ?? '').length >= 50 && (
+                <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+                  Limite atingido (50)
+                </div>
+              )}
+              {renderFieldError('xp')}
             </div>
           </div>
 
@@ -6299,7 +6443,7 @@ export default function CharacterEditorView({
                             type="text"
                             inputMode="numeric"
                             disabled={isCoreLocked}
-                            value={row.natural}
+                            value={row.natural ?? 0}
                             onChange={(e) => handleAttributeChange(attrKey, 'natural', e.target.value)}
                             onBlur={() => handleAttributeBlur(attrKey, 'natural')}
                             className={`w-full bg-transparent text-center border-none p-1 font-mono text-sm focus:ring-0 outline-none disabled:opacity-75 transition-colors duration-300 ${
@@ -6443,12 +6587,12 @@ export default function CharacterEditorView({
                             type="text"
                             inputMode="numeric"
                             disabled={isLocked}
-                            value={editedChar.statusPoints.vida.danoSofrido}
+                            value={editedChar.statusPoints?.vida?.danoSofrido ?? 0}
                             onChange={(e) => handleStatusChange('vida', 'danoSofrido', e.target.value)}
                             onBlur={() => handleStatusBlur('vida', 'danoSofrido')}
-                            className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-red-500 border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-primary outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.statusPoints.vida.danoSofrido ?? '').length >= 50 ? '!text-red-500' : ''}`}
+                            className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-red-500 border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-primary outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.statusPoints?.vida?.danoSofrido ?? '').length >= 50 ? '!text-red-500' : ''}`}
                           />
-{String(editedChar.statusPoints.vida.danoSofrido ?? '').length >= 50 && (
+{String(editedChar.statusPoints?.vida?.danoSofrido ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -6461,7 +6605,7 @@ export default function CharacterEditorView({
                         <td className="text-center text-outline font-bold uppercase py-1.5 select-none">HP</td>
                         <td className="py-1.5">
                           <div className="w-full bg-surface-container-lowest/50 text-center font-mono font-bold text-red-500 py-0.5 border border-outline-variant/20 text-xs rounded-none">
-                            {calculatedHP - (Number(editedChar.statusPoints.vida.danoSofrido) || 0)}
+                            {calculatedHP - (Number(editedChar.statusPoints?.vida?.danoSofrido) || 0)}
                           </div>
                         </td>
                       </tr>
@@ -6490,7 +6634,7 @@ export default function CharacterEditorView({
                               type="text"
                               readOnly
                               disabled
-                              value={editedChar.statusPoints.magia.valorFinal}
+                              value={editedChar.statusPoints?.magia?.valorFinal ?? 0}
                               className="w-full bg-surface-container-lowest/50 text-center font-mono font-bold text-[#a2d2ff] border border-outline-variant/30 py-0.5 outline-none text-xs rounded-none cursor-not-allowed select-none"
                             />
                           </td>
@@ -6503,12 +6647,12 @@ export default function CharacterEditorView({
                               type="text"
                               inputMode="numeric"
                               disabled={isLocked}
-                              value={editedChar.statusPoints.magia.magiaExaurida}
+                              value={editedChar.statusPoints?.magia?.magiaExaurida ?? 0}
                               onChange={(e) => handleStatusChange('magia', 'magiaExaurida', e.target.value)}
                               onBlur={() => handleStatusBlur('magia', 'magiaExaurida')}
-                              className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#60a5fa] border border-outline-variant/30 py-0.5 focus:ring-1 focus:ring-[#a2d2ff] outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.statusPoints.magia.magiaExaurida ?? '').length >= 50 ? '!text-red-500' : ''}`}
+                              className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#60a5fa] border border-outline-variant/30 py-0.5 focus:ring-1 focus:ring-[#a2d2ff] outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.statusPoints?.magia?.magiaExaurida ?? '').length >= 50 ? '!text-red-500' : ''}`}
                             />
-{String(editedChar.statusPoints.magia.magiaExaurida ?? '').length >= 50 && (
+{String(editedChar.statusPoints?.magia?.magiaExaurida ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -6521,7 +6665,7 @@ export default function CharacterEditorView({
                           <td className="text-center text-outline font-bold uppercase py-1.5 select-none">MP</td>
                           <td className="py-1.5">
                             <div className="w-full bg-surface-container-lowest/50 text-center font-mono font-bold text-[#a2d2ff] py-0.5 border border-outline-variant/20 text-xs rounded-none">
-                              {(Number(editedChar.statusPoints.magia.valorFinal) || 0) - (Number(editedChar.statusPoints.magia.magiaExaurida) || 0)}
+                              {(Number(editedChar.statusPoints?.magia?.valorFinal) || 0) - (Number(editedChar.statusPoints?.magia?.magiaExaurida) || 0)}
                             </div>
                           </td>
                         </tr>
@@ -6529,7 +6673,7 @@ export default function CharacterEditorView({
                           <td className="text-center text-outline font-bold uppercase py-1.5 select-none">FOCUS/FÉ</td>
                           <td className="py-1.5">
                             <div className="w-full bg-surface-container-lowest/50 text-center font-mono font-bold text-[#275fcf] py-0.5 border border-outline-variant/20 text-xs rounded-none">
-                              {editedChar.statusPoints.fe.valorFinal}
+                              {editedChar.statusPoints?.fe?.valorFinal ?? 0}
                             </div>
                           </td>
                         </tr>
@@ -6571,12 +6715,12 @@ export default function CharacterEditorView({
                             type="text"
                             inputMode="numeric"
                             disabled={isLocked}
-                            value={editedChar.statusPoints.psi.esforcoMental}
+                            value={editedChar.statusPoints?.psi?.esforcoMental ?? 0}
                             onChange={(e) => handleStatusChange('psi', 'esforcoMental', e.target.value)}
                             onBlur={() => handleStatusBlur('psi', 'esforcoMental')}
-                            className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#fef08a] border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-[#ffcc00] outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.statusPoints.psi.esforcoMental ?? '').length >= 50 ? '!text-red-500' : ''}`}
+                            className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#fef08a] border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-[#ffcc00] outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.statusPoints?.psi?.esforcoMental ?? '').length >= 50 ? '!text-red-500' : ''}`}
                           />
-{String(editedChar.statusPoints.psi.esforcoMental ?? '').length >= 50 && (
+{String(editedChar.statusPoints?.psi?.esforcoMental ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -6589,7 +6733,7 @@ export default function CharacterEditorView({
                         <td className="text-center text-outline font-bold uppercase py-1.5 select-none">LOUCURA</td>
                         <td className="py-1.5">
                           <div className="w-full bg-surface-container-lowest/50 text-center font-mono font-bold text-[#ffcc00] py-0.5 border border-outline-variant/20 text-xs rounded-none">
-                            {calculatedSanidade - (Number(editedChar.statusPoints.psi.esforcoMental) || 0)}
+                            {calculatedSanidade - (Number(editedChar.statusPoints?.psi?.esforcoMental) || 0)}
                           </div>
                         </td>
                       </tr>
@@ -6599,16 +6743,16 @@ export default function CharacterEditorView({
                           <input
                             type="text"
                             disabled={true}
-                            value={editedChar.statusPoints.psi.estadoMental || ''}
+                            value={editedChar.statusPoints?.psi?.estadoMental || ''}
                             placeholder="Status"
                             className={`w-full bg-surface-container-lowest text-center font-mono text-[10px] font-bold ${
-                              editedChar.statusPoints.psi.estadoMental === 'Saudável'
+                              editedChar.statusPoints?.psi?.estadoMental === 'Saudável'
                                 ? 'text-lime-400'
-                                : editedChar.statusPoints.psi.estadoMental === 'Afetado'
+                                : editedChar.statusPoints?.psi?.estadoMental === 'Afetado'
                                 ? 'text-yellow-200'
-                                : editedChar.statusPoints.psi.estadoMental === 'Instável'
+                                : editedChar.statusPoints?.psi?.estadoMental === 'Instável'
                                 ? 'text-yellow-400'
-                                : editedChar.statusPoints.psi.estadoMental === 'Degenerado'
+                                : editedChar.statusPoints?.psi?.estadoMental === 'Degenerado'
                                 ? 'text-orange-400'
                                 : 'text-red-500'
                             } border border-outline-variant/50 py-0.5 outline-none rounded-none disabled:opacity-75 cursor-not-allowed select-none`}
@@ -6641,14 +6785,14 @@ export default function CharacterEditorView({
 <input maxLength={50}
                             type="text"
                             inputMode="numeric"
-                            value={editedChar.statusPoints.heroicos.valorFinal}
+                            value={editedChar.statusPoints?.heroicos?.valorFinal ?? 0}
                             onChange={(e) => handleStatusChange('heroicos', 'valorFinal', e.target.value)}
                             onBlur={() => handleStatusBlur('heroicos', 'valorFinal')}
                             disabled={isLocked || getPontosHeroicosLevel(editedChar.aprimoramentosPositivos) !== null}
                             title={getPontosHeroicosLevel(editedChar.aprimoramentosPositivos) !== null ? "Valor calculado automaticamente a partir do aprimoramento Pontos Heróicos" : ""}
-                            className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#d8b4fe] border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-[#9c27b0] outline-none text-xs rounded-none disabled:opacity-50 cursor-not-allowed select-none ${String(editedChar.statusPoints.heroicos.valorFinal ?? '').length >= 50 ? '!text-red-500' : ''}`}
+                            className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#d8b4fe] border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-[#9c27b0] outline-none text-xs rounded-none disabled:opacity-50 cursor-not-allowed select-none ${String(editedChar.statusPoints?.heroicos?.valorFinal ?? '').length >= 50 ? '!text-red-500' : ''}`}
                           />
-{String(editedChar.statusPoints.heroicos.valorFinal ?? '').length >= 50 && (
+{String(editedChar.statusPoints?.heroicos?.valorFinal ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -6665,12 +6809,12 @@ export default function CharacterEditorView({
                             type="text"
                             inputMode="numeric"
                             disabled={isLocked}
-                            value={editedChar.statusPoints.heroicos.danoSofrido}
+                            value={editedChar.statusPoints?.heroicos?.danoSofrido ?? 0}
                             onChange={(e) => handleStatusChange('heroicos', 'danoSofrido', e.target.value)}
                             onBlur={() => handleStatusBlur('heroicos', 'danoSofrido')}
-                            className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#d8b4fe] border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-[#9c27b0] outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.statusPoints.heroicos.danoSofrido ?? '').length >= 50 ? '!text-red-500' : ''}`}
+                            className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#d8b4fe] border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-[#9c27b0] outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.statusPoints?.heroicos?.danoSofrido ?? '').length >= 50 ? '!text-red-500' : ''}`}
                           />
-{String(editedChar.statusPoints.heroicos.danoSofrido ?? '').length >= 50 && (
+{String(editedChar.statusPoints?.heroicos?.danoSofrido ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -6683,7 +6827,7 @@ export default function CharacterEditorView({
                         <td className="text-center text-outline font-bold uppercase py-1.5 select-none">PH</td>
                         <td className="py-1.5">
                           <div className="w-full bg-surface-container-lowest/50 text-center font-mono font-bold text-[#9c27b0] py-0.5 border border-outline-variant/20 text-xs rounded-none">
-                            {(Number(editedChar.statusPoints.heroicos.valorFinal) || 0) - (Number(editedChar.statusPoints.heroicos.danoSofrido) || 0)}
+                            {(Number(editedChar.statusPoints?.heroicos?.valorFinal) || 0) - (Number(editedChar.statusPoints?.heroicos?.danoSofrido) || 0)}
                           </div>
                         </td>
                       </tr>
@@ -9373,12 +9517,12 @@ export default function CharacterEditorView({
                     type="text"
                     inputMode="numeric"
                     disabled={isLocked}
-                    value={editedChar.treasure.ouro}
+                    value={editedChar.treasure?.ouro ?? 0}
                     onChange={(e) => handleTreasureChange('ouro', e.target.value)}
                     onBlur={() => handleTreasureBlur('ouro')}
-                    className={`w-full bg-transparent text-center border-none p-1 font-mono font-bold text-secondary text-sm focus:ring-0 outline-none disabled:opacity-75 ${String(editedChar.treasure.ouro ?? '').length >= 50 ? '!text-red-500' : ''}`}
+                    className={`w-full bg-transparent text-center border-none p-1 font-mono font-bold text-secondary text-sm focus:ring-0 outline-none disabled:opacity-75 ${String(editedChar.treasure?.ouro ?? '').length >= 50 ? '!text-red-500' : ''}`}
                   />
-{String(editedChar.treasure.ouro ?? '').length >= 50 && (
+{String(editedChar.treasure?.ouro ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -9398,12 +9542,12 @@ export default function CharacterEditorView({
                     type="text"
                     inputMode="numeric"
                     disabled={isLocked}
-                    value={editedChar.treasure.prata}
+                    value={editedChar.treasure?.prata ?? 0}
                     onChange={(e) => handleTreasureChange('prata', e.target.value)}
                     onBlur={() => handleTreasureBlur('prata')}
-                    className={`w-full bg-transparent text-center border-none p-1 font-mono font-bold text-secondary text-sm focus:ring-0 outline-none disabled:opacity-75 ${String(editedChar.treasure.prata ?? '').length >= 50 ? '!text-red-500' : ''}`}
+                    className={`w-full bg-transparent text-center border-none p-1 font-mono font-bold text-secondary text-sm focus:ring-0 outline-none disabled:opacity-75 ${String(editedChar.treasure?.prata ?? '').length >= 50 ? '!text-red-500' : ''}`}
                   />
-{String(editedChar.treasure.prata ?? '').length >= 50 && (
+{String(editedChar.treasure?.prata ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -9423,12 +9567,12 @@ export default function CharacterEditorView({
                     type="text"
                     inputMode="numeric"
                     disabled={isLocked}
-                    value={editedChar.treasure.bronze}
+                    value={editedChar.treasure?.bronze ?? 0}
                     onChange={(e) => handleTreasureChange('bronze', e.target.value)}
                     onBlur={() => handleTreasureBlur('bronze')}
-                    className={`w-full bg-transparent text-center border-none p-1 font-mono font-bold text-secondary text-sm focus:ring-0 outline-none disabled:opacity-75 ${String(editedChar.treasure.bronze ?? '').length >= 50 ? '!text-red-500' : ''}`}
+                    className={`w-full bg-transparent text-center border-none p-1 font-mono font-bold text-secondary text-sm focus:ring-0 outline-none disabled:opacity-75 ${String(editedChar.treasure?.bronze ?? '').length >= 50 ? '!text-red-500' : ''}`}
                   />
-{String(editedChar.treasure.bronze ?? '').length >= 50 && (
+{String(editedChar.treasure?.bronze ?? '').length >= 50 && (
       <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
@@ -9578,17 +9722,15 @@ export default function CharacterEditorView({
           <span className="material-symbols-outlined text-xl">menu_book</span>
         </button>
 
-        {/* 3-Dots Menu Button - For Existing Character View (Ficha do Personagem) */}
-        {characterId && (
-          <button
-            type="button"
-            onClick={() => setIsDotsMenuOpen(true)}
-            className="w-14 h-14 rounded-full border flex items-center justify-center transition-all duration-300 shadow-[0_4px_20px_rgba(209,171,114,0.3)] hover:scale-105 active:scale-95 cursor-pointer bg-primary border-primary/20 text-on-primary hover:bg-primary-container hover:text-on-primary-container"
-            title="Opções da Ficha"
-          >
-            <span className="material-symbols-outlined text-xl">more_vert</span>
-          </button>
-        )}
+        {/* 3-Dots Menu Button - For Mobile (Opções da Ficha) */}
+        <button
+          type="button"
+          onClick={() => setIsDotsMenuOpen(true)}
+          className="w-14 h-14 rounded-full border flex items-center justify-center transition-all duration-300 shadow-[0_4px_20px_rgba(209,171,114,0.3)] hover:scale-105 active:scale-95 cursor-pointer bg-primary border-primary/20 text-on-primary hover:bg-primary-container hover:text-on-primary-container"
+          title="Opções da Ficha"
+        >
+          <span className="material-symbols-outlined text-xl">more_vert</span>
+        </button>
 
         {/* Floating Save Button - For Mobile */}
         {!isLocked && (
@@ -9641,19 +9783,46 @@ export default function CharacterEditorView({
             </div>
 
             {/* Options */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
+              {/* Campaign Selector on Mobile (Opções da Ficha) */}
+              <div className="flex flex-col gap-1.5 p-2.5 bg-surface-container-low border border-outline-variant/40">
+                <label className="text-[11px] font-sans font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-sm">map</span>
+                  Campanha
+                </label>
+                <CustomSelect
+                  value={editedChar.campaignId || ''}
+                  onChange={(e) => handleCampaignChange(e.target.value)}
+                  placeholder="Sem Campanha"
+                  disabled={userRole === 'dm'}
+                  size="sm"
+                  variant="default"
+                  buttonClassName={userRole === 'dm' ? 'opacity-80 cursor-not-allowed' : ''}
+                  options={[
+                    { value: '', label: 'Sem Campanha' },
+                    ...availableCampaigns.map((c) => ({
+                      value: c.id,
+                      label: c.name,
+                      description: c.isDm ? 'Mestre' : (c.universo || 'Jogador')
+                    }))
+                  ]}
+                />
+              </div>
+
               {/* Export/Download Option */}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsDotsMenuOpen(false);
-                  handleExportCharacter();
-                }}
-                className="flex items-center gap-3 w-full p-2.5 bg-surface-container-low border border-outline-variant/30 text-on-surface hover:text-on-surface hover:border-primary transition-all text-xs font-sans font-bold uppercase tracking-wider rounded-none cursor-pointer active:scale-95"
-              >
-                <span className="material-symbols-outlined text-lg">file_download</span>
-                <span>Download (JSON)</span>
-              </button>
+              {characterId && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsDotsMenuOpen(false);
+                    handleExportCharacter();
+                  }}
+                  className="flex items-center gap-3 w-full p-2.5 bg-surface-container-low border border-outline-variant/30 text-on-surface hover:text-on-surface hover:border-primary transition-all text-xs font-sans font-bold uppercase tracking-wider rounded-none cursor-pointer active:scale-95"
+                >
+                  <span className="material-symbols-outlined text-lg">file_download</span>
+                  <span>Download (JSON)</span>
+                </button>
+              )}
 
               {/* Edit/Edition Option */}
               {userRole !== 'dm' && (
@@ -9668,20 +9837,34 @@ export default function CharacterEditorView({
                     const nextLocked = !isLocked;
                     setIsLocked(nextLocked);
                     if (!nextLocked) {
-                      // Unlocking: load pendingChanges or match
+                      // Unlocking: load pendingChanges merged with match
                       const match = characters.find((c) => c.id === characterId);
                       if (match) {
-                        const toLoad = match.pendingChanges || match;
-                        setEditedChar(JSON.parse(JSON.stringify(toLoad)));
+                        const toLoad = match.pendingChanges
+                          ? {
+                              ...match,
+                              ...match.pendingChanges,
+                              id: match.id,
+                              name: match.pendingChanges.name ?? match.name,
+                              race: match.pendingChanges.race ?? match.race,
+                              classKit: match.pendingChanges.classKit ?? match.classKit,
+                              level: match.pendingChanges.level ?? match.level,
+                              xp: match.pendingChanges.xp ?? match.xp,
+                              portraitUrl: match.portraitUrl,
+                              campaignId: match.campaignId,
+                              userId: match.userId,
+                              isPendingDMReview: match.isPendingDMReview,
+                              pendingChanges: match.pendingChanges,
+                            }
+                          : match;
+                        setEditedChar(normalizeCharacter(toLoad));
                       }
-                      setToastType('warning');
-                      setToastMessage('Essas mudanças não são oficiais. O seu DM precisa analisar e validar.');
-                      setShowToast(true);
+                      toast.warning('Essas mudanças não são oficiais. O seu DM precisa analisar e validar.');
                     } else {
                       // Locking: load match (approved)
                       const match = characters.find((c) => c.id === characterId);
                       if (match) {
-                        setEditedChar(JSON.parse(JSON.stringify(match)));
+                        setEditedChar(normalizeCharacter(match));
                       }
                     }
                   }}
@@ -11010,9 +11193,7 @@ export default function CharacterEditorView({
                         if (nameToSave.toLowerCase().includes("corpo maleável") || nameToSave.toLowerCase().includes("corpo maleavel")) {
                           const currentFor = Number(editedChar.attributes.for.pontosGastos) || 0;
                           if (currentFor >= 13) {
-                            setToastType('error');
-                            setToastMessage("Sua Força deverá ser reduzida para 12 ou menos para adquirir este aprimoramento.");
-                            setShowToast(true);
+                            toast.error("Sua Força deverá ser reduzida para 12 ou menos para adquirir este aprimoramento.");
                             return;
                           }
                         }
@@ -11022,9 +11203,7 @@ export default function CharacterEditorView({
                             s && (s.toLowerCase().includes('pontos de fé') || s.toLowerCase().includes('pontos de fe'))
                           );
                           if (!hasPontosFe) {
-                            setToastType('error');
-                            setToastMessage("É necessária a adição do atributo Pontos de Fé");
-                            setShowToast(true);
+                            toast.error("É necessária a adição do atributo Pontos de Fé");
                             return;
                           }
                         }
@@ -11034,9 +11213,7 @@ export default function CharacterEditorView({
                             s && (s.toLowerCase().includes('poderes mágicos') || s.toLowerCase().includes('poderes magicos'))
                           );
                           if (!hasPoderesMagicos) {
-                            setToastType('error');
-                            setToastMessage("É necessária a adição do atributo Poderes Mágicos");
-                            setShowToast(true);
+                            toast.error("É necessária a adição do atributo Poderes Mágicos");
                             return;
                           }
                         }
@@ -11057,48 +11234,30 @@ export default function CharacterEditorView({
                                                  nameToSave.toLowerCase().includes("companheiro animal");
                             if (nameToSave.toLowerCase().includes("equipamento inicial")) {
                               if (userRole === 'player') {
-                                setToastType('success');
-                                setToastMessage("Equipamento Inicial - Fale com o mestre qual bem de alta qualidade você deseja inserir logo no começo.");
-                                setShowToast(true);
+                                toast.success("Equipamento Inicial - Fale com o mestre qual bem de alta qualidade você deseja inserir logo no começo.");
                               } else {
-                                setToastType('success');
-                                setToastMessage(`Aprimoramento Positivo adicionado: ${nameToSave}`);
-                                setShowToast(true);
+                                toast.success(`Aprimoramento Positivo adicionado: ${nameToSave}`);
                               }
                             } else if (nameToSave.toLowerCase().includes("familiares")) {
                               if (userRole === 'player') {
-                                setToastType('success');
-                                setToastMessage("Familiares - preencha a ficha do seu Familiar");
-                                setShowToast(true);
+                                toast.success("Familiares - preencha a ficha do seu Familiar");
                               } else {
-                                setToastType('success');
-                                setToastMessage(`Aprimoramento Positivo adicionado: ${nameToSave}`);
-                                setShowToast(true);
+                                toast.success(`Aprimoramento Positivo adicionado: ${nameToSave}`);
                               }
                             } else if (nameToSave.toLowerCase().includes("montaria especial")) {
                               if (userRole === 'player') {
-                                setToastType('success');
-                                setToastMessage("Montaria Especial - preencha a ficha da sua Montaria Especial");
-                                setShowToast(true);
+                                toast.success("Montaria Especial - preencha a ficha da sua Montaria Especial");
                               } else {
-                                setToastType('success');
-                                setToastMessage(`Aprimoramento Positivo adicionado: ${nameToSave}`);
-                                setShowToast(true);
+                                toast.success(`Aprimoramento Positivo adicionado: ${nameToSave}`);
                               }
                             } else if (nameToSave.toLowerCase().includes("companheiro animal")) {
                               if (userRole === 'player') {
-                                setToastType('success');
-                                setToastMessage("Companheiro Animal - preencha a ficha do seu companheiro animal");
-                                setShowToast(true);
+                                toast.success("Companheiro Animal - preencha a ficha do seu companheiro animal");
                               } else {
-                                setToastType('success');
-                                setToastMessage(`Aprimoramento Positivo adicionado: ${nameToSave}`);
-                                setShowToast(true);
+                                toast.success(`Aprimoramento Positivo adicionado: ${nameToSave}`);
                               }
                             } else if (!isSpecialEnh) {
-                              setToastType('success');
-                              setToastMessage(`Aprimoramento Positivo adicionado: ${nameToSave}`);
-                              setShowToast(true);
+                              toast.success(`Aprimoramento Positivo adicionado: ${nameToSave}`);
                             }
                           }
                         } else {
@@ -11106,9 +11265,7 @@ export default function CharacterEditorView({
                           if (!arr.includes(nameToSave)) {
                             arr.push(nameToSave);
                             setEditedChar(prev => ({ ...prev, aprimoramentosNegativos: arr }));
-                            setToastType('warning');
-                            setToastMessage(`Aprimoramento Negativo adicionado: ${nameToSave}`);
-                            setShowToast(true);
+                            toast.warning(`Aprimoramento Negativo adicionado: ${nameToSave}`);
                           }
                         }
                         
@@ -12330,10 +12487,18 @@ export default function CharacterEditorView({
               </button>
               <button
                 type="button"
+                disabled={isLevelingUp}
                 onClick={handleConfirmLevelUp}
-                className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-black text-xs font-sans font-bold uppercase tracking-wider transition-all cursor-pointer border border-primary/30 rounded-none"
+                className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black text-xs font-sans font-bold uppercase tracking-wider transition-all cursor-pointer border border-primary/30 rounded-none flex items-center justify-center gap-1.5"
               >
-                Confirmar
+                {isLevelingUp ? (
+                  <>
+                    <span className="material-symbols-outlined text-sm animate-spin">sync</span>
+                    <span>Evoluindo...</span>
+                  </>
+                ) : (
+                  <span>Confirmar</span>
+                )}
               </button>
             </div>
           </div>
@@ -12777,9 +12942,7 @@ export default function CharacterEditorView({
                 type="button"
                 onClick={() => {
                   if (!newCustomItemName.trim()) {
-                    setToastType('error');
-                    setToastMessage('O nome do item é obrigatório.');
-                    setShowToast(true);
+                    toast.error('O nome do item é obrigatório.');
                     return;
                   }
 
@@ -13515,9 +13678,7 @@ export default function CharacterEditorView({
                       });
                       setTempFamiliarPericias([]);
                       setTempFamiliarHabilidades(progressionAbilities);
-                      setToastType('warning');
-                      setToastMessage('Atenção ao Balanceamento! Consulte o mestre em caso de dúvidas');
-                      setShowToast(true);
+                      toast.warning('Atenção ao Balanceamento! Consulte o mestre em caso de dúvidas');
                     } else {
                       const found = familiaresBase.find(f => f.id === val);
                       if (found) {
