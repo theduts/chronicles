@@ -594,9 +594,10 @@ const calculateFamiliarSkillBonus = (
 const getRacialFreePointsForSkill = (
   skillGroup: string,
   chosenSubgroup: string | undefined,
-  charRace: string | undefined
+  charRace: string | undefined,
+  racasData?: Record<string, any>
 ): number => {
-  if (!charRace) return 0;
+  if (!charRace || !racasData) return 0;
   const raceObj = Object.values(racasData as Record<string, any>).find(r => 
     r.nome?.toLowerCase() === charRace.toLowerCase() ||
     r.id?.toLowerCase() === charRace.toLowerCase() ||
@@ -4231,7 +4232,7 @@ export default function CharacterEditorView({
         }
 
         updatedSkills = updatedSkills.map(s => {
-          const nextRacialFree = getRacialFreePointsForSkill(s.group, s.chosenSubgroup, newRaceName);
+          const nextRacialFree = getRacialFreePointsForSkill(s.group, s.chosenSubgroup, newRaceName, racasData);
           const nextGasto = Math.max(nextRacialFree, Number(s.gasto) || 0);
           
           const { resolvedAttrKey, attrVal } = resolveSkillAttribute(
@@ -5253,7 +5254,7 @@ export default function CharacterEditorView({
       editedChar.attributes
     );
 
-    const racialFree = getRacialFreePointsForSkill(nome, defaultSub, editedChar.race);
+    const racialFree = getRacialFreePointsForSkill(nome, defaultSub, editedChar.race, racasData);
     const initialAtk = reqAtkDef ? Math.round(racialFree / 2) : 0;
     const initialDef = reqAtkDef ? racialFree - initialAtk : 0;
 
@@ -5415,7 +5416,7 @@ export default function CharacterEditorView({
           }
         }
 
-        const nextRacialFree = getRacialFreePointsForSkill(s.group, s.chosenSubgroup, prev.race);
+        const nextRacialFree = getRacialFreePointsForSkill(s.group, s.chosenSubgroup, prev.race, racasData);
         const finalGastoClamped = Math.max(nextRacialFree, finalGasto);
 
         const totalVal = s.requer_ataque_defesa 
@@ -7993,7 +7994,7 @@ export default function CharacterEditorView({
                         const armaPreferencialBonus = calculateArmaPreferencialBonusForSkill(skill.group, skill.chosenSubgroup, editedChar.items, Number(editedChar.level) || 1);
                         const corpoMaleavelBonus = calculateCorpoMaleavelBonus(skill.group, skill.chosenSubgroup, editedChar.aprimoramentosPositivos);
                         const familiarBonus = calculateFamiliarSkillBonus(skill.group, skill.chosenSubgroup, resolvedAttrKey, editedChar.aprimoramentosPositivos, editedChar.familiar);
-                        const racialSkillBonus = getRacialFreePointsForSkill(skill.group, skill.chosenSubgroup, editedChar.race);
+                        const racialSkillBonus = getRacialFreePointsForSkill(skill.group, skill.chosenSubgroup, editedChar.race, racasData);
                         const malditaWeaponPenalty = calculateMalditaWeaponPenaltyForSkill(skill.group, skill.chosenSubgroup, editedChar.items);
                         const malditaWeaponPenaltyAtkDef = Math.floor(malditaWeaponPenalty / 2);
 
@@ -11856,7 +11857,7 @@ export default function CharacterEditorView({
                       const armaPreferencialAtkDefBonus = Math.floor(armaPreferencialBonus / 2);
                       const corpoMaleavelBonus = calculateCorpoMaleavelBonus(skill.group, skill.chosenSubgroup, editedChar.aprimoramentosPositivos);
                       const familiarBonus = calculateFamiliarSkillBonus(skill.group, skill.chosenSubgroup, resolvedAttrKey, editedChar.aprimoramentosPositivos, editedChar.familiar);
-                      const tempRacialBonus = getRacialFreePointsForSkill(skill.group, skill.chosenSubgroup, editedChar.race);
+                      const tempRacialBonus = getRacialFreePointsForSkill(skill.group, skill.chosenSubgroup, editedChar.race, racasData);
                       const totalVal = attrVal + (Number(skill.gasto) || 0) + obraPrimaBonus + magicWeaponBonus + armaPreferencialBonus + corpoMaleavelBonus + familiarBonus;
                       const totalAtk = attrVal + (Number(skill.atkGasto) || 0) + obraPrimaBonus + magicWeaponAtkDefBonus + armaPreferencialAtkDefBonus + corpoMaleavelBonus + familiarBonus;
                       const totalDef = attrVal + (Number(skill.defGasto) || 0) + obraPrimaBonus + magicWeaponAtkDefBonus + armaPreferencialAtkDefBonus + corpoMaleavelBonus + familiarBonus;
@@ -11903,7 +11904,7 @@ export default function CharacterEditorView({
                                           list[idx].subgrupos,
                                           editedChar.attributes
                                         );
-                                        const nextRacialFree = getRacialFreePointsForSkill(list[idx].group, val, editedChar.race);
+                                        const nextRacialFree = getRacialFreePointsForSkill(list[idx].group, val, editedChar.race, racasData);
                                         const nextGasto = Math.max(nextRacialFree, Number(list[idx].gasto) || 0);
                                         const nextAtk = list[idx].requer_ataque_defesa ? Math.max(Math.round(nextRacialFree / 2), list[idx].atkGasto ?? 0) : 0;
                                         const nextDef = list[idx].requer_ataque_defesa ? Math.max(nextRacialFree - Math.round(nextRacialFree / 2), list[idx].defGasto ?? 0) : 0;
