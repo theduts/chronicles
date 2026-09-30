@@ -21,7 +21,6 @@ export default function AuthView({ onLoginSuccess, initialTab = 'login', onNavig
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [signupRole, setSignupRole] = useState<'player' | 'dm'>('player');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const loginMutation = useMutation({
@@ -66,7 +65,7 @@ export default function AuthView({ onLoginSuccess, initialTab = 'login', onNavig
     },
     onSuccess: (data) => {
       setErrorMessage(null);
-      const userRole = signupRole === 'dm' ? 'dm' : 'player';
+      const userRole = 'player';
       const user = {
         id: data.userId || String(data.id || ''),
         username: data.username,
@@ -302,36 +301,6 @@ export default function AuthView({ onLoginSuccess, initialTab = 'login', onNavig
               </div>
             </div>
 
-            {/* Role Selection Option */}
-            <div className="flex flex-col gap-2">
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
-                Função (Role)
-              </label>
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => setSignupRole('player')}
-                  className={`flex-1 py-2.5 font-sans text-xs font-bold uppercase tracking-wider border transition-all cursor-pointer ${
-                    signupRole === 'player'
-                      ? 'bg-primary-container border-primary text-on-surface'
-                      : 'bg-transparent border-outline-variant text-on-surface-variant hover:text-on-surface'
-                  }`}
-                >
-                  Jogador
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSignupRole('dm')}
-                  className={`flex-1 py-2.5 font-sans text-xs font-bold uppercase tracking-wider border transition-all cursor-pointer ${
-                    signupRole === 'dm'
-                      ? 'bg-primary-container border-primary text-on-surface'
-                      : 'bg-transparent border-outline-variant text-on-surface-variant hover:text-on-surface'
-                  }`}
-                >
-                  Mestre
-                </button>
-              </div>
-            </div>
 
             {/* CTA action trigger Button */}
             <button
