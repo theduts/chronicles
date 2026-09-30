@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="silhouetteGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#64748b" />
+      <stop offset="100%" stop-color="#334155" />
+    </linearGradient>
+    <filter id="subtleGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="200" height="200" fill="url(#bgGradient)" />
+
+  <!-- Shield / Crest outline subtle accent -->
+  <path d="M 100 20 L 160 45 L 160 110 C 160 150 100 180 100 180 C 100 180 40 150 40 110 L 40 45 Z" 
+        fill="none" stroke="#334155" stroke-width="2" stroke-dasharray="4 4" opacity="0.6" />
+
+  <!-- Character Silhouette -->
+  <g filter="url(#subtleGlow)" fill="url(#silhouetteGradient)">
+    <!-- Head / Hood -->
+    <path d="M 100 48 C 82 48 72 64 72 82 C 72 96 80 108 90 112 C 86 116 80 120 70 124 C 52 131 38 148 35 175 L 165 175 C 162 148 148 131 130 124 C 120 120 114 116 110 112 C 120 108 128 96 128 82 C 128 64 118 48 100 48 Z" />
+    <!-- Hood Peak / Shadow Detail -->
+    <path d="M 100 44 C 95 44 88 50 85 58 C 93 54 107 54 115 58 C 112 50 105 44 100 44 Z" fill="#475569" />
+  </g>
+</svg>
