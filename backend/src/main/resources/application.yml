@@ -58,3 +58,10 @@ security:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4000,http://localhost:5173}
 
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
+    com.chronicles: DEBUG
+
