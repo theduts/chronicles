@@ -33,10 +33,18 @@ import Modal from './Modal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { ActionButton, SaveButton, AddButton, EditButton, DeleteButton } from './ActionButtons';
 import ImageWithFallback from './ImageWithFallback';
+import {
+  useLoreQuery,
+  useCreateLoreMutation,
+  useUpdateLoreMutation,
+  useToggleLoreVisibilityMutation,
+  useDeleteLoreMutation,
+} from '../hooks/useLoreMutations';
 
 interface CampaignHistoryViewProps {
   onBack: () => void;
   userRole?: 'player' | 'dm';
+  campaignId?: string;
 }
 
 type TabType = 'panteao' | 'faccoes' | 'geografia' | 'mapas' | 'personas';
@@ -336,9 +344,16 @@ const INITIAL_PERSONAS: PersonaItem[] = [
   }
 ];
 
-export default function CampaignHistoryView({ onBack, userRole = 'player' }: CampaignHistoryViewProps) {
+export default function CampaignHistoryView({ onBack, userRole = 'player', campaignId }: CampaignHistoryViewProps) {
   const [activeTab, setActiveTab] = useState<TabType>('panteao');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Server state via React Query
+  const { data: dbLore = [], isLoading: isLoadingLore } = useLoreQuery(campaignId);
+  const createLoreMutation = useCreateLoreMutation(campaignId);
+  const updateLoreMutation = useUpdateLoreMutation(campaignId);
+  const toggleLoreVisibilityMutation = useToggleLoreVisibilityMutation(campaignId);
+  const deleteLoreMutation = useDeleteLoreMutation(campaignId);
 
   // Story state with localStorage persistence
   const [storyText, setStoryText] = useState<string>(() => {
@@ -372,8 +387,8 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
     return clean.slice(0, maxLength).trim() + '...';
   };
 
-  // Local state persisted in localStorage
-  const [photos, setPhotos] = useState<PhotoItem[]>(() => {
+  // Local fallback states persisted in localStorage (used if no campaignId is active)
+  const [localPhotos, setLocalPhotos] = useState<PhotoItem[]>(() => {
     try {
       const saved = localStorage.getItem('daemon_history_photos');
       return saved ? JSON.parse(saved) : INITIAL_PHOTOS;
@@ -382,7 +397,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
     }
   });
 
-  const [pantheon, setPantheon] = useState<PantheonItem[]>(() => {
+  const [localPantheon, setLocalPantheon] = useState<PantheonItem[]>(() => {
     try {
       const saved = localStorage.getItem('daemon_history_pantheon');
       return saved ? JSON.parse(saved) : INITIAL_PANTHEON;
@@ -391,7 +406,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
     }
   });
 
-  const [factions, setFactions] = useState<FactionItem[]>(() => {
+  const [localFactions, setLocalFactions] = useState<FactionItem[]>(() => {
     try {
       const saved = localStorage.getItem('daemon_history_factions');
       return saved ? JSON.parse(saved) : INITIAL_FACTIONS;
@@ -400,7 +415,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
     }
   });
 
-  const [geo, setGeo] = useState<GeoItem[]>(() => {
+  const [localGeo, setLocalGeo] = useState<GeoItem[]>(() => {
     try {
       const saved = localStorage.getItem('daemon_history_geo');
       return saved ? JSON.parse(saved) : INITIAL_GEO;
@@ -409,7 +424,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
     }
   });
 
-  const [maps, setMaps] = useState<MapItem[]>(() => {
+  const [localMaps, setLocalMaps] = useState<MapItem[]>(() => {
     try {
       const saved = localStorage.getItem('daemon_history_maps');
       return saved ? JSON.parse(saved) : INITIAL_MAPS;
@@ -418,7 +433,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
     }
   });
 
-  const [personas, setPersonas] = useState<PersonaItem[]>(() => {
+  const [localPersonas, setLocalPersonas] = useState<PersonaItem[]>(() => {
     try {
       const saved = localStorage.getItem('daemon_history_personas');
       return saved ? JSON.parse(saved) : INITIAL_PERSONAS;
@@ -426,6 +441,113 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
       return INITIAL_PERSONAS;
     }
   });
+
+  // Unified getters: React Query server state when campaignId is present, local state otherwise
+  const pantheon: PantheonItem[] = React.useMemo(() => {
+    if (campaignId && dbLore.length > 0) {
+      const items = dbLore.filter((l) => l.category === 'deidade').map((l) => ({
+        id: l.id,
+        name: l.title,
+        title: (l.data?.title as string) || '',
+        type: ((l.data?.type as string) || 'Divindade Maior') as PantheonItem['type'],
+        domains: (l.data?.domains as string[]) || [],
+        symbol: (l.data?.symbol as string) || '',
+        description: l.description || '',
+        worshippers: (l.data?.worshippers as string) || '',
+        alignment: (l.data?.alignment as string) || '',
+        image: l.imageUrl || '',
+        isVisible: l.isVisible !== false,
+      }));
+      if (items.length > 0) return items;
+    }
+    return localPantheon;
+  }, [campaignId, dbLore, localPantheon]);
+
+  const factions: FactionItem[] = React.useMemo(() => {
+    if (campaignId && dbLore.length > 0) {
+      const items = dbLore.filter((l) => l.category === 'faccao').map((l) => ({
+        id: l.id,
+        name: l.title,
+        leader: (l.data?.leader as string) || '',
+        headquarters: (l.data?.headquarters as string) || '',
+        alignment: (l.data?.alignment as string) || '',
+        influence: typeof l.data?.influence === 'number' ? l.data.influence : 50,
+        description: l.description || '',
+        allies: (l.data?.allies as string[]) || [],
+        enemies: (l.data?.enemies as string[]) || [],
+        image: l.imageUrl || '',
+        isVisible: l.isVisible !== false,
+      }));
+      if (items.length > 0) return items;
+    }
+    return localFactions;
+  }, [campaignId, dbLore, localFactions]);
+
+  const geo: GeoItem[] = React.useMemo(() => {
+    if (campaignId && dbLore.length > 0) {
+      const items = dbLore.filter((l) => l.category === 'geografia' || l.category === 'local').map((l) => ({
+        id: l.id,
+        name: l.title,
+        region: (l.data?.region as string) || '',
+        dangerLevel: ((l.data?.dangerLevel as string) || 'Médio') as GeoItem['dangerLevel'],
+        climate: (l.data?.climate as string) || '',
+        population: (l.data?.population as string) || '',
+        description: l.description || '',
+        secrets: (l.data?.secrets as string) || '',
+        image: l.imageUrl || '',
+        isVisible: l.isVisible !== false,
+      }));
+      if (items.length > 0) return items;
+    }
+    return localGeo;
+  }, [campaignId, dbLore, localGeo]);
+
+  const maps: MapItem[] = React.useMemo(() => {
+    if (campaignId && dbLore.length > 0) {
+      const items = dbLore.filter((l) => l.category === 'mapa').map((l) => ({
+        id: l.id,
+        title: l.title,
+        scale: (l.data?.scale as string) || '1:1000',
+        url: l.imageUrl || '',
+        description: l.description || '',
+        poiCount: typeof l.data?.poiCount === 'number' ? l.data.poiCount : 0,
+        isVisible: l.isVisible !== false,
+      }));
+      if (items.length > 0) return items;
+    }
+    return localMaps;
+  }, [campaignId, dbLore, localMaps]);
+
+  const personas: PersonaItem[] = React.useMemo(() => {
+    if (campaignId && dbLore.length > 0) {
+      const items = dbLore.filter((l) => l.category === 'persona').map((l) => ({
+        id: l.id,
+        name: l.title,
+        title: (l.data?.title as string) || '',
+        role: (l.data?.role as string) || '',
+        description: l.description || '',
+        image: l.imageUrl || '',
+        isVisible: l.isVisible !== false,
+      }));
+      if (items.length > 0) return items;
+    }
+    return localPersonas;
+  }, [campaignId, dbLore, localPersonas]);
+
+  const photos: PhotoItem[] = React.useMemo(() => {
+    if (campaignId && dbLore.length > 0) {
+      const items = dbLore.filter((l) => l.category === 'galeria' || l.category === 'photo').map((l) => ({
+        id: l.id,
+        title: l.title,
+        category: (l.data?.category as string) || 'Galeria',
+        url: l.imageUrl || '',
+        description: l.description || '',
+        date: (l.data?.date as string) || '',
+      }));
+      if (items.length > 0) return items;
+    }
+    return localPhotos;
+  }, [campaignId, dbLore, localPhotos]);
 
   // Modal inspection / add states
   const [selectedGod, setSelectedGod] = useState<PantheonItem | null>(null);
@@ -566,16 +688,24 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
   }, [selectedPersona]);
 
   const savePersonas = (updated: PersonaItem[]) => {
-    setPersonas(updated);
-    localStorage.setItem('daemon_history_personas', JSON.stringify(updated));
+    setLocalPersonas(updated);
+    if (!campaignId) {
+      localStorage.setItem('daemon_history_personas', JSON.stringify(updated));
+    }
   };
 
   const togglePersonaVisibility = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    const updated = personas.map((p) =>
-      p.id === id ? { ...p, isVisible: p.isVisible === false ? true : false } : p
-    );
-    savePersonas(updated);
+    const target = personas.find((p) => p.id === id);
+    const newVis = target?.isVisible === false;
+    if (campaignId && id && !id.startsWith('per-')) {
+      toggleLoreVisibilityMutation.mutate({ loreId: id, isVisible: newVis });
+    } else {
+      const updated = personas.map((p) =>
+        p.id === id ? { ...p, isVisible: newVis } : p
+      );
+      savePersonas(updated);
+    }
   };
 
   const handleCreateNewPersona = () => {
@@ -603,19 +733,42 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
       description: editPersonaDescription.trim(),
     };
 
-    const exists = personas.some((p) => p.id === selectedPersona.id);
-    const updatedList = exists
-      ? personas.map((p) => (p.id === selectedPersona.id ? updatedPersonaItem : p))
-      : [...personas, updatedPersonaItem];
-
-    savePersonas(updatedList);
+    if (campaignId) {
+      const isExisting = selectedPersona.id && !selectedPersona.id.startsWith('per-');
+      const payload = {
+        category: 'persona',
+        title: updatedPersonaItem.name,
+        description: updatedPersonaItem.description,
+        imageUrl: updatedPersonaItem.image,
+        isVisible: updatedPersonaItem.isVisible !== false,
+        data: {
+          title: updatedPersonaItem.title,
+          role: updatedPersonaItem.role,
+        },
+      };
+      if (isExisting) {
+        updateLoreMutation.mutate({ loreId: selectedPersona.id, payload });
+      } else {
+        createLoreMutation.mutate(payload);
+      }
+    } else {
+      const exists = personas.some((p) => p.id === selectedPersona.id);
+      const updatedList = exists
+        ? personas.map((p) => (p.id === selectedPersona.id ? updatedPersonaItem : p))
+        : [...personas, updatedPersonaItem];
+      savePersonas(updatedList);
+    }
     setSelectedPersona(null);
   };
 
   const handleDeletePersona = () => {
     if (!selectedPersona) return;
-    const updatedList = personas.filter((p) => p.id !== selectedPersona.id);
-    savePersonas(updatedList);
+    if (campaignId && selectedPersona.id && !selectedPersona.id.startsWith('per-')) {
+      deleteLoreMutation.mutate(selectedPersona.id);
+    } else {
+      const updatedList = personas.filter((p) => p.id !== selectedPersona.id);
+      savePersonas(updatedList);
+    }
     setSelectedPersona(null);
     setShowDeletePersonaConfirm(false);
   };
@@ -634,16 +787,24 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
   };
 
   const saveMaps = (updated: MapItem[]) => {
-    setMaps(updated);
-    localStorage.setItem('daemon_history_maps', JSON.stringify(updated));
+    setLocalMaps(updated);
+    if (!campaignId) {
+      localStorage.setItem('daemon_history_maps', JSON.stringify(updated));
+    }
   };
 
   const toggleMapVisibility = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    const updated = maps.map((m) =>
-      m.id === id ? { ...m, isVisible: m.isVisible === false ? true : false } : m
-    );
-    saveMaps(updated);
+    const target = maps.find((m) => m.id === id);
+    const newVis = target?.isVisible === false;
+    if (campaignId && id && !id.startsWith('map-')) {
+      toggleLoreVisibilityMutation.mutate({ loreId: id, isVisible: newVis });
+    } else {
+      const updated = maps.map((m) =>
+        m.id === id ? { ...m, isVisible: newVis } : m
+      );
+      saveMaps(updated);
+    }
   };
 
   const handleCreateNewMap = () => {
@@ -670,19 +831,42 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
       description: editMapDescription.trim(),
     };
 
-    const exists = maps.some((m) => m.id === selectedMap.id);
-    const updatedList = exists
-      ? maps.map((m) => (m.id === selectedMap.id ? updatedMapItem : m))
-      : [...maps, updatedMapItem];
-
-    saveMaps(updatedList);
+    if (campaignId) {
+      const isExisting = selectedMap.id && !selectedMap.id.startsWith('map-');
+      const payload = {
+        category: 'mapa',
+        title: updatedMapItem.title,
+        description: updatedMapItem.description,
+        imageUrl: updatedMapItem.url,
+        isVisible: updatedMapItem.isVisible !== false,
+        data: {
+          scale: updatedMapItem.scale,
+          poiCount: updatedMapItem.poiCount,
+        },
+      };
+      if (isExisting) {
+        updateLoreMutation.mutate({ loreId: selectedMap.id, payload });
+      } else {
+        createLoreMutation.mutate(payload);
+      }
+    } else {
+      const exists = maps.some((m) => m.id === selectedMap.id);
+      const updatedList = exists
+        ? maps.map((m) => (m.id === selectedMap.id ? updatedMapItem : m))
+        : [...maps, updatedMapItem];
+      saveMaps(updatedList);
+    }
     setSelectedMap(null);
   };
 
   const handleDeleteMap = () => {
     if (!selectedMap) return;
-    const updatedList = maps.filter((m) => m.id !== selectedMap.id);
-    saveMaps(updatedList);
+    if (campaignId && selectedMap.id && !selectedMap.id.startsWith('map-')) {
+      deleteLoreMutation.mutate(selectedMap.id);
+    } else {
+      const updatedList = maps.filter((m) => m.id !== selectedMap.id);
+      saveMaps(updatedList);
+    }
     setSelectedMap(null);
     setShowDeleteMapConfirm(false);
   };
@@ -701,29 +885,45 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
   };
 
   const saveFactions = (updated: FactionItem[]) => {
-    setFactions(updated);
-    localStorage.setItem('daemon_history_factions', JSON.stringify(updated));
+    setLocalFactions(updated);
+    if (!campaignId) {
+      localStorage.setItem('daemon_history_factions', JSON.stringify(updated));
+    }
   };
 
   const toggleFactionVisibility = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    const updated = factions.map((f) =>
-      f.id === id ? { ...f, isVisible: f.isVisible === false ? true : false } : f
-    );
-    saveFactions(updated);
+    const target = factions.find((f) => f.id === id);
+    const newVis = target?.isVisible === false;
+    if (campaignId && id && !id.startsWith('fac-')) {
+      toggleLoreVisibilityMutation.mutate({ loreId: id, isVisible: newVis });
+    } else {
+      const updated = factions.map((f) =>
+        f.id === id ? { ...f, isVisible: newVis } : f
+      );
+      saveFactions(updated);
+    }
   };
 
   const saveGeo = (updated: GeoItem[]) => {
-    setGeo(updated);
-    localStorage.setItem('daemon_history_geo', JSON.stringify(updated));
+    setLocalGeo(updated);
+    if (!campaignId) {
+      localStorage.setItem('daemon_history_geo', JSON.stringify(updated));
+    }
   };
 
   const toggleGeoVisibility = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    const updated = geo.map((g) =>
-      g.id === id ? { ...g, isVisible: g.isVisible === false ? true : false } : g
-    );
-    saveGeo(updated);
+    const target = geo.find((g) => g.id === id);
+    const newVis = target?.isVisible === false;
+    if (campaignId && id && !id.startsWith('geo-')) {
+      toggleLoreVisibilityMutation.mutate({ loreId: id, isVisible: newVis });
+    } else {
+      const updated = geo.map((g) =>
+        g.id === id ? { ...g, isVisible: newVis } : g
+      );
+      saveGeo(updated);
+    }
   };
 
   const handleCreateNewGeo = () => {
@@ -755,19 +955,45 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
       secrets: editGeoSecrets.trim(),
     };
 
-    const exists = geo.some((g) => g.id === selectedGeo.id);
-    const updatedList = exists
-      ? geo.map((g) => (g.id === selectedGeo.id ? updatedGeo : g))
-      : [...geo, updatedGeo];
-
-    saveGeo(updatedList);
+    if (campaignId) {
+      const isExisting = selectedGeo.id && !selectedGeo.id.startsWith('geo-');
+      const payload = {
+        category: 'geografia',
+        title: updatedGeo.name,
+        description: updatedGeo.description,
+        imageUrl: updatedGeo.image,
+        isVisible: updatedGeo.isVisible !== false,
+        data: {
+          region: updatedGeo.region,
+          climate: updatedGeo.climate,
+          population: updatedGeo.population,
+          secrets: updatedGeo.secrets,
+          dangerLevel: updatedGeo.dangerLevel,
+        },
+      };
+      if (isExisting) {
+        updateLoreMutation.mutate({ loreId: selectedGeo.id, payload });
+      } else {
+        createLoreMutation.mutate(payload);
+      }
+    } else {
+      const exists = geo.some((g) => g.id === selectedGeo.id);
+      const updatedList = exists
+        ? geo.map((g) => (g.id === selectedGeo.id ? updatedGeo : g))
+        : [...geo, updatedGeo];
+      saveGeo(updatedList);
+    }
     setSelectedGeo(null);
   };
 
   const handleDeleteGeo = () => {
     if (!selectedGeo) return;
-    const updatedList = geo.filter((g) => g.id !== selectedGeo.id);
-    saveGeo(updatedList);
+    if (campaignId && selectedGeo.id && !selectedGeo.id.startsWith('geo-')) {
+      deleteLoreMutation.mutate(selectedGeo.id);
+    } else {
+      const updatedList = geo.filter((g) => g.id !== selectedGeo.id);
+      saveGeo(updatedList);
+    }
     setSelectedGeo(null);
     setShowDeleteGeoConfirm(false);
   };
@@ -811,34 +1037,69 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
       enemies: parsedEnemies,
     };
 
-    const exists = factions.some((f) => f.id === selectedFaction.id);
-    const updatedList = exists
-      ? factions.map((f) => (f.id === selectedFaction.id ? updatedFaction : f))
-      : [...factions, updatedFaction];
-
-    saveFactions(updatedList);
+    if (campaignId) {
+      const isExisting = selectedFaction.id && !selectedFaction.id.startsWith('fac-');
+      const payload = {
+        category: 'faccao',
+        title: updatedFaction.name,
+        description: updatedFaction.description,
+        imageUrl: updatedFaction.image,
+        isVisible: updatedFaction.isVisible !== false,
+        data: {
+          leader: updatedFaction.leader,
+          headquarters: updatedFaction.headquarters,
+          alignment: updatedFaction.alignment,
+          influence: updatedFaction.influence,
+          allies: updatedFaction.allies,
+          enemies: updatedFaction.enemies,
+        },
+      };
+      if (isExisting) {
+        updateLoreMutation.mutate({ loreId: selectedFaction.id, payload });
+      } else {
+        createLoreMutation.mutate(payload);
+      }
+    } else {
+      const exists = factions.some((f) => f.id === selectedFaction.id);
+      const updatedList = exists
+        ? factions.map((f) => (f.id === selectedFaction.id ? updatedFaction : f))
+        : [...factions, updatedFaction];
+      saveFactions(updatedList);
+    }
     setSelectedFaction(null);
   };
 
   const handleDeleteFaction = () => {
     if (!selectedFaction) return;
-    const updatedList = factions.filter((f) => f.id !== selectedFaction.id);
-    saveFactions(updatedList);
+    if (campaignId && selectedFaction.id && !selectedFaction.id.startsWith('fac-')) {
+      deleteLoreMutation.mutate(selectedFaction.id);
+    } else {
+      const updatedList = factions.filter((f) => f.id !== selectedFaction.id);
+      saveFactions(updatedList);
+    }
     setSelectedFaction(null);
     setShowDeleteFactionConfirm(false);
   };
 
   const savePantheon = (updated: PantheonItem[]) => {
-    setPantheon(updated);
-    localStorage.setItem('daemon_history_pantheon', JSON.stringify(updated));
+    setLocalPantheon(updated);
+    if (!campaignId) {
+      localStorage.setItem('daemon_history_pantheon', JSON.stringify(updated));
+    }
   };
 
   const togglePantheonVisibility = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    const updated = pantheon.map((p) =>
-      p.id === id ? { ...p, isVisible: p.isVisible === false ? true : false } : p
-    );
-    savePantheon(updated);
+    const target = pantheon.find((p) => p.id === id);
+    const newVis = target?.isVisible === false;
+    if (campaignId && id && !id.startsWith('pan-') && !id.startsWith('god-')) {
+      toggleLoreVisibilityMutation.mutate({ loreId: id, isVisible: newVis });
+    } else {
+      const updated = pantheon.map((p) =>
+        p.id === id ? { ...p, isVisible: newVis } : p
+      );
+      savePantheon(updated);
+    }
   };
 
   const handleCreateNewGod = () => {
@@ -876,19 +1137,46 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
       worshippers: editGodWorshippers.trim(),
     };
 
-    const exists = pantheon.some((g) => g.id === selectedGod.id);
-    const updatedList = exists
-      ? pantheon.map((g) => (g.id === selectedGod.id ? updatedGod : g))
-      : [...pantheon, updatedGod];
-
-    savePantheon(updatedList);
+    if (campaignId) {
+      const isExisting = selectedGod.id && !selectedGod.id.startsWith('pan-') && !selectedGod.id.startsWith('god-');
+      const payload = {
+        category: 'deidade',
+        title: updatedGod.name,
+        description: updatedGod.description,
+        imageUrl: updatedGod.image,
+        isVisible: updatedGod.isVisible !== false,
+        data: {
+          title: updatedGod.title,
+          alignment: updatedGod.alignment,
+          domains: updatedGod.domains,
+          symbol: updatedGod.symbol,
+          worshippers: updatedGod.worshippers,
+          type: updatedGod.type,
+        },
+      };
+      if (isExisting) {
+        updateLoreMutation.mutate({ loreId: selectedGod.id, payload });
+      } else {
+        createLoreMutation.mutate(payload);
+      }
+    } else {
+      const exists = pantheon.some((g) => g.id === selectedGod.id);
+      const updatedList = exists
+        ? pantheon.map((g) => (g.id === selectedGod.id ? updatedGod : g))
+        : [...pantheon, updatedGod];
+      savePantheon(updatedList);
+    }
     setSelectedGod(null);
   };
 
   const handleDeleteGod = () => {
     if (!selectedGod) return;
-    const updatedList = pantheon.filter((g) => g.id !== selectedGod.id);
-    savePantheon(updatedList);
+    if (campaignId && selectedGod.id && !selectedGod.id.startsWith('pan-') && !selectedGod.id.startsWith('god-')) {
+      deleteLoreMutation.mutate(selectedGod.id);
+    } else {
+      const updatedList = pantheon.filter((g) => g.id !== selectedGod.id);
+      savePantheon(updatedList);
+    }
     setSelectedGod(null);
     setShowDeleteGodConfirm(false);
   };
@@ -903,14 +1191,20 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
   const [newPhotoDesc, setNewPhotoDesc] = useState('');
 
   const savePhotos = (updated: PhotoItem[]) => {
-    setPhotos(updated);
-    localStorage.setItem('daemon_history_photos', JSON.stringify(updated));
+    setLocalPhotos(updated);
+    if (!campaignId) {
+      localStorage.setItem('daemon_history_photos', JSON.stringify(updated));
+    }
   };
 
   const handleDeletePhoto = () => {
     if (!photoToDelete) return;
-    const updatedList = photos.filter((p) => p.id !== photoToDelete.id);
-    savePhotos(updatedList);
+    if (campaignId && photoToDelete.id && !photoToDelete.id.startsWith('photo-')) {
+      deleteLoreMutation.mutate(photoToDelete.id);
+    } else {
+      const updatedList = photos.filter((p) => p.id !== photoToDelete.id);
+      savePhotos(updatedList);
+    }
     setPhotoToDelete(null);
     setShowDeletePhotoConfirm(false);
   };
@@ -953,9 +1247,23 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
       category: 'Galeria',
       url: newPhotoUrl.trim(),
       description: newPhotoDesc.trim() || '',
-      date: 'Ato Ativo'
+      date: 'Ato Ativo',
     };
-    savePhotos([item, ...photos]);
+    if (campaignId) {
+      createLoreMutation.mutate({
+        category: 'galeria',
+        title: item.title,
+        description: item.description,
+        imageUrl: item.url,
+        isVisible: true,
+        data: {
+          category: item.category,
+          date: item.date,
+        },
+      });
+    } else {
+      savePhotos([item, ...photos]);
+    }
     setShowAddPhotoModal(false);
     setNewPhotoTitle('');
     setNewPhotoUrl('');
@@ -1264,6 +1572,16 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
                     )}
 
                     <div className="space-y-3">
+                      {god.image && (
+                        <div className="relative h-40 w-full -mt-2 mb-2 overflow-hidden border border-outline-variant/60">
+                          <ImageWithFallback
+                            src={god.image}
+                            alt={god.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            fallbackText={god.name}
+                          />
+                        </div>
+                      )}
                       <div className="border-b border-outline-variant/40 pb-3 pr-8">
                         <h4 className="font-serif text-lg text-on-surface font-medium group-hover:text-primary transition-colors">
                           {god.name}
@@ -1342,6 +1660,16 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
                     )}
 
                     <div className="space-y-3">
+                      {fac.image && (
+                        <div className="relative h-40 w-full -mt-2 mb-2 overflow-hidden border border-outline-variant/60">
+                          <ImageWithFallback
+                            src={fac.image}
+                            alt={fac.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            fallbackText={fac.name}
+                          />
+                        </div>
+                      )}
                       <div className="border-b border-outline-variant/40 pb-3 pr-8">
                         <h4 className="font-serif text-lg text-on-surface font-medium group-hover:text-primary transition-colors">
                           {fac.name}
@@ -1430,6 +1758,16 @@ export default function CampaignHistoryView({ onBack, userRole = 'player' }: Cam
                     )}
 
                     <div className="space-y-3">
+                      {loc.image && (
+                        <div className="relative h-40 w-full -mt-2 mb-2 overflow-hidden border border-outline-variant/60">
+                          <ImageWithFallback
+                            src={loc.image}
+                            alt={loc.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            fallbackText={loc.name}
+                          />
+                        </div>
+                      )}
                       <div className="border-b border-outline-variant/40 pb-3 pr-8">
                         <span className="text-[9px] font-mono text-on-surface-variant/70 uppercase tracking-widest block">
                           {loc.region}

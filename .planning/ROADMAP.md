@@ -149,12 +149,23 @@ Plans:
 
 **Objetivo:** Refinar a tela de arquivo completo de sessões (`/cronicas`) e implementar o ecossistema da galeria/lore em `/cronicas/historia_campanha`.
 
+**Plans:** 2/2 plans executed
+
 ### Tarefas Chave
 
-- [ ] Criar visualização expandida e edição inline das crônicas (Título, Capa, Missão, Local, Data, etc.) com API para persistência.
-- [ ] Desenvolver o CRUD na tabela `campaign_lore` baseada no tipo `category` e armazenar propriedades variáveis em JSONB.
-- [ ] Construir o modal "Galeria Visual da Campanha" com filtros de categorização.
-- [ ] Adicionar o suporte a privacidade de visibilidade (`is_visible`) para o Mestre (secretos).
+- [x] Criar visualização expandida e edição inline das crônicas (Título, Capa, Missão, Local, Data, etc.) com API para persistência.
+- [x] Desenvolver o CRUD na tabela `campaign_lore` baseada no tipo `category` e armazenar propriedades variáveis em JSONB.
+- [x] Construir o modal "Galeria Visual da Campanha" com filtros de categorização.
+- [x] Adicionar o suporte a privacidade de visibilidade (`is_visible`) para o Mestre (secretos).
+
+Plans:
+**Wave 1**
+
+- [x] 08-1-backend-PLAN.md — Backend REST APIs for Lore and Chronicles
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 08-2-frontend-PLAN.md — Frontend Integration and UX Updates
 
 ---
 

@@ -607,6 +607,7 @@ function MainApp() {
             {activeScreen === 'chronicles' && (
               <ChroniclesView
                 userRole={userRole}
+                campaignId={activeCampaignId}
                 onNavigateToHistory={() => setActiveScreen('campaign_history')}
               />
             )}
@@ -615,6 +616,7 @@ function MainApp() {
               <CampaignHistoryView
                 onBack={() => setActiveScreen('chronicles')}
                 userRole={userRole}
+                campaignId={activeCampaignId}
               />
             )}
 
