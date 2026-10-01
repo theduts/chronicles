@@ -7,6 +7,7 @@ import Modal from './Modal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { ActionButton, SaveButton, AddButton, EditButton, DeleteButton } from './ActionButtons';
 import ImageWithFallback from './ImageWithFallback';
+import type { ChronicleSession } from './ChroniclesView';
 
 interface DashboardViewProps {
   characters: Character[];
@@ -93,7 +94,7 @@ export default function DashboardView({
   const [selectedContracts, setSelectedContracts] = useState<any[]>([]);
   const [acceptedContracts, setAcceptedContracts] = useState<number[]>([]);
   const [contractToDelete, setContractToDelete] = useState<number | null>(null);
-  const [selectedChronicle, setSelectedChronicle] = useState<typeof CHRONICLES[0] | null>(null);
+  const [selectedChronicle, setSelectedChronicle] = useState<ChronicleSession | null>(null);
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);

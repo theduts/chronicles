@@ -25,7 +25,7 @@ const toRoman = (num: number): string => {
   return roman || 'I';
 };
 
-interface ChronicleSession {
+export interface ChronicleSession {
   id: string;
   session: string; // e.g. "SESSÃO I"
   title: string;
