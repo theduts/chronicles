@@ -14,6 +14,7 @@ export function useViewModeMutation() {
     const nextMode = viewRole === 'player' ? 'dm' : 'player';
     
     setViewRole(nextMode);
+    console.debug(`[ViewMode] Optimistic update: ${previousMode} -> ${nextMode}. Queuing PATCH /api/users/me/view-mode (300ms debounce)`);
 
     // 2. Clear pending timeout and abort previous request if any
     if (debounceRef.current) {
@@ -29,20 +30,25 @@ export function useViewModeMutation() {
 
     // 4. Debounce the API call
     debounceRef.current = setTimeout(async () => {
+      const payload = {
+        mode: nextMode.toUpperCase(), // 'PLAYER' or 'DM'
+      };
+
       try {
-        const payload = {
-          mode: nextMode.toUpperCase(), // 'PLAYER' or 'DM'
-        };
+        console.debug('[ViewMode] Dispatching PATCH /api/users/me/view-mode:', payload);
 
         await api.patch('/users/me/view-mode', payload, {
           signal: currentAbortController.signal,
         });
 
+        console.debug('[ViewMode] PATCH /api/users/me/view-mode completed successfully:', payload);
       } catch (error: any) {
         if (error.name === 'CanceledError' || error.message === 'canceled') {
-          // Request was aborted by a subsequent toggle, ignore error
+          console.debug('[ViewMode] Request aborted by subsequent toggle, ignoring error.');
           return;
         }
+
+        console.error('[ViewMode] Request failed:', error);
 
         // Revert the state
         setViewRole(previousMode);
