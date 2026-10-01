@@ -39,6 +39,8 @@ Thumbs.db
 .idea/
 .vscode/
 *.iml
+notes.md
+milestoneDecisions.md
 
 #Harness
 .agents/

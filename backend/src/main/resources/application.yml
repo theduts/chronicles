@@ -27,6 +27,11 @@ spring:
     placeholder-replacement: false
     locations: classpath:db/migration
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
 # MinIO / Storage configuration
 minio:
   url: ${MINIO_URL:${MINIO_ENDPOINT:http://localhost:9000}}
@@ -34,12 +39,7 @@ minio:
   secret-key: ${MINIO_SECRET_KEY:minioadmin}
   bucket-name: ${MINIO_BUCKET_NAME:chronicles}
 
-storage:
-  minio:
-    endpoint: ${MINIO_URL:${MINIO_ENDPOINT:http://localhost:9000}}
-    access-key: ${MINIO_ACCESS_KEY:minioadmin}
-    secret-key: ${MINIO_SECRET_KEY:minioadmin}
-    bucket-name: ${MINIO_BUCKET_NAME:chronicles}
+
 
 # SpringDoc OpenAPI configuration
 springdoc:

@@ -67,7 +67,11 @@ public class UploadController {
         InputStream stream = fileStorageService.getFile(fileName);
         String mimeType = URLConnection.guessContentTypeFromName(fileName);
         if (mimeType == null) {
-            mimeType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+            if (fileName.toLowerCase().endsWith(".webp")) {
+                mimeType = "image/webp";
+            } else {
+                mimeType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+            }
         }
 
         return ResponseEntity.ok()

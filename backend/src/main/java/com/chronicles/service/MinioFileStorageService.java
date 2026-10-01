@@ -35,7 +35,7 @@ public class MinioFileStorageService implements FileStorageService {
             String originalFilename = file.getOriginalFilename();
             String extension = "";
             if (originalFilename != null && originalFilename.contains(".")) {
-                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                extension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
             } else {
                 extension = ".png";
             }
