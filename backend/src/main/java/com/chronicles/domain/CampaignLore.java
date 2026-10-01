@@ -8,6 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -45,7 +46,7 @@ public class CampaignLore {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "data", columnDefinition = "jsonb", nullable = false)
-    private Object data;
+    private Map<String, Object> data;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
