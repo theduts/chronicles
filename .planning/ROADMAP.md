@@ -133,7 +133,7 @@ Plans:
 
 **Objetivo:** Introduzir a preferência de visualização Jogador/Mestre (`lastViewMode`) com controle de resiliência e criar o painel de "História" da campanha.
 
-**Plans:** 2/2 plans complete
+**Plans:** 3/3 plans complete
 
 ### Tarefas Chave
 
