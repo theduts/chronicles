@@ -502,10 +502,7 @@ function MainApp() {
               </h3>
               
               <div className="flex flex-col gap-3">
-                <ViewRoleToggle
-                  currentRole={userRole}
-                  onToggle={handleToggleRole}
-                />
+                <ViewRoleToggle />
 
                 <button
                   onClick={() => {
@@ -560,6 +557,7 @@ function MainApp() {
                 setCharacterUnderEditId={setCharacterUnderEditId}
                 userRole={userRole}
                 onApproveCharacter={handleApproveCharacter}
+                activeCampaign={campaigns.find(c => c.id === activeCampaignId)}
               />
             )}
 

@@ -26,39 +26,6 @@ const ALL_CONTRACTS = [
   { id: 6, title: "A Purga dos Goblins", danger: "Médio", reward: "180 PO", desc: "Eliminar o assentamento de saqueadores goblinoides sob a ponte de ferro da estrada real." }
 ];
 
-const CHRONICLES = [
-  {
-    id: 'chronicle-1',
-    session: 'SESSÃO I',
-    title: 'A Queda de Aethelgard',
-    location: 'REINO EM CHAMAS',
-    date: '20 de Março, 1542',
-    desc: 'Uma crônica de fogo e traição que mudou o curso da história humana no continente de Occultus, guardada sob pergaminhos profanos.',
-    fullText: 'O céu cobriu-se de escuro e brasas quando as catapultas romperam os muros orientais de Aethelgard. Enquanto chamas devoravam os antigos salões, os heróis se depararam com um dilema impossível: as chaves secretas do Grimório Arcano jaziam trancadas nos cofres em chamas, cercadas pela infantaria inimiga, enquanto o povoado gritava por ajuda na ala norte. Decididos, Malphas usou de suas artes de trevas para despistar os guardas, permitindo que o grupo resgatasse dezenas de refugiados, mas o preço foi alto: o rito sob as cinzas rúnicas foi completado pelo inimigo...',
-    image: 'https://thumbs.dreamstime.com/b/paisagem-%C3%A9pica-m%C3%A1gica-das-montanhas-natureza-do-ver%C3%A3o-vale-m%C3%ADstico-desenho-fundo-de-jogos-rochas-cinzentas-e-plan%C3%ADcie-verde-331812445.jpg'
-  },
-  {
-    id: 'chronicle-2',
-    session: 'SESSÃO II',
-    title: 'Sussurros da Névoa',
-    location: 'FLORESTA DE OCCULTUS',
-    date: '28 de Março, 1542',
-    desc: 'Adentrando a densa névoa eterna de Occultus, os heróis depararam-se com visões bizarras do passado e precisaram decifrar ritos antigos.',
-    fullText: 'A travessia pela floresta nunca fora tão traiçoeira. Uma névoa densa demais para ser natural cobriu os caminhos, sussurrando segredos enterrados e traumas antigos de cada aventureiro. Quando todos já estavam à beira da loucura devido às alucinações de entes perdidos, um portal rúnico composto de pedras de obsidian se ergueu. Através de um complexo enigma de espelhos de luz rúnica projetada por magia elemental, o grupo desvendou que o verdadeiro perigo não era a névoa, mas a projeção de suas próprias mentes fragmentadas...',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuApHZvY37Hs1hVLXx0XzG8rFUpHmP5wdHVCSCCkr16Rkz56fZNUIdTmgjbdiL8LJbmVM-nzqyfxDiBeEq-Aq-7ztUz4lZFoyfOgRqQFO4URtVRZvdQAe9T9bOPd3j5nPVWjZ58FrCTHu9omekQxSbMiZ2lIiU2Kd2FA9yjC69WUd9WLm4-idR4gIcZWkYBpB5Y73Hb8uzeEInjO55GfBBHyBGY-DNkIatnnsmXy6HoodYkElB1O758CwNr4QDk6EAljAprNw0EhNKU'
-  },
-  {
-    id: 'chronicle-3',
-    session: 'SESSÃO III',
-    title: 'O Enigma de Obsidian',
-    location: 'CRIPTA PROFANA',
-    date: '05 de Abril, 1542',
-    desc: 'O resgate desesperado dentro da cripta esquecida e o primeiro encontro direto com o misterioso Pacto da Serpente de Sangue.',
-    fullText: 'Nos confins subterrâneos da cripta profana, onde o ar fedia a enxofre e magia estagnada, os heróis confrontaram os acólitos do Pacto da Serpente. Em meio a lutas desesperadas sobre passarelas estreitas de pedra, o inimigo desencadeou uma armadilha tóxica que selou as saídas. Com astúcia e sacrifício físico, o guerreiro Malphas aguentou o impacto direto de uma lâmina envenenada rúnica, garantindo tempo para que o mago conjurasse uma explosão de dispersão arcana. O grupo conseguiu escapar com o artefato de obsidian, porém a infecção agora corre em suas veias...',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAH02OPokynjplaAoYJ5Dh_mYVv9kxVNgs9GieyHtShVvopAbzKMJG-C8c0yhJgCROG1bkCaS9w-7iasUIrTnJf-DfK2cDZg9b8zP_2IGFOpWJsMHtB2HMKnXtSJr6FZlGrARVDI14wQPtIELkJghHXYacTrlRJCaNWT_KyDyr6cCK4LOGIie2DVGGnFf_w6KO5wCvw0oNAh407zMeCt5yO9NPob94UWsBR3ygCWTnxapKIeLuSQOUwOQE-NFsCdo-SJM4I25nHctk'
-  }
-];
-
 export default function DashboardView({
   characters,
   notes,
@@ -66,13 +33,31 @@ export default function DashboardView({
   setCharacterUnderEditId,
   userRole = 'player',
   onApproveCharacter,
-}: DashboardViewProps) {
+  activeCampaign,
+}: DashboardViewProps & { activeCampaign?: any }) {
   const [paraX, setParaX] = useState(0);
   const [paraY, setParaY] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [contractsExpanded, setContractsExpanded] = useState(false);
 
+  const [chronicles, setChronicles] = useState<any[]>([]);
+
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
+
+  useEffect(() => {
+    // If we had react-query for chronicles, we'd sync it here.
+    // For now, let's load from localStorage to allow empty state to be tested.
+    try {
+      const saved = localStorage.getItem(`daemon_chronicles_${activeCampaign?.id || 'default'}`);
+      if (saved) {
+        setChronicles(JSON.parse(saved));
+      } else {
+        setChronicles([]);
+      }
+    } catch {
+      setChronicles([]);
+    }
+  }, [activeCampaign?.id]);
 
   useEffect(() => {
     const checkDark = () => {
@@ -300,11 +285,11 @@ export default function DashboardView({
 
   const slides = [
     {
-      welcome: "Bem vindo, aventureiro",
-      title: "História",
-      subtitle: "Os contos incríveis e fantásticos",
-      description: "Os mares ecoam os bradares dos antigos. A terra clama o sangue daqueles que se acovardam. Levantem vossas espadas e assoprem a poeira de seus grimórios! A aventura esta ao passo de quem busca pelo que vale a pena morrer por.",
-      image: "/images/history.webp",
+      welcome: activeCampaign?.universo || "Bem vindo, aventureiro",
+      title: activeCampaign?.name || "História",
+      subtitle: activeCampaign?.subtitulo || "Os contos incríveis e fantásticos",
+      description: activeCampaign?.lore || "Os mares ecoam os bradares dos antigos. A terra clama o sangue daqueles que se acovardam. Levantem vossas espadas e assoprem a poeira de seus grimórios! A aventura esta ao passo de quem busca pelo que vale a pena morrer por.",
+      image: activeCampaign?.ilustracao || "/images/history.webp",
     },
     {
       welcome: "Resumo da Sessão",
@@ -550,64 +535,82 @@ export default function DashboardView({
 
         {/* Horizontal Netflix-style scrollable queue */}
         <div className="relative">
-          <div className="flex gap-6 overflow-x-auto pb-6 scroll-smooth snap-x snap-mandatory custom-scrollbar pt-1">
-            {[...CHRONICLES].reverse().map((chronicle) => (
-              <div
-                key={chronicle.id}
-                onClick={() => setSelectedChronicle(chronicle)}
-                className="w-[220px] sm:w-[320px] md:w-[380px] lg:w-[425px] shrink-0 snap-start relative overflow-hidden group h-[320px] sm:h-[240px] md:h-[260px] lg:h-[290px] border border-outline-variant hover:border-primary/60 transition-all duration-300 cursor-pointer bg-surface-container"
-              >
-                <ImageWithFallback
-                  alt={chronicle.title}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  src={chronicle.image}
-                  fallbackText={chronicle.title}
-                />
-                <div className="absolute inset-0 dark:bg-gradient-to-t dark:from-background dark:via-background/40 dark:to-transparent transition-opacity group-hover:opacity-95"></div>
-
-                {/* Hover book read symbol indicator */}
-                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 border border-[#fbb1a9]/40 p-2 rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[#fbb1a9] text-sm">auto_stories</span>
-                </div>
-
-                <div className="absolute bottom-0 left-0 p-4 sm:p-5 w-full dark:bg-gradient-to-t dark:from-background dark:via-background/80 dark:to-transparent">
-                  <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 mb-1">
-                    <span className="text-[9px] sm:text-[10px] font-mono tracking-widest font-bold text-[#dd9281]">
-                      {chronicle.session}
-                    </span>
-                    <span className="text-[9px] sm:text-[10px] text-on-surface-variant/40">•</span>
-                    <span className="text-[9px] sm:text-[10px] font-sans font-bold tracking-widest text-on-surface-variant/80 uppercase">
-                      {chronicle.location}
-                    </span>
-                  </div>
-                  <h4 className="font-serif text-sm sm:text-lg text-on-surface font-semibold group-hover:text-primary transition-colors line-clamp-2 sm:line-clamp-1">
-                    {chronicle.title}
-                  </h4>
-                  <p className="text-on-surface-variant/80 text-[10px] sm:text-[11px] mt-1 line-clamp-4 sm:line-clamp-2 leading-relaxed font-sans font-medium">
-                    {chronicle.desc}
-                  </p>
-                </div>
-              </div>
-            ))}
-
-            {/* 4th Card: "Ver todas as crônicas" */}
-            <div
-              onClick={() => setActiveScreen('chronicles')}
-              className="w-[220px] sm:w-[320px] md:w-[380px] lg:w-[425px] shrink-0 snap-start relative overflow-hidden group h-[320px] sm:h-[240px] md:h-[260px] lg:h-[290px] border border-dashed border-outline-variant hover:border-primary transition-all duration-300 cursor-pointer bg-surface-container flex flex-col items-center justify-center p-4 sm:p-6 text-center"
-            >
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-outline-variant group-hover:border-primary/50 flex items-center justify-center mb-4 transition-colors bg-surface-container-low duration-300">
-                <span className="material-symbols-outlined text-primary text-lg sm:text-xl font-bold group-hover:translate-x-1 transition-transform">
-                  arrow_forward
-                </span>
-              </div>
-              <h4 className="font-serif text-sm sm:text-lg text-on-surface font-bold tracking-wide group-hover:text-primary transition-colors">
-                Ver todas as Crônicas
-              </h4>
-              <p className="text-on-surface-variant/60 text-[10px] sm:text-[11px] mt-1 max-w-[140px] sm:max-w-[200px] font-sans">
-                Acesse as sessões passadas
+          {chronicles.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-12 bg-surface-container border border-dashed border-outline-variant text-center max-w-2xl mx-auto">
+              <BookOpen className="w-12 h-12 text-outline-variant mb-4" />
+              <h4 className="text-on-surface font-serif text-xl mb-2">Nenhuma crônica registrada</h4>
+              <p className="text-on-surface-variant text-xs mb-6 max-w-md">
+                As páginas desta campanha ainda estão em branco. Comece a documentar as aventuras para que elas ecoem pela eternidade.
               </p>
+              {userRole === 'dm' && (
+                <button
+                  onClick={() => setActiveScreen('chronicles')}
+                  className="px-6 py-3 bg-primary text-on-primary text-xs font-bold uppercase tracking-wider hover:bg-primary/90 transition-colors cursor-pointer"
+                >
+                  Criar a Primeira Crônica
+                </button>
+              )}
             </div>
-          </div>
+          ) : (
+            <div className="flex gap-6 overflow-x-auto pb-6 scroll-smooth snap-x snap-mandatory custom-scrollbar pt-1">
+              {[...chronicles].reverse().map((chronicle) => (
+                <div
+                  key={chronicle.id}
+                  onClick={() => setSelectedChronicle(chronicle)}
+                  className="w-[220px] sm:w-[320px] md:w-[380px] lg:w-[425px] shrink-0 snap-start relative overflow-hidden group h-[320px] sm:h-[240px] md:h-[260px] lg:h-[290px] border border-outline-variant hover:border-primary/60 transition-all duration-300 cursor-pointer bg-surface-container"
+                >
+                  <ImageWithFallback
+                    alt={chronicle.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    src={chronicle.image}
+                    fallbackText={chronicle.title}
+                  />
+                  <div className="absolute inset-0 dark:bg-gradient-to-t dark:from-background dark:via-background/40 dark:to-transparent transition-opacity group-hover:opacity-95"></div>
+
+                  {/* Hover book read symbol indicator */}
+                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 border border-[#fbb1a9]/40 p-2 rounded-full flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[#fbb1a9] text-sm">auto_stories</span>
+                  </div>
+
+                  <div className="absolute bottom-0 left-0 p-4 sm:p-5 w-full dark:bg-gradient-to-t dark:from-background dark:via-background/80 dark:to-transparent">
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 mb-1">
+                      <span className="text-[9px] sm:text-[10px] font-mono tracking-widest font-bold text-[#dd9281]">
+                        {chronicle.session}
+                      </span>
+                      <span className="text-[9px] sm:text-[10px] text-on-surface-variant/40">•</span>
+                      <span className="text-[9px] sm:text-[10px] font-sans font-bold tracking-widest text-on-surface-variant/80 uppercase">
+                        {chronicle.location}
+                      </span>
+                    </div>
+                    <h4 className="font-serif text-sm sm:text-lg text-on-surface font-semibold group-hover:text-primary transition-colors line-clamp-2 sm:line-clamp-1">
+                      {chronicle.title}
+                    </h4>
+                    <p className="text-on-surface-variant/80 text-[10px] sm:text-[11px] mt-1 line-clamp-4 sm:line-clamp-2 leading-relaxed font-sans font-medium">
+                      {chronicle.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+
+              {/* 4th Card: "Ver todas as crônicas" */}
+              <div
+                onClick={() => setActiveScreen('chronicles')}
+                className="w-[220px] sm:w-[320px] md:w-[380px] lg:w-[425px] shrink-0 snap-start relative overflow-hidden group h-[320px] sm:h-[240px] md:h-[260px] lg:h-[290px] border border-dashed border-outline-variant hover:border-primary transition-all duration-300 cursor-pointer bg-surface-container flex flex-col items-center justify-center p-4 sm:p-6 text-center"
+              >
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-outline-variant group-hover:border-primary/50 flex items-center justify-center mb-4 transition-colors bg-surface-container-low duration-300">
+                  <span className="material-symbols-outlined text-primary text-lg sm:text-xl font-bold group-hover:translate-x-1 transition-transform">
+                    arrow_forward
+                  </span>
+                </div>
+                <h4 className="font-serif text-sm sm:text-lg text-on-surface font-bold tracking-wide group-hover:text-primary transition-colors">
+                  Ver todas as Crônicas
+                </h4>
+                <p className="text-on-surface-variant/60 text-[10px] sm:text-[11px] mt-1 max-w-[140px] sm:max-w-[200px] font-sans">
+                  Acesse as sessões passadas
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
