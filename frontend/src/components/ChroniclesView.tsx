@@ -271,7 +271,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
         chronicleId: selectedChronicle.id,
         payload: {
           sessionNumber: updatedSessionNumber,
-          title: (editingData.title ?? selectedChronicle.title).trim(),
+          title: (editingData.title ?? selectedChronicle.title ?? '').trim(),
           location: editingData.location ?? selectedChronicle.location,
           sessionDate: toIsoDate(editingData.date ?? selectedChronicle.date),
           mission: editingData.majorEvent ?? selectedChronicle.majorEvent,
@@ -722,14 +722,14 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                     <label className="text-[10px] font-mono text-on-surface-variant font-bold uppercase tracking-wider">
                       Título da Sessão *
                     </label>
-                    <span className={`text-[9px] font-mono ${(editingData.title ?? displayChronicle.title).length >= 50 ? 'text-red-500' : 'text-on-surface-variant/60'}`}>
-                      {(editingData.title ?? displayChronicle.title).length}/50
+                    <span className={`text-[9px] font-mono ${String(editingData.title ?? displayChronicle.title ?? '').length >= 50 ? 'text-red-500' : 'text-on-surface-variant/60'}`}>
+                      {String(editingData.title ?? displayChronicle.title ?? '').length}/50
                     </span>
                   </div>
                   <input
                     type="text"
                     maxLength={50}
-                    value={editingData.title ?? displayChronicle.title}
+                    value={editingData.title ?? displayChronicle.title ?? ''}
                     onChange={(e) => setEditingData(prev => ({ ...prev, title: e.target.value }))}
                     placeholder="Título da Sessão"
                     className="w-full bg-surface-container-low border border-outline-variant/40 text-on-surface text-sm px-3 py-2 focus:border-primary focus:outline-none"
@@ -743,14 +743,14 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                       <label className="text-[10px] font-mono text-on-surface-variant font-bold uppercase tracking-wider">
                         Localização
                       </label>
-                      <span className={`text-[9px] font-mono ${(editingData.location ?? displayChronicle.location).length >= 50 ? 'text-red-500' : 'text-on-surface-variant/60'}`}>
-                        {(editingData.location ?? displayChronicle.location).length}/50
+                      <span className={`text-[9px] font-mono ${String(editingData.location ?? displayChronicle.location ?? '').length >= 50 ? 'text-red-500' : 'text-on-surface-variant/60'}`}>
+                        {String(editingData.location ?? displayChronicle.location ?? '').length}/50
                       </span>
                     </div>
                     <input
                       type="text"
                       maxLength={50}
-                      value={editingData.location ?? displayChronicle.location}
+                      value={editingData.location ?? displayChronicle.location ?? ''}
                       onChange={(e) => setEditingData(prev => ({ ...prev, location: e.target.value }))}
                       placeholder="LOCALIZAÇÃO"
                       className="w-full bg-surface-container-low border border-outline-variant/40 text-on-surface text-xs px-3 py-2 focus:border-primary focus:outline-none uppercase"
@@ -762,14 +762,14 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                       <label className="text-[10px] font-mono text-on-surface-variant font-bold uppercase tracking-wider">
                         Data
                       </label>
-                      <span className={`text-[9px] font-mono ${(editingData.date ?? displayChronicle.date).length >= 50 ? 'text-red-500' : 'text-on-surface-variant/60'}`}>
-                        {(editingData.date ?? displayChronicle.date).length}/50
+                      <span className={`text-[9px] font-mono ${String(editingData.date ?? displayChronicle.date ?? '').length >= 50 ? 'text-red-500' : 'text-on-surface-variant/60'}`}>
+                        {String(editingData.date ?? displayChronicle.date ?? '').length}/50
                       </span>
                     </div>
                     <input
                       type="text"
                       maxLength={50}
-                      value={editingData.date ?? displayChronicle.date}
+                      value={editingData.date ?? displayChronicle.date ?? ''}
                       onChange={(e) => setEditingData(prev => ({ ...prev, date: e.target.value }))}
                       placeholder="Data"
                       className="w-full bg-surface-container-low border border-outline-variant/40 text-on-surface text-xs px-3 py-2 focus:border-primary focus:outline-none"
@@ -783,14 +783,14 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                     <label className="text-[10px] font-mono text-on-surface-variant font-bold uppercase tracking-wider">
                       Missão / Evento Principal
                     </label>
-                    <span className={`text-[9px] font-mono ${(editingData.majorEvent ?? displayChronicle.majorEvent).length >= 50 ? 'text-red-500' : 'text-on-surface-variant/60'}`}>
-                      {(editingData.majorEvent ?? displayChronicle.majorEvent).length}/50
+                    <span className={`text-[9px] font-mono ${String(editingData.majorEvent ?? displayChronicle.majorEvent ?? '').length >= 50 ? 'text-red-500' : 'text-on-surface-variant/60'}`}>
+                      {String(editingData.majorEvent ?? displayChronicle.majorEvent ?? '').length}/50
                     </span>
                   </div>
                   <input
                     type="text"
                     maxLength={50}
-                    value={editingData.majorEvent ?? displayChronicle.majorEvent}
+                    value={editingData.majorEvent ?? displayChronicle.majorEvent ?? ''}
                     onChange={(e) => setEditingData(prev => ({ ...prev, majorEvent: e.target.value }))}
                     placeholder="Missão / Evento Principal"
                     className="w-full bg-surface-container-low border border-outline-variant/40 text-on-surface text-xs px-3 py-2 focus:border-primary focus:outline-none"
@@ -841,7 +841,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                     Diário de Relato Detalhado *
                   </label>
                   <textarea
-                    value={editingData.fullText ?? displayChronicle.fullText}
+                    value={editingData.fullText ?? displayChronicle.fullText ?? ''}
                     onChange={(e) => setEditingData(prev => ({ ...prev, fullText: e.target.value }))}
                     placeholder="Diário de relato detalhado..."
                     className="w-full flex-1 font-serif text-xs leading-relaxed text-on-surface bg-surface-container-low border border-outline-variant/40 p-3 custom-scrollbar focus:border-primary focus:outline-none resize-none"
@@ -992,7 +992,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                           <input
                             type="text"
                             maxLength={50}
-                            value={editingData.location ?? displayChronicle.location}
+                            value={editingData.location ?? displayChronicle.location ?? ''}
                             onChange={(e) => setEditingData(prev => ({ ...prev, location: e.target.value }))}
                             placeholder="LOCALIZAÇÃO"
                             className="font-mono text-[9px] tracking-widest text-on-surface font-bold block uppercase bg-black/40 border border-outline-variant/30 px-2 py-1 w-32"
@@ -1002,7 +1002,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                         <input
                           type="text"
                           maxLength={50}
-                          value={editingData.title ?? displayChronicle.title}
+                          value={editingData.title ?? displayChronicle.title ?? ''}
                           onChange={(e) => setEditingData(prev => ({ ...prev, title: e.target.value }))}
                           placeholder="Título da Sessão"
                           className="font-serif text-xl text-on-surface font-bold leading-tight bg-black/40 border border-outline-variant/30 px-2 py-1 w-full"
@@ -1048,7 +1048,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                         <input
                           type="text"
                           maxLength={50}
-                          value={editingData.date ?? displayChronicle.date}
+                          value={editingData.date ?? displayChronicle.date ?? ''}
                           onChange={(e) => setEditingData(prev => ({ ...prev, date: e.target.value }))}
                           placeholder="Data"
                           className="bg-surface-container border border-outline-variant/30 px-2 py-1 text-right w-28 text-xs focus:border-primary focus:outline-none"
@@ -1074,7 +1074,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                         <input
                           type="text"
                           maxLength={50}
-                          value={editingData.majorEvent ?? displayChronicle.majorEvent}
+                          value={editingData.majorEvent ?? displayChronicle.majorEvent ?? ''}
                           onChange={(e) => setEditingData(prev => ({ ...prev, majorEvent: e.target.value }))}
                           placeholder="Missão / Evento Principal"
                           className="font-sans text-xs text-on-surface font-bold mt-0.5 block bg-black/40 border border-outline-variant/30 px-3 py-1.5 w-full focus:border-primary focus:outline-none"
@@ -1096,7 +1096,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                     {/* Mobile Inline Narrative textarea */}
                     <div className="md:hidden">
                       <textarea
-                        value={editingData.fullText ?? displayChronicle.fullText}
+                        value={editingData.fullText ?? displayChronicle.fullText ?? ''}
                         onChange={(e) => setEditingData(prev => ({ ...prev, fullText: e.target.value }))}
                         placeholder="Diário de relato detalhado..."
                         className="w-full font-serif text-sm leading-relaxed text-on-surface bg-surface-container border border-outline-variant/30 p-4 min-h-[200px] custom-scrollbar focus:border-primary focus:outline-none resize-y"

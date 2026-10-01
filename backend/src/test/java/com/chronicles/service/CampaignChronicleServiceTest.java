@@ -13,12 +13,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -40,7 +42,7 @@ class CampaignChronicleServiceTest {
     @Mock
     private CampaignChronicleRepository campaignChronicleRepository;
 
-    @InjectMocks
+    private Clock clock;
     private CampaignChronicleService campaignChronicleService;
 
     private User dmUser;
@@ -51,6 +53,13 @@ class CampaignChronicleServiceTest {
 
     @BeforeEach
     void setUp() {
+        clock = Clock.fixed(Instant.parse("2026-10-01T12:00:00Z"), ZoneOffset.UTC);
+        campaignChronicleService = new CampaignChronicleService(
+                campaignRepository,
+                campaignPlayerRepository,
+                campaignChronicleRepository,
+                clock
+        );
         campaignId = UUID.randomUUID();
 
         dmUser = User.builder()
@@ -174,5 +183,30 @@ class CampaignChronicleServiceTest {
         assertThatThrownBy(() -> campaignChronicleService.createChronicle(campaignId, request, playerUser))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("403 FORBIDDEN");
+    }
+
+    @Test
+    @DisplayName("DM creates chronicle without sessionDate defaults to Clock bean date")
+    void testCreateChronicle_withoutSessionDate_usesClock() {
+        when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
+        when(campaignChronicleRepository.existsByCampaignIdAndSessionNumber(campaignId, 1)).thenReturn(false);
+
+        CampaignChronicleCreateDTO request = CampaignChronicleCreateDTO.builder()
+                .sessionNumber(1)
+                .title("Sessão Sem Data")
+                .sessionDate(null)
+                .narrative("Narrativa de teste...")
+                .build();
+
+        when(campaignChronicleRepository.save(any(CampaignChronicle.class))).thenAnswer(i -> {
+            CampaignChronicle c = i.getArgument(0);
+            c.setId(UUID.randomUUID());
+            return c;
+        });
+
+        CampaignChronicleDTO result = campaignChronicleService.createChronicle(campaignId, request, dmUser);
+
+        assertThat(result.getTitle()).isEqualTo("Sessão Sem Data");
+        assertThat(result.getSessionDate()).isEqualTo(LocalDate.of(2026, 10, 1));
     }
 }

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -26,6 +27,7 @@ public class CampaignChronicleService {
     private final CampaignRepository campaignRepository;
     private final CampaignPlayerRepository campaignPlayerRepository;
     private final CampaignChronicleRepository campaignChronicleRepository;
+    private final Clock clock;
 
     @Transactional(readOnly = true)
     public List<CampaignChronicleDTO> getChroniclesByCampaign(UUID campaignId, User user) {
@@ -55,7 +57,7 @@ public class CampaignChronicleService {
                 .author(user)
                 .sessionNumber(request.getSessionNumber())
                 .title(request.getTitle().trim())
-                .sessionDate(request.getSessionDate() != null ? request.getSessionDate() : LocalDate.now())
+                .sessionDate(request.getSessionDate() != null ? request.getSessionDate() : LocalDate.now(clock))
                 .location(request.getLocation())
                 .mission(request.getMission())
                 .illustrationUrl(request.getIllustrationUrl())
