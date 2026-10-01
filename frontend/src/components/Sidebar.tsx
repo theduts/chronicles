@@ -135,10 +135,7 @@ export default function Sidebar({
             {/* Switch Role View Toggle */}
             {onToggleRole && (
               <div className="border-b border-outline-variant/30 pb-3 mb-2">
-                <ViewRoleToggle
-                  currentRole={user.role || 'player'}
-                  onToggle={onToggleRole}
-                />
+                <ViewRoleToggle />
               </div>
             )}
 
