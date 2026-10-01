@@ -10,9 +10,10 @@ public record AuthResponse(
     UUID id,
     String username,
     String email,
-    Role role
+    Role role,
+    String lastViewMode
 ) {
-    public static AuthResponse of(String token, UUID id, String username, String email, Role role) {
-        return new AuthResponse(token, "Bearer", id, username, email, role);
+    public static AuthResponse of(String token, UUID id, String username, String email, Role role, String lastViewMode) {
+        return new AuthResponse(token, "Bearer", id, username, email, role, lastViewMode);
     }
 }

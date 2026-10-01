@@ -44,6 +44,10 @@ public class User implements UserDetails {
     @Builder.Default
     private Boolean isActive = true;
 
+    @Column(name = "last_view_mode", nullable = false, length = 20)
+    @Builder.Default
+    private String lastViewMode = "PLAYER";
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

@@ -68,7 +68,8 @@ public class AuthController {
                         savedUser.getId(),
                         savedUser.getActualUsername(),
                         savedUser.getEmail(),
-                        savedUser.getRole()
+                        savedUser.getRole(),
+                        savedUser.getLastViewMode()
                 ));
     }
 
@@ -104,7 +105,8 @@ public class AuthController {
                 user.getId(),
                 user.getActualUsername(),
                 user.getEmail(),
-                user.getRole()
+                user.getRole(),
+                user.getLastViewMode()
         ));
     }
 }
