@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import PageHeader from './common/PageHeader';
 import { toast } from 'sonner';
 import { Note } from '../types';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
@@ -163,27 +164,20 @@ export default function NotesView({
   };
 
   return (
-    <div className="space-y-8 pb-24 max-w-7xl mx-auto px-1">
+    <div className="space-y-8 pb-24 max-w-7xl mx-auto px-1 relative font-sans">
 
-
-      {/* Header action panel */}
-      <div className="flex flex-col gap-4 border-b border-outline-variant pb-6 shrink-0 relative z-10">
-        <div>
-          <h3 className="font-serif text-3xl md:text-4xl text-on-surface font-medium">
-            Diário de Aventuras
-          </h3>
-          <p className="font-sans text-xs text-on-surface-variant/70 mt-1 max-w-lg">
-            Mesa de Anotações e Relatos das aventuras
-          </p>
-        </div>
-
-        <div className="hidden md:flex justify-end shrink-0">
-          <AddButton
-            onClick={handleCreateNewNote}
-            label="Nova anotação"
-          />
-        </div>
-      </div>
+      <PageHeader
+        title="Anotações"
+        subtitle="Mesa de anotações e relatos pessoais para registrar ideias, segredos e lembretes"
+        actions={
+          <div className="hidden md:block">
+            <AddButton
+              onClick={handleCreateNewNote}
+              label="Nova anotação"
+            />
+          </div>
+        }
+      />
 
       {/* Grid of Square Note Cards */}
       {notes.length === 0 ? (
@@ -221,7 +215,7 @@ export default function NotesView({
               >
                 {/* Note Top Bar */}
                 <div className="flex justify-between items-center pb-2 border-b border-primary/20">
-                  <span className="font-mono text-[10px] text-[#1e1b1a] font-bold tracking-wider uppercase">
+                  <span className="font-mono text-micro text-[#1e1b1a] font-bold tracking-wider uppercase">
                     {note.meta}
                   </span>
                 </div>
@@ -272,7 +266,7 @@ export default function NotesView({
                   <h3 className="font-serif text-lg text-on-surface font-bold uppercase tracking-wider">
                     {isNewNote ? 'Nova Anotação' : 'Editar Anotação'}
                   </h3>
-                  <p className="font-mono text-[10px] text-primary/70">{activeNote.meta}</p>
+                  <p className="font-mono text-micro text-primary/70">{activeNote.meta}</p>
                 </div>
               </div>
               <button

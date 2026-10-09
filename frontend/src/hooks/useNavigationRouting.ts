@@ -11,6 +11,8 @@ export const ROUTE_MAP: Record<string, ActiveScreen> = {
   '/cronicas': 'chronicles',
   '/cronicas/historia_campanha': 'campaign_history',
   '/cronicas/historia-campanha': 'campaign_history',
+  '/historia_campanha': 'campaign_history',
+  '/historia-campanha': 'campaign_history',
   '/campanhas': 'campaigns',
   '/personagens': 'characters',
   '/personagens/editar': 'character_editor',

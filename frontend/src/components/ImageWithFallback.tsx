@@ -35,7 +35,7 @@ export default function ImageWithFallback({
       >
         {fallbackIcon || <ImageIcon className={`${iconClassName} opacity-50 stroke-[1.5] text-on-surface-variant`} />}
         {fallbackText && (
-          <span className="text-[10px] font-sans font-medium mt-1.5 text-center truncate max-w-full opacity-60 text-on-surface-variant">
+          <span className="text-micro font-sans font-medium mt-1.5 text-center truncate max-w-full opacity-60 text-on-surface-variant">
             {fallbackText}
           </span>
         )}

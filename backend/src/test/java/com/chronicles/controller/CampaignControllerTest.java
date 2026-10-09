@@ -329,5 +329,46 @@ class CampaignControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)));
     }
+
+    @Test
+    @DisplayName("PATCH /api/campaigns/{id}/lore deve atualizar a história da campanha com sucesso pelo DM")
+    void shouldUpdateCampaignLoreSuccessfully() throws Exception {
+        CampaignRequest createRequest = CampaignRequest.builder()
+                .name("Campanha Lore Teste")
+                .subtitulo("Subtítulo")
+                .universo("Medieval")
+                .lore("História inicial")
+                .ilustracao("https://images.example.com/banner.jpg")
+                .build();
+
+        MvcResult createResult = mockMvc.perform(post("/api/campaigns")
+                        .header(HttpHeaders.AUTHORIZATION, dmToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.lore").value("História inicial"))
+                .andExpect(jsonPath("$.illustrationUrl").value("https://images.example.com/banner.jpg"))
+                .andReturn();
+
+        String campaignId = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asText();
+
+        java.util.Map<String, String> patchBody = java.util.Map.of("lore", "História atualizada e épica dos reinos ancestrais.");
+
+        mockMvc.perform(patch("/api/campaigns/" + campaignId + "/lore")
+                        .header(HttpHeaders.AUTHORIZATION, dmToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(patchBody)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(campaignId))
+                .andExpect(jsonPath("$.lore").value("História atualizada e épica dos reinos ancestrais."))
+                .andExpect(jsonPath("$.illustrationUrl").value("https://images.example.com/banner.jpg"));
+
+        // Player cannot patch lore
+        mockMvc.perform(patch("/api/campaigns/" + campaignId + "/lore")
+                        .header(HttpHeaders.AUTHORIZATION, playerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(patchBody)))
+                .andExpect(status().isForbidden());
+    }
 }
 

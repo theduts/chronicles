@@ -141,7 +141,7 @@ export default function AuthView({ onLoginSuccess, initialTab = 'login', onNavig
         </div>
 
         {errorMessage && (
-          <div className="bg-red-900/40 border border-primary text-red-200 px-4 py-3 text-xs rounded font-sans tracking-wide">
+          <div className="bg-red-900/40 border border-primary text-red-200 px-4 py-3 text-xs rounded font-sans tracking-wider">
             {errorMessage}
           </div>
         )}
@@ -150,7 +150,7 @@ export default function AuthView({ onLoginSuccess, initialTab = 'login', onNavig
           /* ================= LOGIN FORM ================= */
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="flex flex-col gap-2">
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest" htmlFor="email">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest" htmlFor="email">
                 Usuário ou Email
               </label>
               <div className="relative group border-b border-outline-variant hover:border-primary transition-all duration-300">
@@ -171,13 +171,13 @@ export default function AuthView({ onLoginSuccess, initialTab = 'login', onNavig
 
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-end">
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest" htmlFor="password">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest" htmlFor="password">
                   Senha
                 </label>
                 <button
                   type="button"
                   onClick={() => alert('Sussurre as palavras de restauração ao mestre do jogo.')}
-                  className="font-sans text-[9px] font-bold text-outline hover:text-primary transition-colors uppercase tracking-wider bg-transparent border-none"
+                  className="font-sans text-micro font-bold text-outline hover:text-primary transition-colors uppercase tracking-wider bg-transparent border-none"
                 >
                   Esqueci minha senha
                 </button>
@@ -218,7 +218,7 @@ export default function AuthView({ onLoginSuccess, initialTab = 'login', onNavig
           /* ================= SIGNUP FORM ================= */
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="flex flex-col gap-2">
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest" htmlFor="fullName">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest" htmlFor="fullName">
                 usuário
               </label>
               <div className="relative group border-b border-outline-variant hover:border-primary transition-all duration-300">
@@ -238,7 +238,7 @@ export default function AuthView({ onLoginSuccess, initialTab = 'login', onNavig
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest" htmlFor="signup-email">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest" htmlFor="signup-email">
                 email
               </label>
               <div className="relative group border-b border-outline-variant hover:border-primary transition-all duration-300">
@@ -258,7 +258,7 @@ export default function AuthView({ onLoginSuccess, initialTab = 'login', onNavig
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest" htmlFor="signup-password">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest" htmlFor="signup-password">
                 senha
               </label>
               <div className="relative group border-b border-outline-variant hover:border-primary transition-all duration-300">
@@ -282,7 +282,7 @@ export default function AuthView({ onLoginSuccess, initialTab = 'login', onNavig
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest" htmlFor="confirm-password">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest" htmlFor="confirm-password">
                 Confirmar senha
               </label>
               <div className="relative group border-b border-outline-variant hover:border-primary transition-all duration-300">

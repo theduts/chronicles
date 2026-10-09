@@ -242,6 +242,8 @@ export interface Campaign {
   universo?: 'Medieval' | 'Cyberpunk' | 'Cthullu' | 'Outro';
   lore?: string;
   ilustracao?: string; // image link or base64
+  illustrationUrl?: string;
+  ilustration_url?: string;
   inviteCode?: string;
   isDm?: boolean;
 }

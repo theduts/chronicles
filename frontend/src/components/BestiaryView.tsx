@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageHeader from './common/PageHeader';
 import { toast } from 'sonner';
 import { Search, Plus, Trash2, Edit3, Skull, Shield, Heart, Zap, Sparkles, AlertTriangle, Languages, Briefcase, Gift, Compass, PawPrint, Ghost, UserRound, Leaf, Hammer } from 'lucide-react';
 import { api } from '../services/api';
@@ -397,6 +398,10 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
   };
 
   const handleOpenCreateModal = () => {
+    if (!activeCampaignId) {
+      toast.error('Crie uma campanha antes para vincular esta criatura!');
+      return;
+    }
     setEditingEntry(null);
     setSelectedBaseName('');
     setModalFiltersExpanded(false);
@@ -715,31 +720,28 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
   });
 
   return (
-    <div className="space-y-8 pb-24">
-      {/* Header */}
-      <div className="flex flex-col gap-4 border-b border-outline-variant pb-6">
-        <div>
-          <h2 className="font-serif text-3xl md:text-4xl text-on-surface font-medium flex items-center gap-2">
-            <span>Bestiário</span>
-          </h2>
-          <p className="font-sans text-xs text-on-surface-variant mt-1">
-            Inimigos e bosses registrados para a campanha ativa: <strong className="text-primary">{activeCampaignName}</strong>
-          </p>
-        </div>
-        <div className="hidden md:flex justify-end shrink-0">
-          <AddButton
-            onClick={handleOpenCreateModal}
-            label="Registrar Criatura"
-            id="btn-add-beast"
-          />
-        </div>
-      </div>
+    <div className="space-y-8 pb-24 relative font-sans">
+      <PageHeader
+        title="Bestiário"
+        subtitle={<>Inimigos e bosses registrados para a campanha ativa: <strong className="text-primary">{activeCampaignName}</strong></>}
+        actions={
+          <div className="hidden md:block">
+            <AddButton
+              onClick={handleOpenCreateModal}
+              label="Registrar Criatura"
+              id="btn-add-beast"
+            />
+          </div>
+        }
+      />
 
       {/* Floating Add Button for Mobile */}
       <button
+        type="button"
         onClick={handleOpenCreateModal}
-        className="md:hidden fixed bottom-[-8px] right-6 w-14 h-14 bg-primary text-on-primary rounded-full hover:bg-primary-container hover:text-on-primary-container transition-all flex items-center justify-center shadow-2xl border border-primary/50 z-40 cursor-pointer"
+        className="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary text-on-primary rounded-full hover:bg-primary-container hover:text-on-primary-container transition-all flex items-center justify-center shadow-2xl border border-primary/50 z-40 cursor-pointer"
         title="Registrar Criatura"
+        aria-label="Registrar Criatura"
       >
         <span className="material-symbols-outlined text-2xl">add</span>
       </button>
@@ -747,14 +749,15 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
       {/* Search and Filters */}
       <div className="bg-surface-container border border-outline-variant/30 p-4 flex gap-4 items-center">
         <div className="relative flex-grow">
-          <input type="text"
+          <input
+            type="text"
             placeholder="Buscar ameaça por nome, tipo, habilidades..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="`${name.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-2.5 py-2 focus:outline-none focus:border-primary pr-12`"
+            className="w-full bg-surface-container-low border border-outline-variant/50 text-xs py-3 pl-10 pr-4 focus:ring-0 focus:border-primary outline-none font-sans tracking-wider text-on-surface"
             id="search-beast-input"
           />
-          <Search className="w-4 h-4 text-outline-variant absolute left-3 top-3.5" />
+          <Search className="w-4 h-4 text-outline-variant absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
       </div>
 
@@ -786,22 +789,22 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                       <CreatureIcon tipo={entry.tipo} className="w-5 h-5 shrink-0" />
                       <span>{entry.name}</span>
                       {entry.tipo && (
-                        <span className="text-[10px] bg-surface-container-high border border-outline-variant/30 px-2 py-0.5 font-sans font-medium text-on-surface-variant uppercase tracking-wider rounded-none">
+                        <span className="text-micro bg-surface-container-high border border-outline-variant/30 px-2 py-0.5 font-sans font-medium text-on-surface-variant uppercase tracking-wider rounded-none">
                           {entry.tipo}
                         </span>
                       )}
                     </h3>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      <span className="bg-emerald-100/80 text-emerald-800 border border-emerald-500 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700 text-[9px] font-mono font-bold px-2 py-0.5 uppercase tracking-widest flex items-center gap-1">
+                      <span className="bg-emerald-100/80 text-emerald-800 border border-emerald-500 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700 text-micro font-mono font-bold px-2 py-0.5 uppercase tracking-widest flex items-center gap-1">
                         <Heart className="w-2.5 h-2.5 fill-current text-emerald-600 dark:text-emerald-400" />
                         {entry.hp} PV
                       </span>
-                      <span className="bg-blue-100/80 text-blue-800 border border-blue-500 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-700 text-[9px] font-mono font-bold px-2 py-0.5 uppercase tracking-widest flex items-center gap-1">
+                      <span className="bg-blue-100/80 text-blue-800 border border-blue-500 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-700 text-micro font-mono font-bold px-2 py-0.5 uppercase tracking-widest flex items-center gap-1">
                         <Shield className="w-2.5 h-2.5 text-blue-600 dark:text-blue-400" />
                         IP {entry.ip}
                       </span>
                       {entry.deslocamento !== undefined && (
-                        <span className="bg-amber-100/80 text-amber-900 border border-amber-500 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700 text-[9px] font-mono font-bold px-2 py-0.5 uppercase tracking-widest flex items-center gap-1">
+                        <span className="bg-amber-100/80 text-amber-900 border border-amber-500 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700 text-micro font-mono font-bold px-2 py-0.5 uppercase tracking-widest flex items-center gap-1">
                           <Compass className="w-2.5 h-2.5 text-amber-700 dark:text-amber-400" />
                           Desl. {entry.deslocamento} m
                         </span>
@@ -814,7 +817,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                 <div className="bg-surface-container/95 border border-outline-variant/30 p-4">
                   <table className="w-full text-left text-xs font-sans">
                     <thead>
-                      <tr className="border-b border-outline-variant/30 text-[9px] text-outline uppercase tracking-wider">
+                      <tr className="border-b border-outline-variant/30 text-micro text-outline uppercase tracking-wider">
                         <th className="pb-1 font-bold text-on-surface-variant">Atr.</th>
                         <th className="pb-1 font-bold text-right text-on-surface-variant">Pts</th>
                         <th className="pb-1 font-bold text-right text-on-surface-variant">%</th>
@@ -835,7 +838,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                         const val = safeAttrs[key];
                         return (
                           <tr key={key} className="border-b border-outline-variant/10 last:border-0 hover:bg-white/5 transition-colors">
-                            <td className="py-1.5 font-bold text-on-surface-variant text-[11px]">{label}</td>
+                            <td className="py-1.5 font-bold text-on-surface-variant text-caption">{label}</td>
                             <td className="py-1.5 text-right font-mono text-on-surface font-medium">{val}</td>
                             <td className="py-1.5 text-right font-mono text-primary font-bold">{val * 4}%</td>
                           </tr>
@@ -849,22 +852,22 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                   {/* Render abilities/habilidades list if present */}
                   {entry.habilidades && entry.habilidades.length > 0 ? (
                     <div className="space-y-2">
-                      <span className="text-[10px] font-bold text-outline-variant uppercase tracking-wider block mb-1 flex items-center gap-1 text-red-400">
+                      <span className="text-micro font-bold text-outline-variant uppercase tracking-wider block mb-1 flex items-center gap-1 text-red-400">
                         <Zap className="w-3 h-3 text-red-500 fill-current" />
                         Habilidades ({entry.habilidades.length})
                       </span>
                       <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
                         {entry.habilidades.map((hab, idx) => (
                           <div key={idx} className="bg-red-950/10 border border-red-900/25 p-2 rounded-none">
-                            <span className="text-[11px] font-bold text-red-300 block">{hab.habilidade}</span>
-                            <p className="text-[10px] text-on-surface-variant mt-0.5 leading-normal">{hab.descricao_habilidade}</p>
+                            <span className="text-caption font-bold text-red-300 block">{hab.habilidade}</span>
+                            <p className="text-micro text-on-surface-variant mt-0.5 leading-normal">{hab.descricao_habilidade}</p>
                           </div>
                         ))}
                       </div>
                     </div>
                   ) : entry.skills ? (
                     <div>
-                      <span className="text-[10px] font-bold text-outline-variant uppercase tracking-wider block mb-1 flex items-center gap-1 text-red-400">
+                      <span className="text-micro font-bold text-outline-variant uppercase tracking-wider block mb-1 flex items-center gap-1 text-red-400">
                         <Zap className="w-3 h-3 text-red-500 fill-current" />
                         Habilidades & Ataques Especiais
                       </span>
@@ -915,13 +918,13 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
           {!editingEntry && (
             <div className="bg-surface-container border border-outline-variant/30 p-4 space-y-4">
               <div className="flex justify-between items-center">
-                <label className="font-sans text-[10px] font-bold text-primary uppercase tracking-widest block">
+                <label className="font-sans text-micro font-bold text-primary uppercase tracking-widest block">
                   Criatura Base
                 </label>
                 <button
                   type="button"
                   onClick={() => setModalFiltersExpanded(!modalFiltersExpanded)}
-                  className="text-[10px] text-primary font-bold hover:text-on-surface flex items-center gap-1 cursor-pointer uppercase tracking-wider bg-surface-container/60 border border-outline-variant/30 px-2 py-1 hover:border-primary/50 transition-colors"
+                  className="text-micro text-primary font-bold hover:text-on-surface flex items-center gap-1 cursor-pointer uppercase tracking-wider bg-surface-container/60 border border-outline-variant/30 px-2 py-1 hover:border-primary/50 transition-colors"
                 >
                   <span>{modalFiltersExpanded ? 'Ocultar Filtros' : 'Filtrar & Buscar'}</span>
                   <span className="material-symbols-outlined text-xs font-bold leading-none">
@@ -934,7 +937,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                 <div className="space-y-4 pt-3 border-t border-outline-variant/10">
                   {/* Search box */}
                   <div className="flex flex-col gap-1">
-                    <label className="text-[9px] font-bold text-outline uppercase tracking-wider">Buscar Modelo</label>
+                    <label className="text-micro font-bold text-outline uppercase tracking-wider">Buscar Modelo</label>
                     <input
                       type="text"
                       placeholder="Digite o nome, tipo, lore ou habilidade do modelo..."
@@ -946,7 +949,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
 
                   {/* Type filter buttons */}
                   <div className="space-y-1.5">
-                    <label className="text-[9px] font-bold text-outline uppercase tracking-wider block">Filtrar por Tipo</label>
+                    <label className="text-micro font-bold text-outline uppercase tracking-wider block">Filtrar por Tipo</label>
                     <div className="flex flex-wrap gap-1.5">
                       {['Todos', 'animal', 'construtos', 'demônios', 'espírito', 'fada', 'humanóide', 'monstro', 'morto vivo', 'planta'].map((typeOption) => {
                         const isSelected = modalSelectedType === typeOption;
@@ -955,7 +958,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                             key={typeOption}
                             type="button"
                             onClick={() => setModalSelectedType(typeOption)}
-                            className={`text-[9px] font-bold uppercase px-2.5 py-1.5 transition-all cursor-pointer ${
+                            className={`text-micro font-bold uppercase px-2.5 py-1.5 transition-all cursor-pointer ${
                               isSelected
                                 ? 'bg-primary text-on-surface border border-primary'
                                 : 'bg-surface-container text-outline border border-outline-variant/30 hover:border-outline-variant hover:text-on-surface'
@@ -970,7 +973,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
 
                   {/* Select Dropdown & Info */}
                   <div className="space-y-2 pt-3 border-t border-outline-variant/10">
-                    <label className="text-[9px] font-bold text-primary uppercase tracking-wider block">Selecione o Modelo Encontrado</label>
+                    <label className="text-micro font-bold text-primary uppercase tracking-wider block">Selecione o Modelo Encontrado</label>
                     {isLoadingBase ? (
                       <div className="space-y-2 py-2">
                         <ListRowSkeleton />
@@ -991,7 +994,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                             }))
                           ]}
                         />
-                        <p className="text-[10px] text-outline leading-tight font-sans">
+                        <p className="text-micro text-outline leading-tight font-sans">
                           * Selecionar uma criatura irá preencher automaticamente todos os atributos e habilidades do bestiário oficial. ({filteredBaseCreatures.length} modelos encontrados)
                         </p>
                       </>
@@ -1004,14 +1007,14 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
 
           {/* Character Base Fields */}
           <div className="space-y-4">
-            <span className="text-[10px] font-bold text-outline uppercase tracking-widest block border-b border-outline-variant/20 pb-1">
+            <span className="text-micro font-bold text-outline uppercase tracking-widest block border-b border-outline-variant/20 pb-1">
               1. Dados Principais da Criatura
             </span>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Name */}
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest">
                   Nome da Criatura *
                 </label>
                 <div className="w-full">
@@ -1025,7 +1028,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                   id="input-beast-name"
                 />
               {name.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -1034,7 +1037,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
 
               {/* Tipo */}
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest">
                   Tipo da Criatura
                 </label>
                 <div className="w-full">
@@ -1047,7 +1050,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                   id="input-beast-tipo"
                 />
               {tipo.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -1058,7 +1061,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* PV */}
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest">
                   PV *
                 </label>
                 <input
@@ -1068,14 +1071,14 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                   placeholder="Ex: 25"
                   value={hp}
                   onChange={(e) => setHp(e.target.value === '' ? '' : Number(e.target.value))}
-                  className="`${newHabilidadeNome.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} bg-surface-container border border-outline-variant  text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none font-sans font-mono font-bold`"
+                  className="`${newHabilidadeNome.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} bg-surface-container border border-outline-variant  text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none font-sans font-bold`"
                   id="input-beast-hp"
                 />
               </div>
 
               {/* IP */}
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest">
                   IP *
                 </label>
                 <input
@@ -1085,14 +1088,14 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                   placeholder="Ex: 3"
                   value={ip}
                   onChange={(e) => setIp(e.target.value === '' ? '' : Number(e.target.value))}
-                  className="bg-surface-container border border-outline-variant text-on-surface text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none font-sans font-mono font-bold"
+                  className="bg-surface-container border border-outline-variant text-on-surface text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none font-sans font-bold"
                   id="input-beast-ip"
                 />
               </div>
 
               {/* Deslocamento */}
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest">
                   Deslocamento (metros)
                 </label>
                 <input
@@ -1101,7 +1104,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                   placeholder="Ex: 12"
                   value={deslocamento}
                   onChange={(e) => setDeslocamento(e.target.value === '' ? '' : Number(e.target.value))}
-                  className="bg-surface-container border border-outline-variant text-on-surface text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none font-sans font-mono font-bold"
+                  className="bg-surface-container border border-outline-variant text-on-surface text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none font-sans font-bold"
                   id="input-beast-deslocamento"
                 />
               </div>
@@ -1110,13 +1113,13 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
 
           {/* Attributes Section */}
           <div className="space-y-2">
-            <span className="text-[10px] font-bold text-outline uppercase tracking-widest block border-b border-outline-variant/20 pb-1">
+            <span className="text-micro font-bold text-outline uppercase tracking-widest block border-b border-outline-variant/20 pb-1">
               2. Atributos Básicos
             </span>
             <div className="bg-surface-container p-4 border border-outline-variant/30">
               <table className="w-full text-left text-xs font-sans border-collapse">
                 <thead>
-                  <tr className="border-b border-outline-variant/30 text-[9px] text-outline uppercase tracking-wider">
+                  <tr className="border-b border-outline-variant/30 text-micro text-outline uppercase tracking-wider">
                     <th className="pb-1 font-bold text-on-surface-variant">Atr.</th>
                     <th className="pb-1 font-bold text-center text-on-surface-variant w-24">Pts</th>
                     <th className="pb-1 font-bold text-right text-on-surface-variant pr-2">%</th>
@@ -1134,7 +1137,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                     { key: 'CAR', label: 'CAR', val: car, setter: setCar }
                   ]).map(({ key, label, val, setter }) => (
                     <tr key={key} className="border-b border-outline-variant/10 last:border-0 hover:bg-white/5 transition-colors align-middle">
-                      <td className="py-1.5 font-bold text-on-surface-variant text-[11px]">{label}</td>
+                      <td className="py-1.5 font-bold text-on-surface-variant text-caption">{label}</td>
                       <td className="py-1.5 text-center">
                         <input
                           type="number"
@@ -1156,21 +1159,21 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
 
           {/* Specific habilidades list sub-editor */}
           <div className="space-y-3">
-            <span className="text-[10px] font-bold text-outline uppercase tracking-widest block border-b border-outline-variant/20 pb-1">
+            <span className="text-micro font-bold text-outline uppercase tracking-widest block border-b border-outline-variant/20 pb-1">
               3. Habilidades Específicas
             </span>
 
             {/* Added Habilidades List */}
             {habilidadesList.length > 0 && (
               <div className="space-y-2 max-h-[200px] overflow-y-auto bg-surface-container/60 p-3 border border-outline-variant/30">
-                <span className="text-[9px] font-bold text-outline uppercase tracking-wider block mb-1">
+                <span className="text-micro font-bold text-outline uppercase tracking-wider block mb-1">
                   Habilidades Adicionadas
                 </span>
                 {habilidadesList.map((hab, idx) => (
                   <div key={idx} className="flex justify-between items-start bg-surface-container p-2 border border-outline-variant/20 gap-2">
                     <div className="text-xs">
                       <span className="font-bold text-red-400 block">{hab.habilidade}</span>
-                      <p className="text-on-surface-variant text-[11px] leading-relaxed mt-0.5">{hab.descricao_habilidade}</p>
+                      <p className="text-on-surface-variant text-caption leading-relaxed mt-0.5">{hab.descricao_habilidade}</p>
                     </div>
                     <button
                       type="button"
@@ -1189,12 +1192,12 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
 
             {/* Subform to add single habilidad */}
             <div className="bg-surface-container border border-outline-variant/20 p-3 space-y-3">
-              <span className="text-[9px] font-bold text-primary uppercase tracking-wider block">
+              <span className="text-micro font-bold text-primary uppercase tracking-wider block">
                 + Nova Habilidade Específica
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-1 flex flex-col gap-1">
-                  <label className="text-[9px] font-bold text-outline-variant uppercase">Nome da Habilidade</label>
+                  <label className="text-micro font-bold text-outline-variant uppercase">Nome da Habilidade</label>
                   <div className="w-full">
               <input
                     type="text"
@@ -1204,14 +1207,14 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                     className="w-full bg-surface-container border border-outline-variant text-on-surface text-xs px-2.5 py-2 focus:outline-none focus:border-primary"
                   />
               {newHabilidadeNome.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
             </div>
                 </div>
                 <div className="sm:col-span-2 flex flex-col gap-1">
-                  <label className="text-[9px] font-bold text-outline-variant uppercase">Descrição da Habilidade</label>
+                  <label className="text-micro font-bold text-outline-variant uppercase">Descrição da Habilidade</label>
                   <div className="w-full">
               <input
                     type="text"
@@ -1221,7 +1224,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                     className="`${newHabilidadeDesc.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-2.5 py-2 focus:outline-none focus:border-primary`"
                   />
               {newHabilidadeDesc.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -1240,14 +1243,14 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
 
           {/* Combate / Resistências Section */}
           <div className="space-y-3">
-            <span className="text-[10px] font-bold text-outline uppercase tracking-widest block border-b border-outline-variant/20 pb-1">
+            <span className="text-micro font-bold text-outline uppercase tracking-widest block border-b border-outline-variant/20 pb-1">
               4. Resistências & Combate
             </span>
-            <p className="text-[10px] text-primary/80 italic font-sans">* Separe cada elemento por vírgula</p>
+            <p className="text-micro text-primary/80 italic font-sans">* Separe cada elemento por vírgula</p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest">
                   Resistências
                 </label>
                 <div className="w-full">
@@ -1259,7 +1262,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                   className="`${resistencias.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                 />
               {resistencias.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -1267,7 +1270,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest">
                   Fraquezas
                 </label>
                 <div className="w-full">
@@ -1279,7 +1282,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                   className="`${fraquezas.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                 />
               {fraquezas.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -1287,7 +1290,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest">
                   Imunidades
                 </label>
                 <div className="w-full">
@@ -1299,7 +1302,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                   className="`${imunidades.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                 />
               {imunidades.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -1310,14 +1313,14 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
 
           {/* Advantages / Disadvantages */}
           <div className="space-y-3">
-            <span className="text-[10px] font-bold text-outline uppercase tracking-widest block border-b border-outline-variant/20 pb-1">
+            <span className="text-micro font-bold text-outline uppercase tracking-widest block border-b border-outline-variant/20 pb-1">
               5. Vantagens & Desvantagens
             </span>
-            <p className="text-[10px] text-primary/80 italic font-sans">* Separe cada elemento por vírgula</p>
+            <p className="text-micro text-primary/80 italic font-sans">* Separe cada elemento por vírgula</p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest">
                   Vantagens
                 </label>
                 <div className="w-full">
@@ -1329,7 +1332,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                   className="`${vantagens.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                 />
               {vantagens.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -1337,7 +1340,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest">
                   Desvantagens
                 </label>
                 <div className="w-full">
@@ -1349,7 +1352,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                   className="`${desvantagens.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                 />
               {desvantagens.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -1360,14 +1363,14 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
 
           {/* Gear, Loot & Languages */}
           <div className="space-y-3">
-            <span className="text-[10px] font-bold text-outline uppercase tracking-widest block border-b border-outline-variant/20 pb-1">
+            <span className="text-micro font-bold text-outline uppercase tracking-widest block border-b border-outline-variant/20 pb-1">
               6. Equipamento, Loot & Idiomas
             </span>
-            <p className="text-[10px] text-primary/80 italic font-sans">* Separe cada elemento por vírgula</p>
+            <p className="text-micro text-primary/80 italic font-sans">* Separe cada elemento por vírgula</p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest">
                   Equipamentos
                 </label>
                 <div className="w-full">
@@ -1379,7 +1382,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                   className="`${equipamentos.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                 />
               {equipamentos.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -1387,7 +1390,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest">
                   Loot / Recompensas
                 </label>
                 <div className="w-full">
@@ -1399,7 +1402,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                   className="`${loot.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                 />
               {loot.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -1407,7 +1410,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest">
                   Idiomas
                 </label>
                 <div className="w-full">
@@ -1419,7 +1422,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                   className="`${idiomas.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                 />
               {idiomas.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -1430,13 +1433,13 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
 
           {/* Description & Observações */}
           <div className="space-y-3">
-            <span className="text-[10px] font-bold text-outline uppercase tracking-widest block border-b border-outline-variant/20 pb-1">
+            <span className="text-micro font-bold text-outline uppercase tracking-widest block border-b border-outline-variant/20 pb-1">
               7. Descrição & Observações de Combate
             </span>
 
             {/* Description */}
             <div className="flex flex-col gap-1.5">
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest">
                 Descrição Geral & Lore
               </label>
               <div className="w-full">
@@ -1450,7 +1453,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                 id="input-beast-description"
               />
               {description.length >= 300 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (300)
                 </div>
               )}
@@ -1459,7 +1462,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
 
             {/* Observações */}
             <div className="flex flex-col gap-1.5">
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest">
                 Observações
               </label>
               <div className="w-full">
@@ -1472,7 +1475,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                 id="input-beast-observacoes"
               />
               {observacoes.length >= 300 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (300)
                 </div>
               )}

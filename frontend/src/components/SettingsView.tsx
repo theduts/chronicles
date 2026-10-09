@@ -183,7 +183,7 @@ export default function SettingsView({
             {/* Right Column (5 cols): Dynamic Statistics Resume */}
             <div className="lg:col-span-5 space-y-6">
               <div className="bg-surface-container-low border border-outline-variant/40 p-5 rounded-none space-y-5 h-full">
-                <span className="font-sans text-[10px] text-primary tracking-widest font-bold uppercase block border-b border-outline-variant/30 pb-2">
+                <span className="font-sans text-micro text-primary tracking-widest font-bold uppercase block border-b border-outline-variant/30 pb-2">
                   Selo de Status e Atividade
                 </span>
 
@@ -191,11 +191,11 @@ export default function SettingsView({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-background border border-outline-variant/40 p-3 text-center">
                     <span className="block font-serif text-3xl text-on-surface font-bold">{characters.length}</span>
-                    <span className="font-sans text-[9px] text-outline font-bold uppercase tracking-wider">Personagens</span>
+                    <span className="font-sans text-micro text-outline font-bold uppercase tracking-wider">Personagens</span>
                   </div>
                   <div className="bg-background border border-outline-variant/40 p-3 text-center">
                     <span className="block font-serif text-3xl text-on-surface font-bold">2</span>
-                    <span className="font-sans text-[9px] text-outline font-bold uppercase tracking-wider">Campanhas Ativas</span>
+                    <span className="font-sans text-micro text-outline font-bold uppercase tracking-wider">Campanhas Ativas</span>
                   </div>
                 </div>
 
@@ -213,18 +213,18 @@ export default function SettingsView({
                   </div>
                   <div className="flex justify-between py-1.5">
                     <span className="text-on-surface-variant">Sistema de Regras:</span>
-                    <span className="text-primary font-bold font-sans text-[10px] tracking-wider uppercase truncate max-w-[140px]">{activeSystem}</span>
+                    <span className="text-primary font-bold font-sans text-micro tracking-wider uppercase truncate max-w-[140px]">{activeSystem}</span>
                   </div>
                 </div>
 
                 {/* History of Character Sheet Reviews */}
                 <div className="space-y-3 pt-4 border-t border-outline-variant/30">
-                  <span className="font-sans text-[9px] text-primary tracking-widest font-bold uppercase block mb-1">
+                  <span className="font-sans text-micro text-primary tracking-widest font-bold uppercase block mb-1">
                     Histórico de Pedidos de Análise
                   </span>
 
                   {characters.length === 0 ? (
-                    <p className="text-[11px] text-on-surface-variant italic">Nenhum personagem sob os selos de análise.</p>
+                    <p className="text-caption text-on-surface-variant italic">Nenhum personagem sob os selos de análise.</p>
                   ) : (
                     <div className="space-y-2.5 max-h-[180px] overflow-y-auto custom-scrollbar pr-1">
                       {characters.map((char) => {
@@ -236,15 +236,15 @@ export default function SettingsView({
                           >
                             <div className="min-w-0">
                               <span className="font-serif text-xs text-on-surface block font-semibold truncate">{char.name}</span>
-                              <span className="font-sans text-[9px] text-on-surface-variant/70 block uppercase tracking-wider">{char.race} • Nível {char.level}</span>
+                              <span className="font-sans text-micro text-on-surface-variant/70 block uppercase tracking-wider">{char.race} • Nível {char.level}</span>
                             </div>
                             <div className="flex items-center shrink-0">
                               {isPending ? (
-                                <span className="bg-secondary-container text-on-secondary-container text-[8px] font-bold font-sans uppercase px-2 py-0.5 tracking-wider border border-secondary">
+                                <span className="bg-secondary-container text-on-secondary-container text-micro font-bold font-sans uppercase px-2 py-0.5 tracking-wider border border-secondary">
                                   Pendente
                                 </span>
                               ) : (
-                                <span className="bg-tertiary-container text-on-tertiary-container text-[8px] font-bold font-sans uppercase px-2 py-0.5 tracking-wider border border-tertiary flex items-center gap-1">
+                                <span className="bg-tertiary-container text-on-tertiary-container text-micro font-bold font-sans uppercase px-2 py-0.5 tracking-wider border border-tertiary flex items-center gap-1">
                                   <Check className="w-2.5 h-2.5 shrink-0" />
                                   Aprovada
                                 </span>
@@ -283,7 +283,7 @@ export default function SettingsView({
             <form onSubmit={handleSaveUserClick} className="space-y-4">
               
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-[10px] font-bold text-outline uppercase tracking-wider">
+                <label className="font-sans text-micro font-bold text-outline uppercase tracking-wider">
                   Nome do Jogador
                 </label>
                 <div className="relative border-b border-outline-variant focus-within:border-primary transition-colors py-1 flex items-center gap-2">
@@ -300,7 +300,7 @@ export default function SettingsView({
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-[10px] font-bold text-outline uppercase tracking-wider">
+                <label className="font-sans text-micro font-bold text-outline uppercase tracking-wider">
                   Endereço de Email
                 </label>
                 <div className="relative border-b border-outline-variant focus-within:border-primary transition-colors py-1 flex items-center gap-2">
@@ -317,7 +317,7 @@ export default function SettingsView({
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-[10px] font-bold text-outline uppercase tracking-wider">
+                <label className="font-sans text-micro font-bold text-outline uppercase tracking-wider">
                   Palavra-Chave (Nova Senha)
                 </label>
                 <div className="relative border-b border-outline-variant focus-within:border-primary transition-colors py-1 flex items-center gap-2">
@@ -338,13 +338,13 @@ export default function SettingsView({
                 <button
                   type="button"
                   onClick={() => setIsEditUserOpen(false)}
-                  className="px-4 py-2 border border-outline text-on-surface text-[10px] uppercase font-sans font-bold hover:bg-surface-container-high cursor-pointer"
+                  className="px-4 py-2 border border-outline text-on-surface text-micro uppercase font-sans font-bold hover:bg-surface-container-high cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-primary text-on-primary text-[10px] uppercase font-sans font-bold hover:bg-primary-container hover:text-on-primary-container transition-colors cursor-pointer"
+                  className="px-4 py-2 bg-primary text-on-primary text-micro uppercase font-sans font-bold hover:bg-primary-container hover:text-on-primary-container transition-colors cursor-pointer"
                 >
                   Confirmar Alterações
                 </button>
@@ -375,13 +375,13 @@ export default function SettingsView({
             <div className="flex gap-3 justify-center pt-2">
               <button
                 onClick={() => setIsConfirmingChange(false)}
-                className="px-4 py-2 border border-outline text-primary-container/80 text-[10px] uppercase font-sans font-bold hover:bg-surface-container-high cursor-pointer"
+                className="px-4 py-2 border border-outline text-primary-container/80 text-micro uppercase font-sans font-bold hover:bg-surface-container-high cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleConfirmUserChange}
-                className="px-5 py-2 bg-primary text-on-primary text-[10px] uppercase font-sans font-bold hover:bg-primary-container hover:text-on-primary-container transition-colors cursor-pointer"
+                className="px-5 py-2 bg-primary text-on-primary text-micro uppercase font-sans font-bold hover:bg-primary-container hover:text-on-primary-container transition-colors cursor-pointer"
               >
                 Sim, Selar Dados
               </button>

@@ -81,9 +81,9 @@ export default function Sidebar({
 
           {!collapsed && (
             <div className="min-w-0 transition-opacity duration-300">
-              <h1 className="font-serif text-xl text-primary font-bold tracking-widest leading-none">
+              <p className="font-serif text-xl text-primary font-bold tracking-widest leading-none">
                 CHRONICLES
-              </h1>
+              </p>
             </div>
           )}
         </div>
@@ -183,7 +183,7 @@ export default function Sidebar({
               <span className="font-sans text-xs font-bold tracking-wider uppercase truncate max-w-[140px]">
                 {user.name}
               </span>
-              <span className="font-sans text-[8px] text-primary font-bold uppercase tracking-widest">
+              <span className="font-sans text-micro text-primary font-bold uppercase tracking-widest">
                 {user.role === 'dm' ? 'Mestre' : 'Jogador'}
               </span>
             </div>

@@ -15,5 +15,6 @@ public class CampaignRequest {
     private String universo;
     private String currentAct;
     private String lore;
+    @com.fasterxml.jackson.annotation.JsonAlias({"illustrationUrl", "ilustration_url", "illustration_url"})
     private String ilustracao;
 }

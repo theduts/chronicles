@@ -5929,7 +5929,7 @@ export default function CharacterEditorView({
               <h4 className="font-serif text-sm text-emerald-400 uppercase tracking-wider font-bold">
                 Seu personagem evoluiu!
               </h4>
-              <p className="font-sans text-[11px] text-emerald-100/90 leading-relaxed">
+              <p className="font-sans text-caption text-emerald-100/90 leading-relaxed">
                 Edite a ficha pra ver seus pontos disponíveis
               </p>
             </div>
@@ -5965,7 +5965,7 @@ export default function CharacterEditorView({
               <h4 className="font-serif text-sm text-amber-300 uppercase tracking-wider font-bold">
                 Pronto para Evoluir!
               </h4>
-              <p className="font-sans text-[11px] text-amber-100/90 leading-relaxed">
+              <p className="font-sans text-caption text-amber-100/90 leading-relaxed">
                 Este personagem atingiu o XP necessário para o <strong className="text-amber-300 font-bold">Nível {nextL}</strong> ({xpNeededForNext} XP)!
                 {userRole === 'dm' 
                   ? " Como Mestre, você pode aprovar a evolução e liberar os novos pontos bônus."
@@ -5996,7 +5996,7 @@ export default function CharacterEditorView({
               <div className="grid grid-cols-12 gap-x-4 gap-y-6 sheet-block-basic-data">
             <div className={highlightClass('name', `col-span-12 border-b ${validationErrors.includes('name') || fieldErrors.name ? 'border-primary border-b-2 bg-primary/10 px-2' : 'border-outline-variant'} pb-1 flex flex-col transition-all duration-300 px-1`)}>
               <div className="flex items-baseline w-full">
-                <label className="font-sans text-[10px] font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">NOME</label>
+                <label className="font-sans text-micro font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">NOME</label>
                 <input maxLength={50}
                   type="text"
                   disabled={isCoreLocked}
@@ -6007,7 +6007,7 @@ export default function CharacterEditorView({
                 />
               </div>
               {(editedChar.name || '').length >= 50 && (
-                <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+                <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
                   Limite atingido (50)
                 </div>
               )}
@@ -6016,7 +6016,7 @@ export default function CharacterEditorView({
 
             <div className={highlightClass('sex', `col-span-12 sm:col-span-4 border-b ${validationErrors.includes('sex') ? 'border-red-500 border-b-2 bg-red-500/10 px-2' : 'border-outline-variant'} pb-1 flex flex-col justify-end min-h-11 transition-all duration-300 px-1`)}>
               <div className="flex items-baseline w-full">
-                <label className="font-sans text-[10px] font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">SEXO</label>
+                <label className="font-sans text-micro font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">SEXO</label>
                 {isCoreLocked ? (
                   <input
                     type="text"
@@ -6058,7 +6058,7 @@ export default function CharacterEditorView({
                   className={`w-full bg-transparent border-none p-0 text-amber-100 font-sans text-xs focus:ring-0 outline-none mt-1 border-b border-outline-variant/40 ${editedChar.sex?.length >= 50 ? '!text-red-500 !font-bold' : ''} ${editedChar.sex?.length >= 50 ? '!text-red-500' : ''}`}
                 />
 {editedChar.sex?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -6070,7 +6070,7 @@ export default function CharacterEditorView({
 
             <div className={highlightClass('race', `col-span-12 sm:col-span-8 border-b ${validationErrors.includes('race') ? 'border-red-500 border-b-2 bg-red-500/10 px-2' : 'border-outline-variant'} pb-1 flex flex-col justify-end min-h-11 transition-all duration-300 px-1`)}>
               <div className="flex items-baseline w-full">
-                <label className="font-sans text-[10px] font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">RAÇA</label>
+                <label className="font-sans text-micro font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">RAÇA</label>
                 {isCoreLocked ? (
                   <input
                     type="text"
@@ -6116,7 +6116,7 @@ export default function CharacterEditorView({
                   className={`${(editedChar.race || '').length >= 50 ? '!text-red-500 !font-bold' : ''} w-full bg-transparent border-none p-0 text-amber-100 font-sans text-xs focus:ring-0 outline-none mt-1 border-b border-outline-variant/40 ${(editedChar.race || '').length >= 50 ? '!text-red-500' : ''}`}
                 />
 {(editedChar.race || '').length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -6127,7 +6127,7 @@ export default function CharacterEditorView({
             </div>
 
             <div className={highlightClass('weight', "col-span-12 sm:col-span-4 border-b border-outline-variant pb-1 flex items-baseline px-1")}>
-              <label className="font-sans text-[10px] font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">PESO</label>
+              <label className="font-sans text-micro font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">PESO</label>
               <input
                 type="text"
                 inputMode="numeric"
@@ -6138,11 +6138,11 @@ export default function CharacterEditorView({
                 className="w-full bg-transparent border-none p-0 text-on-surface font-mono text-sm focus:ring-0 outline-none"
               />
               
-              <span className="text-[8px] font-sans font-bold text-outline uppercase tracking-wider">KILOS</span>
+              <span className="text-micro font-sans font-bold text-outline uppercase tracking-wider">KILOS</span>
             </div>
 
             <div className={highlightClass('height', "col-span-12 sm:col-span-4 border-b border-outline-variant pb-1 flex items-baseline px-1")}>
-              <label className="font-sans text-[10px] font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">ALTURA</label>
+              <label className="font-sans text-micro font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">ALTURA</label>
               <input
                 type="text"
                 inputMode="numeric"
@@ -6153,11 +6153,11 @@ export default function CharacterEditorView({
                 className="w-full bg-transparent border-none p-0 text-on-surface font-mono text-sm focus:ring-0 outline-none"
               />
               
-              <span className="text-[8px] font-sans font-bold text-outline uppercase tracking-wider">METROS</span>
+              <span className="text-micro font-sans font-bold text-outline uppercase tracking-wider">METROS</span>
             </div>
 
             <div className={highlightClass('age', `col-span-12 sm:col-span-4 border-b ${validationErrors.includes('age') ? 'border-red-500 border-b-2 bg-red-500/10 px-2' : 'border-outline-variant'} pb-1 flex items-baseline transition-all duration-300 px-1`)}>
-              <label className="font-sans text-[10px] font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">IDADE</label>
+              <label className="font-sans text-micro font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">IDADE</label>
               <input
                 type="text"
                 inputMode="numeric"
@@ -6172,7 +6172,7 @@ export default function CharacterEditorView({
 
             <div className={highlightClass('classKit', `col-span-12 sm:col-span-6 border-b ${validationErrors.includes('classKit') ? 'border-red-500 border-b-2 bg-red-500/10 px-2' : 'border-outline-variant'} pb-1 flex flex-col justify-end min-h-11 transition-all duration-300 px-1`)}>
               <div className="flex items-baseline w-full">
-                <label className="font-sans text-[10px] font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">CLASSE</label>
+                <label className="font-sans text-micro font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">CLASSE</label>
                 {isCoreLocked ? (
                   <input
                     type="text"
@@ -6225,7 +6225,7 @@ export default function CharacterEditorView({
                   className={`w-full bg-transparent border-outline-variant/40 p-0 text-amber-100 font-sans text-xs focus:ring-0 outline-none mt-1 border-b ${(editedChar.classKit || '').length >= 50 ? '!text-red-500 !font-bold' : ''}`}
                 />
 {(editedChar.classKit || '').length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -6255,10 +6255,10 @@ export default function CharacterEditorView({
                     }`}
                   >
                     {editedChar.isMagic && (
-                      <span className="material-symbols-outlined text-[10px] font-extrabold">check</span>
+                      <span className="material-symbols-outlined text-micro font-extrabold">check</span>
                     )}
                   </button>
-                  <span className="font-sans text-[9px] font-bold text-outline uppercase tracking-wider">
+                  <span className="font-sans text-micro font-bold text-outline uppercase tracking-wider">
                     É mágico?
                   </span>
                 </div>
@@ -6267,7 +6267,7 @@ export default function CharacterEditorView({
 
             <div className={highlightClass('alinhamento', `col-span-12 sm:col-span-6 border-b border-outline-variant pb-1 flex flex-col justify-end min-h-11 transition-all duration-300 px-1`)}>
               <div className="flex items-baseline w-full">
-                <label className="font-sans text-[10px] font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">ALINHAMENTO</label>
+                <label className="font-sans text-micro font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">ALINHAMENTO</label>
                 {isCoreLocked ? (
                   <input
                     type="text"
@@ -6293,7 +6293,7 @@ export default function CharacterEditorView({
 
             <div className={highlightClass('level', `col-span-12 sm:col-span-6 border-b ${fieldErrors.level ? 'border-primary border-b-2 bg-primary/10' : 'border-outline-variant'} pb-1 flex flex-col justify-end min-h-11 px-1`)}>
               <div className="flex items-center w-full gap-2">
-                <label className="font-sans text-[10px] font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">NÍVEL</label>
+                <label className="font-sans text-micro font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">NÍVEL</label>
                 <div className="flex-1 flex items-center justify-center relative">
                   <input
                     type="text"
@@ -6314,7 +6314,7 @@ export default function CharacterEditorView({
                         setShowLevelUpConfirmModal(true);
                       }
                     }}
-                    className="shrink-0 px-2 py-1 bg-lime-500 hover:bg-lime-400 border border-green-300/40 text-black font-sans text-[10px] font-bold rounded-sm flex items-center gap-1 transition-colors shadow-md cursor-pointer uppercase tracking-wider"
+                    className="shrink-0 px-2 py-1 bg-lime-500 hover:bg-lime-400 border border-green-300/40 text-black font-sans text-micro font-bold rounded-sm flex items-center gap-1 transition-colors shadow-md cursor-pointer uppercase tracking-wider"
                     title="Aumentar Nível Manualmente (Mestre)"
                   >
                     <span className="material-symbols-outlined text-xs">arrow_upward</span>
@@ -6327,7 +6327,7 @@ export default function CharacterEditorView({
 
             <div className={highlightClass('xp', `col-span-12 sm:col-span-6 border-b ${fieldErrors.xp ? 'border-primary border-b-2 bg-primary/10' : 'border-outline-variant'} pb-1 flex flex-col justify-end min-h-11 px-1`)}>
               <div className="flex items-baseline w-full">
-                <label className="font-sans text-[10px] font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">XP</label>
+                <label className="font-sans text-micro font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">XP</label>
                 <input maxLength={50}
                   type="text"
                   inputMode="numeric"
@@ -6339,7 +6339,7 @@ export default function CharacterEditorView({
                 />
               </div>
               {String(editedChar.xp ?? '').length >= 50 && (
-                <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+                <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
                   Limite atingido (50)
                 </div>
               )}
@@ -6355,7 +6355,7 @@ export default function CharacterEditorView({
 
             {!isLocked && (
               <div className="bg-surface-container border border-outline-variant/40 p-3.5 flex flex-col items-center justify-center gap-1.5 text-center max-w-sm mx-auto transition-all duration-300">
-                <span className="text-[10px] uppercase tracking-widest text-outline-variant font-bold">
+                <span className="text-micro uppercase tracking-widest text-outline-variant font-bold">
                   Distribuição de Atributos
                 </span>
                 <div className={`text-xl font-mono font-black tracking-wider transition-colors duration-300 ${remainingAttributePoints < 0 ? 'text-red-500 animate-pulse' : remainingAttributePoints === 0 ? 'text-green-400 font-bold' : 'text-secondary'}`}>
@@ -6366,22 +6366,22 @@ export default function CharacterEditorView({
                     Você não possui mais pontos pra somar
                   </p>
                 ) : remainingAttributePoints > 0 ? (
-                  <p className="text-[10px] text-outline-variant/80 font-sans">
+                  <p className="text-micro text-outline-variant/80 font-sans">
                     Você deve distribuir exatamente {allowedAttributePoints} pontos. Restam {remainingAttributePoints} pts.
                   </p>
                 ) : (
-                  <p className="text-[10px] text-green-400 font-bold uppercase font-sans">
+                  <p className="text-micro text-green-400 font-bold uppercase font-sans">
                     Pronto! Todos os {allowedAttributePoints} pontos foram distribuídos.
                   </p>
                 )}
-                <p className="text-[10px] text-outline-variant/50 font-sans">
+                <p className="text-micro text-outline-variant/50 font-sans">
                   Limite de 18 pontos por atributo.
                 </p>
               </div>
             )}
 
             <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-[10px] font-sans border-collapse border border-outline-variant">
+              <table className="w-full text-micro font-sans border-collapse border border-outline-variant">
                 <thead>
                   <tr className="bg-surface-container-highest text-center text-on-surface-variant font-bold tracking-widest uppercase scale-y-95">
                     <th className="border border-outline-variant p-1 sm:p-2.5 text-left w-12 sm:w-36">
@@ -6433,7 +6433,7 @@ export default function CharacterEditorView({
 
                     return (
                       <tr key={attrKey} className={highlightClass(`attributes.${attrKey}.natural`, highlightClass(`attributes.${attrKey}.penalidadeManual`, highlightClass(`attributes.${attrKey}.bonusRacialManual`, "hover:bg-surface-container-high/40 transition-colors")))}>
-                        <td className="border border-outline-variant p-1 sm:p-2 bg-surface-container-lowest text-left text-primary font-bold font-serif text-[11px] sm:text-xs">
+                        <td className="border border-outline-variant p-1 sm:p-2 bg-surface-container-lowest text-left text-primary font-bold font-serif text-caption sm:text-xs">
                           <span className="sm:hidden">{mobileLabels[attrKey]}</span>
                           <span className="hidden sm:inline">{labels[attrKey]}</span>
                         </td>
@@ -6456,7 +6456,7 @@ export default function CharacterEditorView({
                             } ${String(row.natural ?? '').length >= 50 ? '!text-red-500' : ''}`}
                           />
 {String(row.natural ?? '').length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -6535,7 +6535,7 @@ export default function CharacterEditorView({
               
                         </td>
 
-                        <td className="border border-outline-variant p-1 sm:p-2 text-on-surface-variant font-bold text-[11px]">
+                        <td className="border border-outline-variant p-1 sm:p-2 text-on-surface-variant font-bold text-caption">
                           {row.pctAmpliado}
                         </td>
                       </tr>
@@ -6544,7 +6544,7 @@ export default function CharacterEditorView({
                 </tbody>
               </table>
             </div>
-            <p className="text-[10px] text-on-surface-variant opacity-60 italic text-center">
+            <p className="text-micro text-on-surface-variant opacity-60 italic text-center">
               * Nota: O % Ampliado é calculado automaticamente com base em Pontos gastos - Penalidade + Bônus.
             </p>
           </section>
@@ -6562,7 +6562,7 @@ export default function CharacterEditorView({
                   VIDA
                 </div>
                 <div className="flex-grow flex flex-col justify-center">
-                  <table className="w-full table-fixed text-[10px] font-sans border-collapse">
+                  <table className="w-full table-fixed text-micro font-sans border-collapse">
                     <colgroup>
                       <col className="w-[50%]" />
                       <col className="w-[50%]" />
@@ -6594,7 +6594,7 @@ export default function CharacterEditorView({
                             className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-red-500 border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-primary outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.statusPoints?.vida?.danoSofrido ?? '').length >= 50 ? '!text-red-500' : ''}`}
                           />
 {String(editedChar.statusPoints?.vida?.danoSofrido ?? '').length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -6622,7 +6622,7 @@ export default function CharacterEditorView({
                     MAGIA
                   </div>
                   <div className="flex-grow flex flex-col justify-center">
-                    <table className="w-full table-fixed text-[10px] font-sans border-collapse">
+                    <table className="w-full table-fixed text-micro font-sans border-collapse">
                       <colgroup>
                         <col className="w-[50%]" />
                         <col className="w-[50%]" />
@@ -6654,7 +6654,7 @@ export default function CharacterEditorView({
                               className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#60a5fa] border border-outline-variant/30 py-0.5 focus:ring-1 focus:ring-[#a2d2ff] outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.statusPoints?.magia?.magiaExaurida ?? '').length >= 50 ? '!text-red-500' : ''}`}
                             />
 {String(editedChar.statusPoints?.magia?.magiaExaurida ?? '').length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -6690,7 +6690,7 @@ export default function CharacterEditorView({
                   SANIDADE
                 </div>
                 <div className="flex-grow flex flex-col justify-center">
-                  <table className="w-full table-fixed text-[10px] font-sans border-collapse">
+                  <table className="w-full table-fixed text-micro font-sans border-collapse">
                     <colgroup>
                       <col className="w-[50%]" />
                       <col className="w-[50%]" />
@@ -6722,7 +6722,7 @@ export default function CharacterEditorView({
                             className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#fef08a] border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-[#ffcc00] outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.statusPoints?.psi?.esforcoMental ?? '').length >= 50 ? '!text-red-500' : ''}`}
                           />
 {String(editedChar.statusPoints?.psi?.esforcoMental ?? '').length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -6746,7 +6746,7 @@ export default function CharacterEditorView({
                             disabled={true}
                             value={editedChar.statusPoints?.psi?.estadoMental || ''}
                             placeholder="Status"
-                            className={`w-full bg-surface-container-lowest text-center font-mono text-[10px] font-bold ${
+                            className={`w-full bg-surface-container-lowest text-center font-mono text-micro font-bold ${
                               editedChar.statusPoints?.psi?.estadoMental === 'Saudável'
                                 ? 'text-lime-400'
                                 : editedChar.statusPoints?.psi?.estadoMental === 'Afetado'
@@ -6772,7 +6772,7 @@ export default function CharacterEditorView({
                   HEROÍSMO
                 </div>
                 <div className="flex-grow flex flex-col justify-center">
-                  <table className="w-full table-fixed text-[10px] font-sans border-collapse">
+                  <table className="w-full table-fixed text-micro font-sans border-collapse">
                     <colgroup>
                       <col className="w-[50%]" />
               
@@ -6794,7 +6794,7 @@ export default function CharacterEditorView({
                             className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#d8b4fe] border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-[#9c27b0] outline-none text-xs rounded-none disabled:opacity-50 cursor-not-allowed select-none ${String(editedChar.statusPoints?.heroicos?.valorFinal ?? '').length >= 50 ? '!text-red-500' : ''}`}
                           />
 {String(editedChar.statusPoints?.heroicos?.valorFinal ?? '').length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -6816,7 +6816,7 @@ export default function CharacterEditorView({
                             className={`w-full bg-surface-container-lowest text-center font-mono font-bold text-[#d8b4fe] border border-outline-variant/50 py-0.5 focus:ring-1 focus:ring-[#9c27b0] outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.statusPoints?.heroicos?.danoSofrido ?? '').length >= 50 ? '!text-red-500' : ''}`}
                           />
 {String(editedChar.statusPoints?.heroicos?.danoSofrido ?? '').length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -6854,7 +6854,7 @@ export default function CharacterEditorView({
                   {/* Card 0: IP NATURAL */}
                   {hasHerois && (
                     <div className="bg-surface-container-lowest p-3 border border-outline-variant flex flex-col justify-between items-center text-center space-y-2 h-24 animate-fadeIn">
-                      <span className="text-[10px] font-sans font-bold tracking-wider text-primary uppercase">
+                      <span className="text-micro font-sans font-bold tracking-wider text-primary uppercase">
                         IP NATURAL
                       </span>
                       <div className="w-full relative flex-1">
@@ -6872,7 +6872,7 @@ export default function CharacterEditorView({
 
                   {/* Card 1: IP ESCUDO */}
                   <div className="bg-surface-container-lowest p-3 border border-outline-variant flex flex-col justify-between items-center text-center space-y-2 h-24">
-                    <span className="text-[10px] font-sans font-bold tracking-wider text-primary uppercase">
+                    <span className="text-micro font-sans font-bold tracking-wider text-primary uppercase">
                       IP ESCUDO
                     </span>
                     <>
@@ -6886,7 +6886,7 @@ export default function CharacterEditorView({
                       className={`w-full max-w-[80px] bg-surface-container text-on-surface text-center font-mono font-bold border border-outline-variant/60 py-1 focus:ring-1 focus:ring-primary outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.protection.ipEscudo ?? '').length >= 50 ? '!text-red-500' : ''}`}
                     />
 {String(editedChar.protection.ipEscudo ?? '').length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -6896,7 +6896,7 @@ export default function CharacterEditorView({
 
                   {/* Card 2: IP ARMADURA */}
                   <div className="bg-surface-container-lowest p-3 border border-outline-variant flex flex-col justify-between items-center text-center space-y-2 h-24">
-                    <span className="text-[10px] font-sans font-bold tracking-wider text-primary uppercase">
+                    <span className="text-micro font-sans font-bold tracking-wider text-primary uppercase">
                       IP ARMADURA
                     </span>
                     <>
@@ -6910,7 +6910,7 @@ export default function CharacterEditorView({
                       className={`w-full max-w-[80px] bg-surface-container text-on-surface text-center font-mono font-bold border border-outline-variant/60 py-1 focus:ring-1 focus:ring-primary outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.protection.ipPsiquico ?? '').length >= 50 ? '!text-red-500' : ''}`}
                     />
 {String(editedChar.protection.ipPsiquico ?? '').length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -6920,7 +6920,7 @@ export default function CharacterEditorView({
 
                   {/* Card 3: IP MÁGICO */}
                   <div className="bg-surface-container-lowest p-3 border border-outline-variant flex flex-col justify-between items-center text-center space-y-2 h-24">
-                    <span className="text-[10px] font-sans font-bold tracking-wider text-primary uppercase">
+                    <span className="text-micro font-sans font-bold tracking-wider text-primary uppercase">
                       IP MÁGICO
                     </span>
                     <>
@@ -6934,7 +6934,7 @@ export default function CharacterEditorView({
                       className={`w-full max-w-[80px] bg-surface-container text-[#4cc9f0] text-center font-mono font-bold border border-outline-variant/60 py-1 focus:ring-1 focus:ring-primary outline-none text-xs rounded-none disabled:opacity-75 ${String(editedChar.protection.ipMagico ?? '').length >= 50 ? '!text-red-500' : ''}`}
                     />
 {String(editedChar.protection.ipMagico ?? '').length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -6971,7 +6971,7 @@ export default function CharacterEditorView({
                   >
                     <div className="mt-4">
                       {!isLocked && (
-                        <div className="bg-amber-500/10 border border-amber-500/30 text-secondary text-[11px] px-3 py-2 rounded-none mb-4 text-center flex items-center justify-center gap-1.5 font-sans font-medium">
+                        <div className="bg-amber-500/10 border border-amber-500/30 text-secondary text-caption px-3 py-2 rounded-none mb-4 text-center flex items-center justify-center gap-1.5 font-sans font-medium">
                           <span>⚠️</span>
                           <span>Essas alterações não poderão ser alteradas depois de salvar a ficha.</span>
                         </div>
@@ -7040,11 +7040,11 @@ export default function CharacterEditorView({
                                     </div>
 
                                     {item.modificador && (
-                                      <p className="text-[10px] text-outline-variant italic text-left mt-1">
+                                      <p className="text-micro text-outline-variant italic text-left mt-1">
                                         Modificador: <span className="text-secondary/90 font-medium">{item.modificador}</span>
                                       </p>
                                     )}
-                                    {item.obs && <p className="text-[10px] text-outline-variant italic text-left">Obs: {item.obs}</p>}
+                                    {item.obs && <p className="text-micro text-outline-variant italic text-left">Obs: {item.obs}</p>}
                                   </div>
 
                                   {/* PC AND TABLET READ-ONLY CARD */}
@@ -7087,18 +7087,18 @@ export default function CharacterEditorView({
                                       </div>
                                       <div className="w-1/2 text-right">
                                         {item.modificador ? (
-                                          <span className="text-[11px] text-secondary font-sans italic font-medium">
+                                          <span className="text-caption text-secondary font-sans italic font-medium">
                                             {item.modificador}
                                           </span>
                                         ) : (
-                                          <span className="text-[11px] text-outline-variant font-sans italic">
+                                          <span className="text-caption text-outline-variant font-sans italic">
                                             Nenhum Modificador
                                           </span>
                                         )}
                                       </div>
                                     </div>
 
-                                    {item.obs && <p className="text-[10px] text-outline-variant italic text-left mt-1">Obs: {item.obs}</p>}
+                                    {item.obs && <p className="text-micro text-outline-variant italic text-left mt-1">Obs: {item.obs}</p>}
                                   </div>
                                 </div>
                               );
@@ -7156,15 +7156,15 @@ export default function CharacterEditorView({
                                   {/* Row 3: IP: N  DEX: N  AGI: N - left aligned! */}
                                   <div className="text-xs text-outline font-mono flex items-center justify-start gap-4 whitespace-nowrap overflow-hidden">
                                     <span>IP: <strong className="text-on-surface">{item.ip}</strong></span>
-                                    <span>DEX: <strong className={finalDex < 0 ? "text-red-400" : ""}>{finalDex}</strong> {isObraPrima && <span className="text-green-400 text-[10px]">(-1)</span>}</span>
-                                    <span>AGI: <strong className={finalAgi < 0 ? "text-red-400" : ""}>{finalAgi}</strong> {isObraPrima && <span className="text-green-400 text-[10px]">(-1)</span>}</span>
+                                    <span>DEX: <strong className={finalDex < 0 ? "text-red-400" : ""}>{finalDex}</strong> {isObraPrima && <span className="text-green-400 text-micro">(-1)</span>}</span>
+                                    <span>AGI: <strong className={finalAgi < 0 ? "text-red-400" : ""}>{finalAgi}</strong> {isObraPrima && <span className="text-green-400 text-micro">(-1)</span>}</span>
                                   </div>
 
-                                  {item.obs && <p className="text-[10px] text-outline-variant italic text-left">Obs: {item.obs}</p>}
+                                  {item.obs && <p className="text-micro text-outline-variant italic text-left">Obs: {item.obs}</p>}
 
                                   {/* Just modifier select - left aligned/full-width! */}
                                   <div className="flex flex-col gap-1.5 items-start justify-start mt-2 w-full">
-                                    <span className="text-[10px] font-bold text-outline font-sans uppercase tracking-wider">Modificador</span>
+                                    <span className="text-micro font-bold text-outline font-sans uppercase tracking-wider">Modificador</span>
                                     <div className="w-full">
                                       <CustomSelect
                                         disabled={isLocked || userRole === 'dm'}
@@ -7201,8 +7201,8 @@ export default function CharacterEditorView({
                                       <div className="text-xs text-outline font-mono flex items-center justify-center sm:justify-start gap-3 sm:gap-4 flex-nowrap whitespace-nowrap overflow-hidden mt-1 sm:mt-0 w-full sm:w-auto">
                                         <span>Tipo: <strong className="text-on-surface">{item.slot ? capitalizeFirstLetter(item.slot) : 'Corpo'}</strong></span>
                                         <span>IP: <strong className="text-on-surface">{item.ip}</strong></span>
-                                        <span>DEX: <strong className={finalDex < 0 ? "text-red-400" : ""}>{finalDex}</strong> {isObraPrima && <span className="text-green-400 text-[10px]"><span className="hidden sm:inline">(-1 Obra-prima)</span><span className="inline sm:hidden">(-1)</span></span>}</span>
-                                        <span>AGI: <strong className={finalAgi < 0 ? "text-red-400" : ""}>{finalAgi}</strong> {isObraPrima && <span className="text-green-400 text-[10px]"><span className="hidden sm:inline">(-1 Obra-prima)</span><span className="inline sm:hidden">(-1)</span></span>}</span>
+                                        <span>DEX: <strong className={finalDex < 0 ? "text-red-400" : ""}>{finalDex}</strong> {isObraPrima && <span className="text-green-400 text-micro"><span className="hidden sm:inline">(-1 Obra-prima)</span><span className="inline sm:hidden">(-1)</span></span>}</span>
+                                        <span>AGI: <strong className={finalAgi < 0 ? "text-red-400" : ""}>{finalAgi}</strong> {isObraPrima && <span className="text-green-400 text-micro"><span className="hidden sm:inline">(-1 Obra-prima)</span><span className="inline sm:hidden">(-1)</span></span>}</span>
                                       </div>
                                     </div>
 
@@ -7233,11 +7233,11 @@ export default function CharacterEditorView({
                                     </div>
                                   </div>
 
-                                  {item.obs && <p className="text-[10px] text-outline-variant italic mb-2">Obs: {item.obs}</p>}
+                                  {item.obs && <p className="text-micro text-outline-variant italic mb-2">Obs: {item.obs}</p>}
                                   
                                   {/* Just modifier select */}
                                   <div className="flex items-center gap-1.5 mt-2 justify-center sm:justify-start">
-                                    <span className="text-[10px] font-bold text-outline font-sans uppercase">Modificador:</span>
+                                    <span className="text-micro font-bold text-outline font-sans uppercase">Modificador:</span>
                                     <CustomSelect
                                       disabled={isLocked || userRole === 'dm'}
                                       value={item.modificador || ""}
@@ -7309,7 +7309,7 @@ export default function CharacterEditorView({
                             className={`w-full bg-surface-container text-on-surface border border-outline-variant p-2 text-xs mb-3 focus:outline-none focus:ring-1 focus:ring-primary rounded-none ${armaduraSearchQuery?.length >= 50 ? '!text-red-500' : ''}`}
                           />
 {armaduraSearchQuery?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -7327,19 +7327,19 @@ export default function CharacterEditorView({
                                   <div className="text-xs font-bold text-on-surface leading-tight break-words pr-1">
                                     {item.nome}
                                   </div>
-                                  <div className="text-[11px] text-outline font-mono mt-1 flex flex-wrap gap-x-2.5 gap-y-0.5">
+                                  <div className="text-caption text-outline font-mono mt-1 flex flex-wrap gap-x-2.5 gap-y-0.5">
                                     <span>IP: <strong className="text-on-surface">{item.ip}</strong></span>
                                     <span>DEX: <strong className={item.penalidade_dex < 0 ? "text-red-400" : ""}>{item.penalidade_dex !== null ? item.penalidade_dex : "Esp."}</strong></span>
                                     <span>AGI: <strong className={item.penalidade_agi < 0 ? "text-red-400" : ""}>{item.penalidade_agi !== null ? item.penalidade_agi : "Esp."}</strong></span>
                                   </div>
-                                  {item.obs && <p className="text-[10px] text-outline-variant italic mt-1 break-words" title={item.obs}>Obs: {item.obs}</p>}
+                                  {item.obs && <p className="text-micro text-outline-variant italic mt-1 break-words" title={item.obs}>Obs: {item.obs}</p>}
                                 </div>
 
                                 {/* DESKTOP ONLY VIEW */}
                                 <div className="hidden sm:block text-left min-w-0 flex-1">
                                   <div className="flex items-center gap-2 flex-row flex-nowrap">
                                     <span className="text-sm font-bold text-on-surface truncate" title={item.nome}>{item.nome}</span>
-                                    <span className="text-[10px] bg-primary/15 text-primary px-1.5 py-0.5 font-mono uppercase tracking-wider whitespace-nowrap shrink-0">
+                                    <span className="text-micro bg-primary/15 text-primary px-1.5 py-0.5 font-mono uppercase tracking-wider whitespace-nowrap shrink-0">
                                       IP: {item.ip}
                                     </span>
                                   </div>
@@ -7347,7 +7347,7 @@ export default function CharacterEditorView({
                                     <span>DEX: <strong className={item.penalidade_dex < 0 ? "text-red-400" : ""}>{item.penalidade_dex !== null ? item.penalidade_dex : "Esp."}</strong></span>
                                     <span>AGI: <strong className={item.penalidade_agi < 0 ? "text-red-400" : ""}>{item.penalidade_agi !== null ? item.penalidade_agi : "Esp."}</strong></span>
                                   </div>
-                                  {item.obs && <p className="text-[10px] text-outline-variant italic mt-1 truncate" title={item.obs}>Obs: {item.obs}</p>}
+                                  {item.obs && <p className="text-micro text-outline-variant italic mt-1 truncate" title={item.obs}>Obs: {item.obs}</p>}
                                 </div>
 
                                 <button
@@ -7386,11 +7386,11 @@ export default function CharacterEditorView({
               {/* Simplified Central Points Tracker */}
               {!isLocked && (
                 <div className="bg-surface-container border border-outline-variant/40 p-3 flex flex-col items-center justify-center gap-1.5 text-center max-w-sm mx-auto">
-                  <span className="text-[10px] uppercase tracking-widest text-outline-variant font-bold">Saldo de Aprimoramentos</span>
+                  <span className="text-micro uppercase tracking-widest text-outline-variant font-bold">Saldo de Aprimoramentos</span>
                   <div className={`text-xl font-mono font-black tracking-wider ${remainingPointsValue < 0 ? 'text-red-500 animate-pulse' : remainingPointsValue === 0 ? 'text-primary' : 'text-green-400'}`}>
                     {remainingPointsValue} pts
                   </div>
-                  <p className="text-[10px] text-outline-variant/60 font-sans">
+                  <p className="text-micro text-outline-variant/60 font-sans">
                     Começa com {5 + aprimoramentoExtra} pts ({5} base{aprimoramentoExtra > 0 ? ` + ${aprimoramentoExtra} da raça` : ''}) • Desvantagens dão até +3 pts
                   </p>
                 </div>
@@ -7427,14 +7427,14 @@ export default function CharacterEditorView({
                   </h4>
 
                   {!isLocked && remainingPointsValue <= 0 && (
-                    <div className="bg-amber-950/20 border border-amber-500/30 text-secondary text-[10px] p-2 font-medium flex items-center gap-1.5 rounded-sm animate-pulse">
+                    <div className="bg-amber-950/20 border border-amber-500/30 text-secondary text-micro p-2 font-medium flex items-center gap-1.5 rounded-sm animate-pulse">
                       <span className="material-symbols-outlined text-xs text-secondary">warning</span>
                       <span>Você atingiu seu limite de vantagens (Saldo esgotado)</span>
                     </div>
                   )}
 
                   {visiblePositives.length === 0 ? (
-                    <p className="text-[11px] text-outline-variant/40 italic py-2">Nenhum aprimoramento positivo adicionado.</p>
+                    <p className="text-caption text-outline-variant/40 italic py-2">Nenhum aprimoramento positivo adicionado.</p>
                   ) : (
                     <div className="space-y-3">
                       {(() => {
@@ -7465,25 +7465,25 @@ export default function CharacterEditorView({
                                     {info.name}
                                   </span>
                                   {isReviewMode && isAdded ? (
-                                    <span className="text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                                    <span className="text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                                       Novo
                                     </span>
                                   ) : isAdded ? (
-                                    <span className="text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                                    <span className="text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                                       Novo
                                     </span>
                                   ) : null}
                                   {isRemoved && (
-                                    <span className="text-[8px] bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
+                                    <span className="text-micro bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
                                       Removido
                                     </span>
                                   )}
                                 </div>
                                 {info.level && (
-                                  <span className={`text-[10px] font-bold ${isRemoved ? 'text-red-500/60 line-through' : 'text-primary'}`}>Nível {info.level}</span>
+                                  <span className={`text-micro font-bold ${isRemoved ? 'text-red-500/60 line-through' : 'text-primary'}`}>Nível {info.level}</span>
                                 )}
                                 {info.desc && (
-                                  <span className={`text-[10px] italic leading-tight mt-0.5 break-words ${isRemoved ? 'text-red-500/40 line-through' : 'text-outline-variant/60'}`}>{info.desc}</span>
+                                  <span className={`text-micro italic leading-tight mt-0.5 break-words ${isRemoved ? 'text-red-500/40 line-through' : 'text-outline-variant/60'}`}>{info.desc}</span>
                                 )}
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
@@ -7548,14 +7548,14 @@ export default function CharacterEditorView({
                   </h4>
 
                   {!isLocked && totalNegativasPoints >= 3 && (
-                    <div className="bg-amber-950/20 border border-amber-500/30 text-secondary text-[10px] p-2 font-medium flex items-center gap-1.5 rounded-sm animate-pulse">
+                    <div className="bg-amber-950/20 border border-amber-500/30 text-secondary text-micro p-2 font-medium flex items-center gap-1.5 rounded-sm animate-pulse">
                       <span className="material-symbols-outlined text-xs text-secondary">warning</span>
                       <span>Você atingiu seu limite de desvantagens</span>
                     </div>
                   )}
 
                   {visibleNegatives.length === 0 ? (
-                    <p className="text-[11px] text-outline-variant/40 italic py-2">Nenhum aprimoramento negativo adicionado.</p>
+                    <p className="text-caption text-outline-variant/40 italic py-2">Nenhum aprimoramento negativo adicionado.</p>
                   ) : (
                     <div className="space-y-3">
                       {visibleNegatives.map((entry, idx) => {
@@ -7581,25 +7581,25 @@ export default function CharacterEditorView({
                                   {info.name}
                                 </span>
                                 {isReviewMode && isAdded ? (
-                                  <span className="text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                                  <span className="text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                                     Novo
                                   </span>
                                 ) : isAdded ? (
-                                  <span className="text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                                  <span className="text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                                     Novo
                                   </span>
                                 ) : null}
                                 {isRemoved && (
-                                  <span className="text-[8px] bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
+                                  <span className="text-micro bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
                                     Removido
                                   </span>
                                 )}
                               </div>
                               {info.level && (
-                                <span className={`text-[10px] font-bold ${isRemoved ? 'text-red-500/60 line-through' : 'text-primary'}`}>Nível {info.level}</span>
+                                <span className={`text-micro font-bold ${isRemoved ? 'text-red-500/60 line-through' : 'text-primary'}`}>Nível {info.level}</span>
                               )}
                               {info.desc && (
-                                <span className={`text-[10px] italic leading-tight mt-0.5 break-words ${isRemoved ? 'text-red-500/40 line-through' : 'text-outline-variant/60'}`}>{info.desc}</span>
+                                <span className={`text-micro italic leading-tight mt-0.5 break-words ${isRemoved ? 'text-red-500/40 line-through' : 'text-outline-variant/60'}`}>{info.desc}</span>
                               )}
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
@@ -7633,7 +7633,7 @@ export default function CharacterEditorView({
               </div>
 
               <div className="pt-4 border-t border-outline-variant/20">
-                <label className="block text-[10px] font-sans font-bold tracking-widest text-outline uppercase mb-2">
+                <label className="block text-micro font-sans font-bold tracking-widest text-outline uppercase mb-2">
                   Efeitos Adicionais
                 </label>
                 <>
@@ -7645,7 +7645,7 @@ export default function CharacterEditorView({
                   className={`w-full h-24 bg-surface-container-lowest border border-outline-variant p-3 font-sans text-xs text-on-surface placeholder:text-outline-variant/40 focus:border-primary focus:ring-0 outline-none disabled:opacity-75 disabled:cursor-not-allowed ${editedChar.descricaoEfeitos?.length >= 300 ? '!text-red-500' : ''}`}
                 />
 {editedChar.descricaoEfeitos?.length >= 300 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (300)
       </div>
     )}
@@ -7684,7 +7684,7 @@ export default function CharacterEditorView({
                       {/* Red Overlay for Removed */}
                       {isCompAnimalRemoved && (
                         <div className="absolute inset-0 bg-red-950/40 border border-red-500/50 flex flex-col items-center justify-center gap-2 pointer-events-auto z-20 cursor-not-allowed">
-                          <span className="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-1 rounded uppercase font-bold tracking-wider font-sans">
+                          <span className="text-micro bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-1 rounded uppercase font-bold tracking-wider font-sans">
                             Removido
                           </span>
                         </div>
@@ -7692,12 +7692,12 @@ export default function CharacterEditorView({
 
                       {/* Status Badges */}
                       {isCompAnimalAdded && (
-                        <span className="absolute top-2 right-2 text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                        <span className="absolute top-2 right-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                           Adicionado
                         </span>
                       )}
                       {isCompAnimalModified && (
-                        <span className="absolute top-2 right-2 text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                        <span className="absolute top-2 right-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                           Modificado
                         </span>
                       )}
@@ -7714,7 +7714,7 @@ export default function CharacterEditorView({
                         </p>
                         
                         {editedChar.companionAnimal?.tipoAnimal && (
-                          <p className="text-[10px] font-mono text-outline italic mt-2 text-center uppercase tracking-wider">
+                          <p className="text-micro font-mono text-outline italic mt-2 text-center uppercase tracking-wider">
                             {editedChar.companionAnimal.tipoAnimal}
                           </p>
                         )}
@@ -7754,7 +7754,7 @@ export default function CharacterEditorView({
                       {/* Red Overlay for Removed */}
                       {isMontariaRemoved && (
                         <div className="absolute inset-0 bg-red-950/40 border border-red-500/50 flex flex-col items-center justify-center gap-2 pointer-events-auto z-20 cursor-not-allowed">
-                          <span className="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-1 rounded uppercase font-bold tracking-wider font-sans">
+                          <span className="text-micro bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-1 rounded uppercase font-bold tracking-wider font-sans">
                             Removido
                           </span>
                         </div>
@@ -7762,12 +7762,12 @@ export default function CharacterEditorView({
 
                       {/* Status Badges */}
                       {isMontariaAdded && (
-                        <span className="absolute top-2 right-2 text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                        <span className="absolute top-2 right-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                           Adicionado
                         </span>
                       )}
                       {isMontariaModified && (
-                        <span className="absolute top-2 right-2 text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                        <span className="absolute top-2 right-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                           Modificado
                         </span>
                       )}
@@ -7784,7 +7784,7 @@ export default function CharacterEditorView({
                         </p>
                         
                         {editedChar.montariaEspecial?.animalId && (
-                          <p className="text-[10px] font-mono text-outline italic mt-2 text-center uppercase tracking-wider">
+                          <p className="text-micro font-mono text-outline italic mt-2 text-center uppercase tracking-wider">
                             {montariasBase.find(m => m.id === editedChar.montariaEspecial?.animalId)?.nome || "Montaria"}
                           </p>
                         )}
@@ -7824,7 +7824,7 @@ export default function CharacterEditorView({
                       {/* Red Overlay for Removed */}
                       {isFamiliarRemoved && (
                         <div className="absolute inset-0 bg-red-950/40 border border-red-500/50 flex flex-col items-center justify-center gap-2 pointer-events-auto z-20 cursor-not-allowed">
-                          <span className="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-1 rounded uppercase font-bold tracking-wider font-sans">
+                          <span className="text-micro bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-1 rounded uppercase font-bold tracking-wider font-sans">
                             Removido
                           </span>
                         </div>
@@ -7832,12 +7832,12 @@ export default function CharacterEditorView({
 
                       {/* Status Badges */}
                       {isFamiliarAdded && (
-                        <span className="absolute top-2 right-2 text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                        <span className="absolute top-2 right-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                           Adicionado
                         </span>
                       )}
                       {isFamiliarModified && (
-                        <span className="absolute top-2 right-2 text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                        <span className="absolute top-2 right-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                           Modificado
                         </span>
                       )}
@@ -7854,7 +7854,7 @@ export default function CharacterEditorView({
                         </p>
                         
                         {editedChar.familiar?.animalNome && (
-                          <p className="text-[10px] font-mono text-outline italic mt-2 text-center uppercase tracking-wider">
+                          <p className="text-micro font-mono text-outline italic mt-2 text-center uppercase tracking-wider">
                             {editedChar.familiar.animalNome}
                           </p>
                         )}
@@ -7901,11 +7901,11 @@ export default function CharacterEditorView({
                   <div className="w-16 h-16 rounded-full bg-outline-variant/10 border border-outline-variant/30 flex items-center justify-center mb-1 transition-all duration-500 group-hover:border-primary/50 group-hover:bg-primary/5">
                     <span className="material-symbols-outlined text-primary text-4xl transition-transform duration-500 group-hover:scale-110">person</span>
                   </div>
-                  <span className="text-[11px] font-sans font-bold tracking-wider text-outline uppercase transition-colors duration-500 group-hover:text-primary">
+                  <span className="text-caption font-sans font-bold tracking-wider text-outline uppercase transition-colors duration-500 group-hover:text-primary">
                     {!editedChar.portraitUrl ? "Adicionar Retrato" : "Retrato Indisponível"}
                   </span>
                   {!isLocked && (
-                    <span className="text-[9px] text-outline-variant/60 font-sans italic transition-colors duration-500 group-hover:text-outline-variant">
+                    <span className="text-micro text-outline-variant/60 font-sans italic transition-colors duration-500 group-hover:text-outline-variant">
                       Clique para definir
                     </span>
                   )}
@@ -7933,11 +7933,11 @@ export default function CharacterEditorView({
             {/* Caixa com o saldo de pontos das perícias */}
             {!isLocked && (
               <div className="bg-surface-container border border-outline-variant/40 p-3 mb-4 flex flex-col items-center justify-center gap-1.5 text-center max-w-sm mx-auto w-full">
-                <span className="text-[10px] uppercase tracking-widest text-outline-variant font-bold">Saldo de Perícias</span>
+                <span className="text-micro uppercase tracking-widest text-outline-variant font-bold">Saldo de Perícias</span>
                 <div className={`text-xl font-mono font-black tracking-wider ${remainingSkillsPoints < 0 ? 'text-red-500 animate-pulse' : remainingSkillsPoints === 0 ? 'text-primary' : 'text-green-400'}`}>
                   {remainingSkillsPoints} / {allowedSkillsPoints} pts
                 </div>
-                <p className="text-[10px] text-outline-variant/60 font-sans leading-snug">
+                <p className="text-micro text-outline-variant/60 font-sans leading-snug">
                   Base Nível 1: (Idade × 10) + (Inteligência × 5){periciaExtra > 0 ? ` + ${periciaExtra} da raça` : ''}
                   {currentL > 1 && ` | +${extraPericias} bônus por nível`}
                 </p>
@@ -7946,14 +7946,14 @@ export default function CharacterEditorView({
 
             {/* Avisos de limite e balanceamento */}
             {!isLocked && showSkillsCapWarning && (
-              <div className="bg-surface-container/20 border border-primary/30 text-primary text-[10px] p-2 font-medium flex items-center gap-1.5 rounded-sm mb-3 animate-pulse">
+              <div className="bg-surface-container/20 border border-primary/30 text-primary text-micro p-2 font-medium flex items-center gap-1.5 rounded-sm mb-3 animate-pulse">
                 <span className="material-symbols-outlined text-xs text-primary">warning</span>
                 <span>Pontos limitados ao máximo de 500 permitido pelo livro.</span>
               </div>
             )}
 
             {!isLocked && showSkillsBalanceWarning && (
-              <div className="bg-amber-950/20 border border-amber-500/30 text-secondary text-[10px] p-2 font-medium flex items-center gap-1.5 rounded-sm mb-3">
+              <div className="bg-amber-950/20 border border-amber-500/30 text-secondary text-micro p-2 font-medium flex items-center gap-1.5 rounded-sm mb-3">
                 <span className="material-symbols-outlined text-xs text-secondary">info</span>
                 <span>Seu personagem pode estar desbalanceado. É necessária a análise do mestre.</span>
               </div>
@@ -7961,9 +7961,9 @@ export default function CharacterEditorView({
 
             <div className="bg-surface-container-lowest border border-outline-variant/80 flex-grow flex flex-col justify-between overflow-x-hidden md:overflow-x-auto custom-scrollbar">
               <div className="overflow-y-auto flex-1 custom-scrollbar">
-                <table className="w-full text-[10px] font-sans border-collapse table-fixed">
+                <table className="w-full text-micro font-sans border-collapse table-fixed">
                   <thead>
-                    <tr className="bg-surface-container-highest text-on-surface-variant font-bold tracking-widest uppercase border-b border-outline-variant text-[9px] sm:text-[10px]">
+                    <tr className="bg-surface-container-highest text-on-surface-variant font-bold tracking-widest uppercase border-b border-outline-variant text-micro sm:text-micro">
                       <th className="p-2 sm:p-2.5 px-2 sm:px-3 text-left w-[33%] sm:w-[35%]">Perícia</th>
                       <th className="p-2 sm:p-2.5 px-2 sm:px-3 text-right w-[67%] sm:w-[65%]">PTS. + ATR. = %</th>
                     </tr>
@@ -8017,64 +8017,64 @@ export default function CharacterEditorView({
                                     : 'hover:bg-surface-container-high/10'
                             }`}
                           >
-                            <td className={`p-2 sm:p-3 px-2 sm:px-3 text-left font-sans text-[11px] sm:text-xs font-bold whitespace-normal break-words ${isRemoved ? 'text-red-400/80' : 'text-on-surface'}`}>
+                            <td className={`p-2 sm:p-3 px-2 sm:px-3 text-left font-sans text-caption sm:text-xs font-bold whitespace-normal break-words ${isRemoved ? 'text-red-400/80' : 'text-on-surface'}`}>
                                {displayName}
                               {isAdded && (
-                                <span className="ml-1.5 text-[8px] bg-emerald-500/20 text-emerald-400 font-sans font-bold border border-emerald-500/30 px-1 py-0.5 uppercase tracking-widest rounded-sm">
+                                <span className="ml-1.5 text-micro bg-emerald-500/20 text-emerald-400 font-sans font-bold border border-emerald-500/30 px-1 py-0.5 uppercase tracking-widest rounded-sm">
                                   Novo
                                 </span>
                               )}
                               {isModified && (
-                                <span className="ml-1.5 text-[8px] bg-amber-500/20 text-secondary font-sans font-bold border border-amber-500/30 px-1 py-0.5 uppercase tracking-widest rounded-sm">
+                                <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary font-sans font-bold border border-amber-500/30 px-1 py-0.5 uppercase tracking-widest rounded-sm">
                                   Editado
                                 </span>
                               )}
                               {obraPrimaSkillBonus > 0 && (
-                                <span className="ml-1.5 text-[10px] text-green-400 font-sans font-normal font-mono">
+                                <span className="ml-1.5 text-micro text-green-400 font-sans font-normal">
                                   (+10% Obra-prima)
                                 </span>
                               )}
                               {magicWeaponSkillBonus > 0 && (
-                                <span className="ml-1.5 text-[10px] text-cyan-400 font-sans font-normal font-mono">
+                                <span className="ml-1.5 text-micro text-cyan-400 font-sans font-normal">
                                   (+{magicWeaponSkillBonus}% Mágico)
                                 </span>
                               )}
                               {armaPreferencialBonus > 0 && (
-                                <span className="ml-1.5 text-[10px] text-primary font-sans font-normal font-mono">
+                                <span className="ml-1.5 text-micro text-primary font-sans font-normal">
                                   (+{armaPreferencialBonus}% Arma Preferencial)
                                 </span>
                               )}
                               {corpoMaleavelBonus > 0 && (
-                                <span className="ml-1.5 text-[10px] text-green-400 font-sans font-normal font-mono">
+                                <span className="ml-1.5 text-micro text-green-400 font-sans font-normal">
                                   (+10% Corpo Maleável)
                                 </span>
                               )}
                               {familiarBonus > 0 && (
-                                <span className="ml-1.5 text-[10px] text-green-400 font-sans font-normal font-mono">
+                                <span className="ml-1.5 text-micro text-green-400 font-sans font-normal">
                                   (+10% Familiar)
                                 </span>
                               )}
                               {racialSkillBonus > 0 && (
-                                <span className="ml-1.5 text-[10px] text-green-400 font-sans font-normal font-mono">
+                                <span className="ml-1.5 text-micro text-green-400 font-sans font-normal">
                                   (+{racialSkillBonus}% Raça)
                                 </span>
                               )}
                               {malditaWeaponPenalty > 0 && (
-                                <span className="ml-1.5 text-[10px] text-red-400 font-sans font-normal font-mono">
+                                <span className="ml-1.5 text-micro text-red-400 font-sans font-normal">
                                   (-{malditaWeaponPenalty}% Maldito)
                                 </span>
                               )}
                             </td>
-                            <td className="p-2 sm:p-3 px-2 sm:px-3 text-right font-mono text-[10px] sm:text-xs text-outline-variant whitespace-nowrap">
+                            <td className="p-2 sm:p-3 px-2 sm:px-3 text-right font-mono text-micro sm:text-xs text-outline-variant whitespace-nowrap">
                               {isZeroAttr ? (
                                 // Rule 3: Technical Zero Attribute Skill
                                 <>
                                   <span className={`mr-1.5 sm:mr-2.5 ${isRemoved ? 'text-red-400/60 line-through' : 'text-on-surface/90'}`}>{skill.gasto}</span>
                                   <span className="text-outline-variant/60 mr-1.5 sm:mr-2.5">+</span>
-                                  <span className={`mr-2 sm:mr-4 font-mono text-[9px] sm:text-xs uppercase ${isRemoved ? 'text-red-400/50 line-through' : 'text-on-surface/40'}`}>
+                                  <span className={`mr-2 sm:mr-4 font-mono text-micro sm:text-xs uppercase ${isRemoved ? 'text-red-400/50 line-through' : 'text-on-surface/40'}`}>
                                     TÉC(0)
                                   </span>
-                                  <span className={`font-bold text-[10px] sm:text-xs px-1 sm:px-2 py-0.5 min-w-[30px] sm:min-w-[45px] inline-block text-center rounded-sm border ${
+                                  <span className={`font-bold text-micro sm:text-xs px-1 sm:px-2 py-0.5 min-w-[30px] sm:min-w-[45px] inline-block text-center rounded-sm border ${
                                     isRemoved 
                                       ? 'text-red-500 bg-surface-container/10 border-primary/20 line-through' 
                                       : 'text-primary bg-surface-container/5 border-primary/20'
@@ -8087,8 +8087,8 @@ export default function CharacterEditorView({
                                 <div className="inline-flex items-center justify-end flex-nowrap">
                                   <span className={isRemoved ? 'text-red-400/60 line-through' : 'text-on-surface/90'}>{skill.atkGasto ?? 0}/{skill.defGasto ?? 0}</span>
                                   <span className="text-outline-variant/50 mx-1">+</span>
-                                  <span className={`font-mono text-[9px] sm:text-xs uppercase mr-1 ${isRemoved ? 'text-red-400/50 line-through' : 'text-on-surface'}`}>{resolvedAttrKey}({attrVal})</span>
-                                  <span className={`font-bold text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 inline-block text-center rounded-sm ml-1.5 border ${
+                                  <span className={`font-mono text-micro sm:text-xs uppercase mr-1 ${isRemoved ? 'text-red-400/50 line-through' : 'text-on-surface'}`}>{resolvedAttrKey}({attrVal})</span>
+                                  <span className={`font-bold text-micro sm:text-xs px-1.5 sm:px-2 py-0.5 inline-block text-center rounded-sm ml-1.5 border ${
                                     isRemoved 
                                       ? 'text-red-500 bg-surface-container/10 border-primary/20 line-through' 
                                       : 'text-primary bg-surface-container/5 border-primary/20'
@@ -8101,10 +8101,10 @@ export default function CharacterEditorView({
                                 <>
                                   <span className={`mr-1.5 sm:mr-2.5 ${isRemoved ? 'text-red-400/60 line-through' : 'text-on-surface/90'}`}>{skill.gasto}</span>
                                   <span className="text-outline-variant/60 mr-1.5 sm:mr-2.5">+</span>
-                                  <span className={`mr-2 sm:mr-4 font-mono text-[9px] sm:text-xs uppercase ${isRemoved ? 'text-red-400/50 line-through' : 'text-on-surface'}`}>
+                                  <span className={`mr-2 sm:mr-4 font-mono text-micro sm:text-xs uppercase ${isRemoved ? 'text-red-400/50 line-through' : 'text-on-surface'}`}>
                                     {resolvedAttrKey}({attrVal})
                                   </span>
-                                  <span className={`font-bold text-[10px] sm:text-xs px-1 sm:px-2 py-0.5 min-w-[30px] sm:min-w-[45px] inline-block text-center rounded-sm border ${
+                                  <span className={`font-bold text-micro sm:text-xs px-1 sm:px-2 py-0.5 min-w-[30px] sm:min-w-[45px] inline-block text-center rounded-sm border ${
                                     isRemoved 
                                       ? 'text-red-500 bg-surface-container/10 border-primary/20 line-through' 
                                       : 'text-primary bg-surface-container/5 border-primary/20'
@@ -8138,7 +8138,7 @@ export default function CharacterEditorView({
               </div>
 
               <div className="p-2 border-t border-outline-variant/30 bg-surface-container flex justify-end items-center px-4">
-                <span className="font-sans text-[9px] text-on-surface-variant/60 py-1.5">* Auto calculados</span>
+                <span className="font-sans text-micro text-on-surface-variant/60 py-1.5">* Auto calculados</span>
               </div>
             </div>
           </section>
@@ -8176,7 +8176,7 @@ export default function CharacterEditorView({
                   {/* Red Overlay for Removed */}
                   {isCompAnimalRemoved && (
                     <div className="absolute inset-0 bg-red-950/80 border border-red-500/50 flex flex-col items-center justify-center gap-2 pointer-events-auto z-20 cursor-not-allowed">
-                      <span className="text-[10px] bg-red-600 text-on-surface border border-red-500/30 px-2.5 py-1 uppercase font-bold tracking-wider font-sans">
+                      <span className="text-micro bg-red-600 text-on-surface border border-red-500/30 px-2.5 py-1 uppercase font-bold tracking-wider font-sans">
                         [REMOVIDO]
                       </span>
                     </div>
@@ -8184,12 +8184,12 @@ export default function CharacterEditorView({
 
                   {/* Status Badges */}
                   {isCompAnimalAdded && (
-                    <span className="absolute top-2 right-2 text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                    <span className="absolute top-2 right-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                       Adicionado
                     </span>
                   )}
                   {isCompAnimalModified && (
-                    <span className="absolute top-2 right-2 text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                    <span className="absolute top-2 right-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                       Modificado
                     </span>
                   )}
@@ -8206,7 +8206,7 @@ export default function CharacterEditorView({
                     </p>
                     
                     {editedChar.companionAnimal?.tipoAnimal && (
-                      <p className="text-[10px] font-mono text-outline italic mt-2 text-center uppercase tracking-wider">
+                      <p className="text-micro font-mono text-outline italic mt-2 text-center uppercase tracking-wider">
                         {editedChar.companionAnimal.tipoAnimal}
                       </p>
                     )}
@@ -8246,7 +8246,7 @@ export default function CharacterEditorView({
                   {/* Red Overlay for Removed */}
                   {isMontariaRemoved && (
                     <div className="absolute inset-0 bg-red-950/80 border border-red-500/50 flex flex-col items-center justify-center gap-2 pointer-events-auto z-20 cursor-not-allowed">
-                      <span className="text-[10px] bg-red-600 text-on-surface border border-red-500/30 px-2.5 py-1 uppercase font-bold tracking-wider font-sans">
+                      <span className="text-micro bg-red-600 text-on-surface border border-red-500/30 px-2.5 py-1 uppercase font-bold tracking-wider font-sans">
                         [REMOVIDO]
                       </span>
                     </div>
@@ -8254,12 +8254,12 @@ export default function CharacterEditorView({
 
                   {/* Status Badges */}
                   {isMontariaAdded && (
-                    <span className="absolute top-2 right-2 text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                    <span className="absolute top-2 right-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                       Adicionado
                     </span>
                   )}
                   {isMontariaModified && (
-                    <span className="absolute top-2 right-2 text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                    <span className="absolute top-2 right-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                       Modificado
                     </span>
                   )}
@@ -8276,7 +8276,7 @@ export default function CharacterEditorView({
                     </p>
                     
                     {editedChar.montariaEspecial?.animalId && (
-                      <p className="text-[10px] font-mono text-outline italic mt-2 text-center uppercase tracking-wider">
+                      <p className="text-micro font-mono text-outline italic mt-2 text-center uppercase tracking-wider">
                         {montariasBase.find(m => m.id === editedChar.montariaEspecial?.animalId)?.nome || "Montaria"}
                       </p>
                     )}
@@ -8316,7 +8316,7 @@ export default function CharacterEditorView({
                   {/* Red Overlay for Removed */}
                   {isFamiliarRemoved && (
                     <div className="absolute inset-0 bg-red-950/80 border border-red-500/50 flex flex-col items-center justify-center gap-2 pointer-events-auto z-20 cursor-not-allowed">
-                      <span className="text-[10px] bg-red-600 text-on-surface border border-red-500/30 px-2.5 py-1 uppercase font-bold tracking-wider font-sans">
+                      <span className="text-micro bg-red-600 text-on-surface border border-red-500/30 px-2.5 py-1 uppercase font-bold tracking-wider font-sans">
                         [REMOVIDO]
                       </span>
                     </div>
@@ -8324,12 +8324,12 @@ export default function CharacterEditorView({
 
                   {/* Status Badges */}
                   {isFamiliarAdded && (
-                    <span className="absolute top-2 right-2 text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                    <span className="absolute top-2 right-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                       Adicionado
                     </span>
                   )}
                   {isFamiliarModified && (
-                    <span className="absolute top-2 right-2 text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                    <span className="absolute top-2 right-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                       Modificado
                     </span>
                   )}
@@ -8346,7 +8346,7 @@ export default function CharacterEditorView({
                     </p>
                     
                     {editedChar.familiar?.animalNome && (
-                      <p className="text-[10px] font-mono text-outline italic mt-2 text-center uppercase tracking-wider">
+                      <p className="text-micro font-mono text-outline italic mt-2 text-center uppercase tracking-wider">
                         {editedChar.familiar.animalNome}
                       </p>
                     )}
@@ -8479,7 +8479,7 @@ export default function CharacterEditorView({
                           {/* Overlay for removed weapon */}
                           {isRemoved && (
                             <div className="absolute inset-0 bg-red-950/80 border border-red-500/50 flex flex-col items-center justify-center z-10 p-2 text-center">
-                              <span className="bg-red-600 text-on-surface text-[10px] font-bold px-2 py-1 uppercase tracking-wider font-sans">
+                              <span className="bg-red-600 text-on-surface text-micro font-bold px-2 py-1 uppercase tracking-wider font-sans">
                                 [REMOVIDO]
                               </span>
                             </div>
@@ -8492,16 +8492,16 @@ export default function CharacterEditorView({
                             }`}>
                               {item.item}
                               {isReviewMode && (isAdded || isWeaponMoved) ? (
-                                <span className="ml-1.5 text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
+                                <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
                                   {isAdded ? "Novo" : "Movido"}
                                 </span>
                               ) : isAdded ? (
-                                <span className="ml-1.5 text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                                <span className="ml-1.5 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                                   Novo
                                 </span>
                               ) : null}
                               {isRemoved && (
-                                <span className="ml-1.5 text-[8px] bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
+                                <span className="ml-1.5 text-micro bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
                                   Removido
                                 </span>
                               )}
@@ -8543,11 +8543,11 @@ export default function CharacterEditorView({
                             }`}>
                               {item.item}
                               {isReviewMode && (isAdded || isWeaponMoved) ? (
-                                <span className="ml-1.5 text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
+                                <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
                                   {isAdded ? "Novo" : "Movido"}
                                 </span>
                               ) : isAdded ? (
-                                <span className="ml-1.5 text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                                <span className="ml-1.5 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                                   Novo
                                 </span>
                               ) : null}
@@ -8567,12 +8567,12 @@ export default function CharacterEditorView({
                           </div>
 
                            {/* Categoria e preço */}
-                          <div className="flex items-center gap-2 flex-wrap mt-0.5 text-[10px] font-mono text-outline text-left">
-                            <span className="text-[9px] bg-surface-container/30 text-secondary border border-outline-variant/60 px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">
+                          <div className="flex items-center gap-2 flex-wrap mt-0.5 text-micro font-mono text-outline text-left">
+                            <span className="text-micro bg-surface-container/30 text-secondary border border-outline-variant/60 px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">
                               Arma
                             </span>
                             {item.preco && (
-                              <span className="text-[10px] text-secondary flex items-center gap-1">
+                              <span className="text-micro text-secondary flex items-center gap-1">
                                 <span className="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block shrink-0"></span> {item.preco} Prata
                               </span>
                             )}
@@ -8580,7 +8580,7 @@ export default function CharacterEditorView({
 
                                           {/* Stats */}
                           {(item.dano !== undefined || item.penalidade !== undefined || item.alcance !== undefined) && (
-                            <div className="text-[10px] font-mono text-outline flex gap-3 flex-wrap text-left">
+                            <div className="text-micro font-mono text-outline flex gap-3 flex-wrap text-left">
                               {item.dano !== undefined && item.dano !== null && item.dano !== "" && (
                                 <span>Dano: <strong className="text-on-surface">{item.dano}</strong></span>
                               )}
@@ -8595,7 +8595,7 @@ export default function CharacterEditorView({
 
                           {/* Modificador for Mobile */}
                           <div className="flex sm:hidden flex-col gap-1 items-start justify-start mt-1 w-full text-left">
-                            <span className="text-[10px] font-bold text-outline font-sans uppercase tracking-wider">Modificador</span>
+                            <span className="text-micro font-bold text-outline font-sans uppercase tracking-wider">Modificador</span>
                             <CustomSelect
                               disabled={isLocked || userRole === 'dm' || isRemoved}
                               value={item.modificador || ""}
@@ -8615,7 +8615,7 @@ export default function CharacterEditorView({
 
                           {/* Separator and Efeitos Section */}
                           <div className="border-t border-outline-variant/30 my-1.5" />
-                          <div className="text-[10px] font-sans text-outline text-left space-y-1.5">
+                          <div className="text-micro font-sans text-outline text-left space-y-1.5">
                             <span className="font-bold uppercase tracking-wider block text-on-surface-variant/70">Efeitos</span>
                             {(() => {
                               const acLevel = getAcertoCriticoLevel(editedChar.aprimoramentosPositivos);
@@ -8625,7 +8625,7 @@ export default function CharacterEditorView({
                               const hasAcuide = hasAcuideArmaEnhancement(editedChar.aprimoramentosPositivos);
                               
                               if (acLevel === null && magicLevel === null && malditoLevel === null && (!hasAP || item.isCustom) && (!hasAcuide || item.isCustom)) {
-                                return <span className="text-[10px] text-outline-variant/50 italic">Nenhum efeito ativo</span>;
+                                return <span className="text-micro text-outline-variant/50 italic">Nenhum efeito ativo</span>;
                               }
 
                               const renderAcertoCritico = () => {
@@ -8646,10 +8646,10 @@ export default function CharacterEditorView({
                                       onClick={() => handleToggleAcertoCriticoOnWeapon(idx, acLevel)}
                                       className={`w-full text-left p-1.5 border transition-all rounded-none flex items-center justify-between group/effect ${borderStyleClass} ${(isLocked || userRole === 'dm') ? 'pointer-events-none opacity-75' : 'cursor-pointer'}`}
                                     >
-                                      <span className="font-mono text-[9px] font-bold uppercase tracking-wider">
+                                      <span className="font-mono text-micro font-bold uppercase tracking-wider">
                                         Acerto Crítico Aprimorado - Nível {acLevel}
                                       </span>
-                                      <span className="text-[8px] text-blue-400 font-bold bg-blue-500/10 px-1 py-0.5 border border-blue-500/30">
+                                      <span className="text-micro text-blue-400 font-bold bg-blue-500/10 px-1 py-0.5 border border-blue-500/30">
                                         Ativo
                                       </span>
                                     </button>
@@ -8662,10 +8662,10 @@ export default function CharacterEditorView({
                                       onClick={() => handleToggleAcertoCriticoOnWeapon(idx, acLevel)}
                                       className={`w-full text-left p-1.5 bg-surface-container-high/30 border border-outline-variant hover:border-blue-500/50 text-outline hover:text-on-surface transition-all rounded-none flex items-center justify-between group/effect ${(isLocked || userRole === 'dm') ? 'pointer-events-none opacity-60' : 'cursor-pointer'}`}
                                     >
-                                      <span className="font-mono text-[9px] uppercase tracking-wider">
+                                      <span className="font-mono text-micro uppercase tracking-wider">
                                         Acerto Crítico Aprimorado - Nível {acLevel}
                                       </span>
-                                      <span className="text-[8px] text-outline-variant group-hover/effect:text-blue-400 font-mono">
+                                      <span className="text-micro text-outline-variant group-hover/effect:text-blue-400 font-mono">
                                         + Ativar
                                       </span>
                                     </button>
@@ -8692,10 +8692,10 @@ export default function CharacterEditorView({
                                       onClick={() => handleToggleArmaAmuletoMagicoOnItem(idx, magicLevel)}
                                       className={`w-full text-left p-1.5 border transition-all rounded-none flex items-center justify-between group/effect ${borderStyleClass} ${(isLocked || userRole === 'dm') ? 'pointer-events-none opacity-75' : 'cursor-pointer'}`}
                                     >
-                                      <span className="font-mono text-[9px] font-bold uppercase tracking-wider">
+                                      <span className="font-mono text-micro font-bold uppercase tracking-wider">
                                         Arma ou Amuleto Mágico - Nível {magicLevel}
                                       </span>
-                                      <span className="text-[8px] text-cyan-400 font-bold bg-cyan-500/10 px-1 py-0.5 border border-cyan-500/30">
+                                      <span className="text-micro text-cyan-400 font-bold bg-cyan-500/10 px-1 py-0.5 border border-cyan-500/30">
                                         Ativo
                                       </span>
                                     </button>
@@ -8708,10 +8708,10 @@ export default function CharacterEditorView({
                                       onClick={() => handleToggleArmaAmuletoMagicoOnItem(idx, magicLevel)}
                                       className={`w-full text-left p-1.5 bg-surface-container-high/30 border border-outline-variant hover:border-cyan-500/50 text-outline hover:text-on-surface transition-all rounded-none flex items-center justify-between group/effect ${(isLocked || userRole === 'dm') ? 'pointer-events-none opacity-60' : 'cursor-pointer'}`}
                                     >
-                                      <span className="font-mono text-[9px] uppercase tracking-wider">
+                                      <span className="font-mono text-micro uppercase tracking-wider">
                                         Arma ou Amuleto Mágico - Nível {magicLevel}
                                       </span>
-                                      <span className="text-[8px] text-outline-variant group-hover/effect:text-cyan-400 font-mono">
+                                      <span className="text-micro text-outline-variant group-hover/effect:text-cyan-400 font-mono">
                                         + Ativar
                                       </span>
                                     </button>
@@ -8738,10 +8738,10 @@ export default function CharacterEditorView({
                                       onClick={() => handleToggleArmaAmuletoMalditoOnItem(idx, malditoLevel)}
                                       className={`w-full text-left p-1.5 border transition-all rounded-none flex items-center justify-between group/effect ${borderStyleClass} ${(isLocked || userRole === 'dm') ? 'pointer-events-none opacity-75' : 'cursor-pointer'}`}
                                     >
-                                      <span className="font-mono text-[9px] font-bold uppercase tracking-wider">
+                                      <span className="font-mono text-micro font-bold uppercase tracking-wider">
                                         Arma ou Amuleto Maldito - Nível {malditoLevel}
                                       </span>
-                                      <span className="text-[8px] text-red-400 font-bold bg-red-500/10 px-1 py-0.5 border border-red-500/30">
+                                      <span className="text-micro text-red-400 font-bold bg-red-500/10 px-1 py-0.5 border border-red-500/30">
                                         Ativo
                                       </span>
                                     </button>
@@ -8754,10 +8754,10 @@ export default function CharacterEditorView({
                                       onClick={() => handleToggleArmaAmuletoMalditoOnItem(idx, malditoLevel)}
                                       className={`w-full text-left p-1.5 bg-surface-container-high/30 border border-outline-variant hover:border-red-500/50 text-outline hover:text-on-surface transition-all rounded-none flex items-center justify-between group/effect ${(isLocked || userRole === 'dm') ? 'pointer-events-none opacity-60' : 'cursor-pointer'}`}
                                     >
-                                      <span className="font-mono text-[9px] uppercase tracking-wider">
+                                      <span className="font-mono text-micro uppercase tracking-wider">
                                         Arma ou Amuleto Maldito - Nível {malditoLevel}
                                       </span>
-                                      <span className="text-[8px] text-outline-variant group-hover/effect:text-red-400 font-mono">
+                                      <span className="text-micro text-outline-variant group-hover/effect:text-red-400 font-mono">
                                         + Ativar
                                       </span>
                                     </button>
@@ -8786,10 +8786,10 @@ export default function CharacterEditorView({
                                       onClick={() => handleToggleArmaPreferencialOnWeapon(idx)}
                                       className={`w-full text-left p-1.5 border transition-all rounded-none flex items-center justify-between group/effect ${borderStyleClass} ${(isLocked || userRole === 'dm') ? 'pointer-events-none opacity-75' : 'cursor-pointer'}`}
                                     >
-                                      <span className="font-mono text-[9px] font-bold uppercase tracking-wider">
+                                      <span className="font-mono text-micro font-bold uppercase tracking-wider">
                                         Arma Preferencial
                                       </span>
-                                      <span className="text-[8px] text-secondary font-bold bg-amber-500/10 px-1 py-0.5 border border-amber-500/30">
+                                      <span className="text-micro text-secondary font-bold bg-amber-500/10 px-1 py-0.5 border border-amber-500/30">
                                         Ativo
                                       </span>
                                     </button>
@@ -8802,10 +8802,10 @@ export default function CharacterEditorView({
                                       onClick={() => handleToggleArmaPreferencialOnWeapon(idx)}
                                       className={`w-full text-left p-1.5 bg-surface-container-high/30 border border-outline-variant hover:border-amber-500/50 text-outline hover:text-on-surface transition-all rounded-none flex items-center justify-between group/effect ${(isLocked || userRole === 'dm') ? 'pointer-events-none opacity-60' : 'cursor-pointer'}`}
                                     >
-                                      <span className="font-mono text-[9px] uppercase tracking-wider">
+                                      <span className="font-mono text-micro uppercase tracking-wider">
                                         Arma Preferencial
                                       </span>
-                                      <span className="text-[8px] text-outline-variant group-hover/effect:text-secondary font-mono">
+                                      <span className="text-micro text-outline-variant group-hover/effect:text-secondary font-mono">
                                         + Ativar
                                       </span>
                                     </button>
@@ -8832,10 +8832,10 @@ export default function CharacterEditorView({
                                       onClick={() => handleToggleAcuideArmaOnWeapon(idx)}
                                       className={`w-full text-left p-1.5 border transition-all rounded-none flex items-center justify-between group/effect ${borderStyleClass} ${(isLocked || userRole === 'dm') ? 'pointer-events-none opacity-75' : 'cursor-pointer'}`}
                                     >
-                                      <span className="font-mono text-[9px] font-bold uppercase tracking-wider">
+                                      <span className="font-mono text-micro font-bold uppercase tracking-wider">
                                         Acuide com Arma
                                       </span>
-                                      <span className="text-[8px] text-cyan-400 font-bold bg-cyan-500/10 px-1 py-0.5 border border-cyan-500/30">
+                                      <span className="text-micro text-cyan-400 font-bold bg-cyan-500/10 px-1 py-0.5 border border-cyan-500/30">
                                         Ativo
                                       </span>
                                     </button>
@@ -8848,10 +8848,10 @@ export default function CharacterEditorView({
                                       onClick={() => handleToggleAcuideArmaOnWeapon(idx)}
                                       className={`w-full text-left p-1.5 bg-surface-container-high/30 border border-outline-variant hover:border-cyan-500/50 text-outline hover:text-on-surface transition-all rounded-none flex items-center justify-between group/effect ${(isLocked || userRole === 'dm') ? 'pointer-events-none opacity-60' : 'cursor-pointer'}`}
                                     >
-                                      <span className="font-mono text-[9px] uppercase tracking-wider">
+                                      <span className="font-mono text-micro uppercase tracking-wider">
                                         Acuide com Arma
                                       </span>
-                                      <span className="text-[8px] text-outline-variant group-hover/effect:text-cyan-400 font-mono">
+                                      <span className="text-micro text-outline-variant group-hover/effect:text-cyan-400 font-mono">
                                         + Ativar
                                       </span>
                                     </button>
@@ -8866,7 +8866,7 @@ export default function CharacterEditorView({
                               const aaNode = renderAcuideArma();
 
                               if (!acNode && !magicNode && !malditoNode && !apNode && !aaNode) {
-                                return <span className="text-[10px] text-outline-variant/50 italic">Nenhum efeito ativo</span>;
+                                return <span className="text-micro text-outline-variant/50 italic">Nenhum efeito ativo</span>;
                               }
 
                               return (
@@ -9000,7 +9000,7 @@ export default function CharacterEditorView({
                               {/* Overlay for removed armor */}
                               {isRemoved && (
                                 <div className="absolute inset-0 bg-red-950/80 border border-red-500/50 flex flex-col items-center justify-center z-10 p-2 text-center">
-                                  <span className="bg-red-600 text-on-surface text-[10px] font-bold px-2 py-1 uppercase tracking-wider font-sans">
+                                  <span className="bg-red-600 text-on-surface text-micro font-bold px-2 py-1 uppercase tracking-wider font-sans">
                                     [REMOVIDO]
                                   </span>
                                 </div>
@@ -9015,21 +9015,21 @@ export default function CharacterEditorView({
                                   }`}>
                                     {armor.nome}
                                     {isReviewMode && (isAdded || isMoved) ? (
-                                      <span className="ml-1.5 text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
+                                      <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
                                         {isAdded ? "Novo" : "Movido"}
                                       </span>
                                     ) : isAdded ? (
-                                      <span className="ml-1.5 text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                                      <span className="ml-1.5 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                                         Novo
                                       </span>
                                     ) : null}
                                     {isMoved && !isReviewMode && (
-                                      <span className="ml-1.5 text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                                      <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                                         Movido
                                       </span>
                                     )}
                                     {isRemoved && (
-                                      <span className="ml-1.5 text-[8px] bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
+                                      <span className="ml-1.5 text-micro bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
                                         Removido
                                       </span>
                                     )}
@@ -9054,8 +9054,8 @@ export default function CharacterEditorView({
                                 </div>
 
                                 {/* Row 2: Categoria */}
-                                <div className="text-left text-[10px] font-mono text-outline">
-                                  <span className="text-[9px] bg-surface-container/30 text-secondary border border-outline-variant/60 px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">
+                                <div className="text-left text-micro font-mono text-outline">
+                                  <span className="text-micro bg-surface-container/30 text-secondary border border-outline-variant/60 px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">
                                     {categoryText}
                                   </span>
                                 </div>
@@ -9068,13 +9068,13 @@ export default function CharacterEditorView({
                                 {/* Row 4: IP:N    DEX:N   AGI:N */}
                                 <div className="text-xs text-outline font-mono flex items-center justify-start gap-4 whitespace-nowrap overflow-hidden">
                                   <span>IP: <strong className="text-on-surface">{armor.ip}</strong></span>
-                                  <span>DEX: <strong className={finalDex < 0 ? "text-red-400" : ""}>{finalDex}</strong> {isObraPrima && <span className="text-green-400 text-[10px]">(-1)</span>}</span>
-                                  <span>AGI: <strong className={finalAgi < 0 ? "text-red-400" : ""}>{finalAgi}</strong> {isObraPrima && <span className="text-green-400 text-[10px]">(-1)</span>}</span>
+                                  <span>DEX: <strong className={finalDex < 0 ? "text-red-400" : ""}>{finalDex}</strong> {isObraPrima && <span className="text-green-400 text-micro">(-1)</span>}</span>
+                                  <span>AGI: <strong className={finalAgi < 0 ? "text-red-400" : ""}>{finalAgi}</strong> {isObraPrima && <span className="text-green-400 text-micro">(-1)</span>}</span>
                                 </div>
 
                                 {/* Row 5: Modificador dropdown */}
                                 <div className="flex flex-col gap-1 items-start justify-start mt-1 w-full text-left">
-                                  <span className="text-[10px] font-bold text-outline font-sans uppercase tracking-wider">Modificador</span>
+                                  <span className="text-micro font-bold text-outline font-sans uppercase tracking-wider">Modificador</span>
                                   <div className="flex items-center gap-2 w-full">
                                     <CustomSelect
                                       disabled={isLocked || userRole === 'dm'}
@@ -9112,21 +9112,21 @@ export default function CharacterEditorView({
                                     <span className={`text-sm font-bold ${armor.isEquipped ? 'text-green-400' : (isReviewMode && (isAdded || isMoved)) ? 'text-secondary' : 'text-on-surface'}`}>
                                       {armor.nome}
                                       {isReviewMode && (isAdded || isMoved) ? (
-                                        <span className="ml-1.5 text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
+                                        <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
                                           {isAdded ? "Novo" : "Movido"}
                                         </span>
                                       ) : isAdded ? (
-                                        <span className="ml-1.5 text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                                        <span className="ml-1.5 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                                           Novo
                                         </span>
                                       ) : null}
                                       {isMoved && !isReviewMode && (
-                                        <span className="ml-1.5 text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                                        <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                                           Movido
                                         </span>
                                       )}
                                       {isRemoved && (
-                                        <span className="ml-1.5 text-[8px] bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
+                                        <span className="ml-1.5 text-micro bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
                                           Removido
                                         </span>
                                       )}
@@ -9162,20 +9162,20 @@ export default function CharacterEditorView({
                                     </div>
                                   </div>
 
-                                  <div className="text-[10px] font-mono text-outline flex gap-2">
-                                    <span className="text-[9px] bg-surface-container/30 text-secondary border border-outline-variant/60 px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">
+                                  <div className="text-micro font-mono text-outline flex gap-2">
+                                    <span className="text-micro bg-surface-container/30 text-secondary border border-outline-variant/60 px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">
                                       {categoryText}
                                     </span>
                                   </div>
 
-                                  <div className="text-[10px] font-sans text-outline">
+                                  <div className="text-micro font-sans text-outline">
                                     Tipo: <span className="text-on-surface font-medium">{armor.slot ? capitalizeFirstLetter(armor.slot) : 'Corpo'}</span>
                                   </div>
 
-                                  <div className="text-[10px] font-mono text-outline flex gap-3 flex-wrap">
+                                  <div className="text-micro font-mono text-outline flex gap-3 flex-wrap">
                                     <span>IP: <strong className="text-on-surface">{armor.ip}</strong></span>
-                                    <span>DEX: <strong className={finalDex < 0 ? "text-red-400" : ""}>{finalDex}</strong> {isObraPrima && <span className="text-green-400 text-[10px]">(-1)</span>}</span>
-                                    <span>AGI: <strong className={finalAgi < 0 ? "text-red-400" : ""}>{finalAgi}</strong> {isObraPrima && <span className="text-green-400 text-[10px]">(-1)</span>}</span>
+                                    <span>DEX: <strong className={finalDex < 0 ? "text-red-400" : ""}>{finalDex}</strong> {isObraPrima && <span className="text-green-400 text-micro">(-1)</span>}</span>
+                                    <span>AGI: <strong className={finalAgi < 0 ? "text-red-400" : ""}>{finalAgi}</strong> {isObraPrima && <span className="text-green-400 text-micro">(-1)</span>}</span>
                                   </div>
                                 </div>
                                 
@@ -9220,7 +9220,7 @@ export default function CharacterEditorView({
                             {/* Overlay for removed armadura/escudo from items list */}
                             {isRemoved && (
                               <div className="absolute inset-0 bg-red-950/80 border border-red-500/50 flex flex-col items-center justify-center z-10 p-2 text-center">
-                                <span className="bg-red-600 text-on-surface text-[10px] font-bold px-2 py-1 uppercase tracking-wider font-sans">
+                                <span className="bg-red-600 text-on-surface text-micro font-bold px-2 py-1 uppercase tracking-wider font-sans">
                                   [REMOVIDO]
                                 </span>
                               </div>
@@ -9229,25 +9229,25 @@ export default function CharacterEditorView({
                               <p className={`text-sm font-bold font-sans ${isRemoved ? 'text-red-400 line-through' : (isReviewMode && isAdded) ? 'text-secondary' : isAdded ? 'text-emerald-400' : 'text-on-surface'}`}>
                                 {item.item}
                                 {isReviewMode && isAdded ? (
-                                  <span className="ml-1.5 text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
+                                  <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
                                     Novo
                                   </span>
                                 ) : isAdded ? (
-                                  <span className="ml-1.5 text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                                  <span className="ml-1.5 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                                     Novo
                                   </span>
                                 ) : null}
                                 {isRemoved && (
-                                  <span className="ml-1.5 text-[8px] bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
+                                  <span className="ml-1.5 text-micro bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
                                     Removido
                                   </span>
                                 )}
                               </p>
                               {item.descricao && (
-                                <p className={`text-[11px] italic mt-0.5 ${isRemoved ? 'text-red-400/80 line-through' : 'text-outline'}`}>{item.descricao}</p>
+                                <p className={`text-caption italic mt-0.5 ${isRemoved ? 'text-red-400/80 line-through' : 'text-outline'}`}>{item.descricao}</p>
                               )}
                               {item.preco && (
-                                <p className="text-[10px] text-outline font-mono mt-0.5 flex items-center gap-1">
+                                <p className="text-micro text-outline font-mono mt-0.5 flex items-center gap-1">
                                   Preço: <span className="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block shrink-0"></span> {item.preco} Prata
                                 </p>
                               )}
@@ -9318,7 +9318,7 @@ export default function CharacterEditorView({
                           {/* Overlay for removed item */}
                           {isRemoved && (
                             <div className="absolute inset-0 bg-red-950/80 border border-red-500/50 flex flex-col items-center justify-center z-10 p-2 text-center">
-                              <span className="bg-red-600 text-on-surface text-[10px] font-bold px-2 py-1 uppercase tracking-wider font-sans">
+                              <span className="bg-red-600 text-on-surface text-micro font-bold px-2 py-1 uppercase tracking-wider font-sans">
                                 [REMOVIDO]
                               </span>
                             </div>
@@ -9331,27 +9331,27 @@ export default function CharacterEditorView({
                                 }`}>
                                   {name}
                                   {isAdded && (
-                                    <span className="ml-1.5 text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                                    <span className="ml-1.5 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                                       Novo
                                     </span>
                                   )}
                                   {isRemoved && (
-                                    <span className="ml-1.5 text-[8px] bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
+                                    <span className="ml-1.5 text-micro bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
                                       Removido
                                     </span>
                                   )}
                                 </p>
                                 {category && (
-                                  <span className="text-[9px] bg-amber-500/10 text-secondary px-1 py-0.5 font-mono uppercase tracking-wider shrink-0">
+                                  <span className="text-micro bg-amber-500/10 text-secondary px-1 py-0.5 font-mono uppercase tracking-wider shrink-0">
                                     {category}
                                   </span>
                                 )}
                               </div>
                               {desc && (
-                                <p className={`text-[11px] italic mt-0.5 line-clamp-2 ${isRemoved ? 'text-red-400/80 line-through' : 'text-outline'}`}>{desc}</p>
+                                <p className={`text-caption italic mt-0.5 line-clamp-2 ${isRemoved ? 'text-red-400/80 line-through' : 'text-outline'}`}>{desc}</p>
                               )}
                               {typeof item === 'object' && item.preco && (
-                                <p className="text-[10px] text-outline font-mono mt-0.5 flex items-center gap-1">
+                                <p className="text-micro text-outline font-mono mt-0.5 flex items-center gap-1">
                                   Preço: <span className="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block shrink-0"></span> {item.preco} Prata
                                 </p>
                               )}
@@ -9400,10 +9400,10 @@ export default function CharacterEditorView({
                                     onClick={() => handleToggleArmaAmuletoMagicoOnItem(idx, magicLevel)}
                                     className="w-full text-left p-1.5 bg-cyan-500/10 border border-cyan-500 text-cyan-300 transition-all rounded-none flex items-center justify-between group/effect hover:bg-cyan-500/20 disabled:pointer-events-none disabled:opacity-60"
                                   >
-                                    <span className="font-mono text-[9px] font-bold uppercase tracking-wider">
+                                    <span className="font-mono text-micro font-bold uppercase tracking-wider">
                                       Arma ou Amuleto Mágico - Nível {magicLevel}
                                     </span>
-                                    <span className="text-[8px] text-cyan-400 font-bold bg-cyan-500/10 px-1 py-0.5 border border-cyan-500/30">
+                                    <span className="text-micro text-cyan-400 font-bold bg-cyan-500/10 px-1 py-0.5 border border-cyan-500/30">
                                       Ativo
                                     </span>
                                   </button>
@@ -9416,10 +9416,10 @@ export default function CharacterEditorView({
                                     onClick={() => handleToggleArmaAmuletoMagicoOnItem(idx, magicLevel)}
                                     className="w-full text-left p-1.5 bg-surface-container-high/30 border border-outline-variant hover:border-cyan-500/50 text-outline hover:text-on-surface transition-all rounded-none flex items-center justify-between group/effect disabled:pointer-events-none disabled:opacity-60"
                                   >
-                                    <span className="font-mono text-[9px] uppercase tracking-wider">
+                                    <span className="font-mono text-micro uppercase tracking-wider">
                                       Arma ou Amuleto Mágico - Nível {magicLevel}
                                     </span>
-                                    <span className="text-[8px] text-outline-variant group-hover/effect:text-cyan-400 font-mono">
+                                    <span className="text-micro text-outline-variant group-hover/effect:text-cyan-400 font-mono">
                                       + Ativar
                                     </span>
                                   </button>
@@ -9441,10 +9441,10 @@ export default function CharacterEditorView({
                                     onClick={() => handleToggleArmaAmuletoMalditoOnItem(idx, malditoLevel)}
                                     className="w-full text-left p-1.5 bg-red-500/10 border border-red-500 text-red-300 transition-all rounded-none flex items-center justify-between group/effect hover:bg-red-500/20 disabled:pointer-events-none disabled:opacity-60"
                                   >
-                                    <span className="font-mono text-[9px] font-bold uppercase tracking-wider">
+                                    <span className="font-mono text-micro font-bold uppercase tracking-wider">
                                       Arma ou Amuleto Maldito - Nível {malditoLevel}
                                     </span>
-                                    <span className="text-[8px] text-red-400 font-bold bg-red-500/10 px-1 py-0.5 border border-red-500/30">
+                                    <span className="text-micro text-red-400 font-bold bg-red-500/10 px-1 py-0.5 border border-red-500/30">
                                       Ativo
                                     </span>
                                   </button>
@@ -9457,10 +9457,10 @@ export default function CharacterEditorView({
                                     onClick={() => handleToggleArmaAmuletoMalditoOnItem(idx, malditoLevel)}
                                     className="w-full text-left p-1.5 bg-surface-container-high/30 border border-outline-variant hover:border-red-500/50 text-outline hover:text-on-surface transition-all rounded-none flex items-center justify-between group/effect disabled:pointer-events-none disabled:opacity-60"
                                   >
-                                    <span className="font-mono text-[9px] uppercase tracking-wider">
+                                    <span className="font-mono text-micro uppercase tracking-wider">
                                       Arma ou Amuleto Maldito - Nível {malditoLevel}
                                     </span>
-                                    <span className="text-[8px] text-outline-variant group-hover/effect:text-red-400 font-mono">
+                                    <span className="text-micro text-outline-variant group-hover/effect:text-red-400 font-mono">
                                       + Ativar
                                     </span>
                                   </button>
@@ -9475,7 +9475,7 @@ export default function CharacterEditorView({
                             if (!magicNode && !malditoNode) return null;
 
                             return (
-                              <div className="pt-1.5 border-t border-outline-variant/30 text-[10px] font-sans text-outline text-left space-y-1.5">
+                              <div className="pt-1.5 border-t border-outline-variant/30 text-micro font-sans text-outline text-left space-y-1.5">
                                 <span className="font-bold uppercase tracking-wider block text-on-surface-variant/70">Efeitos</span>
                                 {magicNode}
                                 {malditoNode}
@@ -9499,7 +9499,7 @@ export default function CharacterEditorView({
           Tesouro
         </h3>
         <div className="bg-surface-container-lowest border border-outline-variant overflow-x-auto">
-          <table className="w-full text-[10px] font-sans border-collapse">
+          <table className="w-full text-micro font-sans border-collapse">
             <thead>
               <tr className="bg-surface-container-highest text-on-surface-variant font-bold tracking-widest uppercase">
                 <th className="p-3 text-left">MOEDA</th>
@@ -9524,7 +9524,7 @@ export default function CharacterEditorView({
                     className={`w-full bg-transparent text-center border-none p-1 font-mono font-bold text-secondary text-sm focus:ring-0 outline-none disabled:opacity-75 ${String(editedChar.treasure?.ouro ?? '').length >= 50 ? '!text-red-500' : ''}`}
                   />
 {String(editedChar.treasure?.ouro ?? '').length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -9549,7 +9549,7 @@ export default function CharacterEditorView({
                     className={`w-full bg-transparent text-center border-none p-1 font-mono font-bold text-secondary text-sm focus:ring-0 outline-none disabled:opacity-75 ${String(editedChar.treasure?.prata ?? '').length >= 50 ? '!text-red-500' : ''}`}
                   />
 {String(editedChar.treasure?.prata ?? '').length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -9574,7 +9574,7 @@ export default function CharacterEditorView({
                     className={`w-full bg-transparent text-center border-none p-1 font-mono font-bold text-secondary text-sm focus:ring-0 outline-none disabled:opacity-75 ${String(editedChar.treasure?.bronze ?? '').length >= 50 ? '!text-red-500' : ''}`}
                   />
 {String(editedChar.treasure?.bronze ?? '').length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -9787,7 +9787,7 @@ export default function CharacterEditorView({
             <div className="flex flex-col gap-3">
               {/* Campaign Selector on Mobile (Opções da Ficha) */}
               <div className="flex flex-col gap-1.5 p-2.5 bg-surface-container-low border border-outline-variant/40">
-                <label className="text-[11px] font-sans font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                <label className="text-caption font-sans font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-sm">map</span>
                   Campanha
                 </label>
@@ -9934,7 +9934,7 @@ export default function CharacterEditorView({
               {/* Introduction - Non-collapsible */}
               {comoJogarIntro && (
                 <div className="bg-surface-container-high border-l-4 border-primary p-4 space-y-2">
-                  <h4 className="font-serif text-base text-primary uppercase tracking-wide font-medium">
+                  <h4 className="font-serif text-base text-primary uppercase tracking-wider font-medium">
                     {comoJogarIntro.title}
                   </h4>
                   <div className="text-xs text-on-surface-variant/90 leading-relaxed">
@@ -9988,8 +9988,8 @@ export default function CharacterEditorView({
                               <ReactMarkdown
                                 components={{
                                   h1: ({node, ...props}) => <h1 className="font-serif text-sm text-primary uppercase tracking-wider mt-4 mb-2 border-b border-outline-variant/20 pb-1" {...props} />,
-                                  h2: ({node, ...props}) => <h2 className="font-serif text-xs text-primary uppercase tracking-wide mt-3 mb-1.5" {...props} />,
-                                  h3: ({node, ...props}) => <h3 className="font-serif text-[11px] text-primary uppercase tracking-wider mt-3 mb-1" {...props} />,
+                                  h2: ({node, ...props}) => <h2 className="font-serif text-xs text-primary uppercase tracking-wider mt-3 mb-1.5" {...props} />,
+                                  h3: ({node, ...props}) => <h3 className="font-serif text-caption text-primary uppercase tracking-wider mt-3 mb-1" {...props} />,
                                   h4: ({node, ...props}) => <h4 className="font-sans text-xs text-primary font-bold mt-2.5 mb-1" {...props} />,
                                   p: ({node, ...props}) => <p className="mb-2 leading-relaxed" {...props} />,
                                   ul: ({node, ...props}) => <ul className="list-disc list-inside space-y-1 my-2 pl-1" {...props} />,
@@ -10040,11 +10040,11 @@ export default function CharacterEditorView({
               <ReactMarkdown
                 components={{
                   h1: ({node, ...props}) => <h1 className="font-serif text-sm text-primary uppercase tracking-wider mt-4 mb-2 border-b border-outline-variant/20 pb-1" {...props} />,
-                  h2: ({node, ...props}) => <h2 className="font-serif text-xs text-primary uppercase tracking-wide mt-4 mb-1" {...props} />,
+                  h2: ({node, ...props}) => <h2 className="font-serif text-xs text-primary uppercase tracking-wider mt-4 mb-1" {...props} />,
                   h3: ({node, ...props}) => <h3 className="font-sans text-xs text-primary font-bold mt-3 mb-1" {...props} />,
-                  p: ({node, ...props}) => <p className="font-sans text-[11px] text-on-surface-variant/90 leading-relaxed mb-3" {...props} />,
+                  p: ({node, ...props}) => <p className="font-sans text-caption text-on-surface-variant/90 leading-relaxed mb-3" {...props} />,
                   ul: ({node, ...props}) => <ul className="list-disc list-inside space-y-1.5 mb-3 pl-2" {...props} />,
-                  li: ({node, ...props}) => <li className="font-sans text-[11px] text-on-surface-variant/80" {...props} />,
+                  li: ({node, ...props}) => <li className="font-sans text-caption text-on-surface-variant/80" {...props} />,
                   strong: ({node, ...props}) => <strong className="text-on-surface font-bold" {...props} />,
                   hr: ({node, ...props}) => <hr className="border-outline-variant/20 my-4" {...props} />,
                 }}
@@ -10103,7 +10103,7 @@ export default function CharacterEditorView({
                       </h4>
                     </div>
                     <div className="flex items-center gap-3 select-none">
-                      <div className="font-mono text-[10px] text-on-surface-variant">
+                      <div className="font-mono text-micro text-on-surface-variant">
                         Total: <strong className={isFocusAllocationOverspent ? "text-red-400" : "text-[#4cc9f0]"}>{currentTotalTempFocus} / {totalFocusPoints}</strong> pontos
                       </div>
                       <span className="material-symbols-outlined text-outline group-hover:text-on-surface transition-colors text-sm">
@@ -10114,7 +10114,7 @@ export default function CharacterEditorView({
 
                   {isFocusAllocationExpanded && (
                     <div className="space-y-4 pt-3 border-t border-outline-variant/20 animate-fadeIn">
-                      <p className="font-sans text-[11px] text-on-surface-variant leading-relaxed">
+                      <p className="font-sans text-caption text-on-surface-variant leading-relaxed">
                         Distribua seus pontos de Focus e Fé entre as Formas e Caminhos. O somatório não pode exceder seus pontos totais.
                       </p>
 
@@ -10122,10 +10122,10 @@ export default function CharacterEditorView({
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {/* CRIAR */}
                         <div className={highlightDirectClass(isCriarChanged, 'p-3 sm:p-2.5 flex flex-row sm:flex-col items-center justify-between gap-3 sm:gap-2 rounded-sm border transition-all bg-surface-container border-outline-variant/40')}>
-                          <span className="font-sans text-[10px] sm:text-[9px] font-bold text-outline uppercase tracking-wider flex items-center gap-1.5 flex-wrap">
+                          <span className="font-sans text-micro sm:text-micro font-bold text-outline uppercase tracking-wider flex items-center gap-1.5 flex-wrap">
                             <span>CRIAR</span>
                             {isCriarChanged && (
-                              <span className="text-[8px] text-amber-500 font-mono font-bold lowercase normal-case tracking-normal">
+                              <span className="text-micro text-amber-500 font-mono font-bold lowercase normal-case tracking-normal">
                                 (antes: {Number(originalChar?.focusAllocation?.criar) || 0})
                               </span>
                             )}
@@ -10163,10 +10163,10 @@ export default function CharacterEditorView({
 
                         {/* CONTROLAR */}
                         <div className={highlightDirectClass(isControlarChanged, 'p-3 sm:p-2.5 flex flex-row sm:flex-col items-center justify-between gap-3 sm:gap-2 rounded-sm border transition-all bg-surface-container border-outline-variant/40')}>
-                          <span className="font-sans text-[10px] sm:text-[9px] font-bold text-outline uppercase tracking-wider flex items-center gap-1.5 flex-wrap">
+                          <span className="font-sans text-micro sm:text-micro font-bold text-outline uppercase tracking-wider flex items-center gap-1.5 flex-wrap">
                             <span>CONTROLAR</span>
                             {isControlarChanged && (
-                              <span className="text-[8px] text-amber-500 font-mono font-bold lowercase normal-case tracking-normal">
+                              <span className="text-micro text-amber-500 font-mono font-bold lowercase normal-case tracking-normal">
                                 (antes: {Number(originalChar?.focusAllocation?.controlar) || 0})
                               </span>
                             )}
@@ -10204,10 +10204,10 @@ export default function CharacterEditorView({
 
                         {/* ENTENDER */}
                         <div className={highlightDirectClass(isEntenderChanged, 'p-3 sm:p-2.5 flex flex-row sm:flex-col items-center justify-between gap-3 sm:gap-2 rounded-sm border transition-all bg-surface-container border-outline-variant/40')}>
-                          <span className="font-sans text-[10px] sm:text-[9px] font-bold text-outline uppercase tracking-wider flex items-center gap-1.5 flex-wrap">
+                          <span className="font-sans text-micro sm:text-micro font-bold text-outline uppercase tracking-wider flex items-center gap-1.5 flex-wrap">
                             <span>ENTENDER</span>
                             {isEntenderChanged && (
-                              <span className="text-[8px] text-amber-500 font-mono font-bold lowercase normal-case tracking-normal">
+                              <span className="text-micro text-amber-500 font-mono font-bold lowercase normal-case tracking-normal">
                                 (antes: {Number(originalChar?.focusAllocation?.entender) || 0})
                               </span>
                             )}
@@ -10247,7 +10247,7 @@ export default function CharacterEditorView({
                       {/* Caminhos list section */}
                       <div className="space-y-3">
                         <div className="flex justify-between items-center border-b border-outline-variant/20 pb-1">
-                          <h5 className="font-serif text-[10px] text-primary uppercase tracking-wider font-bold">Caminhos de Focus</h5>
+                          <h5 className="font-serif text-micro text-primary uppercase tracking-wider font-bold">Caminhos de Focus</h5>
                           {!isLocked && (
                             <button
                               type="button"
@@ -10260,7 +10260,7 @@ export default function CharacterEditorView({
                                 }
                               }}
                               disabled={tempCaminhos.length >= 12}
-                              className="flex items-center gap-1 px-2.5 py-1 text-[9px] border border-[#4cc9f0]/40 text-[#4cc9f0] hover:bg-surface-container/10 hover:border-[#4cc9f0] transition-colors uppercase font-bold cursor-pointer disabled:opacity-50"
+                              className="flex items-center gap-1 px-2.5 py-1 text-micro border border-[#4cc9f0]/40 text-[#4cc9f0] hover:bg-surface-container/10 hover:border-[#4cc9f0] transition-colors uppercase font-bold cursor-pointer disabled:opacity-50"
                             >
                               <span className="material-symbols-outlined text-xs">add</span>
                               <span>caminho</span>
@@ -10337,10 +10337,10 @@ export default function CharacterEditorView({
                                   {/* Overlay for removed path */}
                                   {isRemoved && (
                                     <div className="absolute inset-0 bg-red-950/85 border border-red-500/50 flex flex-col items-center justify-center z-10 p-2 text-center rounded-sm">
-                                      <span className="bg-red-600 text-on-surface text-[9px] font-bold px-2 py-0.5 uppercase tracking-wider font-sans rounded-sm">
+                                      <span className="bg-red-600 text-on-surface text-micro font-bold px-2 py-0.5 uppercase tracking-wider font-sans rounded-sm">
                                         [REMOVIDO]
                                       </span>
-                                      <span className="text-[10px] text-on-surface/70 mt-1 font-mono font-bold">
+                                      <span className="text-micro text-on-surface/70 mt-1 font-mono font-bold">
                                         {caminho.nome}: {caminho.valor}
                                       </span>
                                     </div>
@@ -10348,12 +10348,12 @@ export default function CharacterEditorView({
 
                                   {/* Badges for added / edited paths */}
                                   {isAdded && (
-                                    <span className="absolute top-2 right-2 text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                                    <span className="absolute top-2 right-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                                       Adicionado
                                     </span>
                                   )}
                                   {isEdited && (
-                                    <span className="absolute top-2 right-2 text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
+                                    <span className="absolute top-2 right-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
                                       Alterado
                                     </span>
                                   )}
@@ -10361,7 +10361,7 @@ export default function CharacterEditorView({
                                   <div className="flex flex-col gap-2">
                                     {/* Dropdown Select Path */}
                                     <div className="flex flex-col gap-1">
-                                      <label className="font-sans text-[9px] font-bold text-outline uppercase tracking-wider">Caminho Escolhido</label>
+                                      <label className="font-sans text-micro font-bold text-outline uppercase tracking-wider">Caminho Escolhido</label>
                                       <CustomSelect
                                         disabled={isLocked || isRemoved}
                                         value={caminho.nome}
@@ -10381,9 +10381,9 @@ export default function CharacterEditorView({
                                     {/* Numeric input Path Level */}
                                     <div className="flex items-center justify-between gap-3 mt-1">
                                       <div className="flex flex-col">
-                                        <label className="font-sans text-[10px] sm:text-[9px] font-bold text-outline uppercase tracking-wider">Nível</label>
+                                        <label className="font-sans text-micro sm:text-micro font-bold text-outline uppercase tracking-wider">Nível</label>
                                         {isEdited && (
-                                          <span className="text-[8px] text-amber-500 font-mono font-semibold select-none leading-none mt-0.5">
+                                          <span className="text-micro text-amber-500 font-mono font-semibold select-none leading-none mt-0.5">
                                             Antes: {(() => {
                                               const orig = originalChar?.focusAllocation?.caminhos?.find((o: any) => o.nome === caminho.nome);
                                               return orig ? orig.valor : 0;
@@ -10428,7 +10428,7 @@ export default function CharacterEditorView({
                                     const badge = getPathAffinityBadge(caminho.nome);
                                     if (badge) {
                                       return (
-                                        <div className={`p-1.5 border flex items-center justify-between gap-2 ${badge.bgClass} ${badge.borderClass} text-[8px] mt-1`}>
+                                        <div className={`p-1.5 border flex items-center justify-between gap-2 ${badge.bgClass} ${badge.borderClass} text-micro mt-1`}>
                                           <span className="font-sans text-on-surface-variant font-bold uppercase tracking-wider">Afinidade:</span>
                                           <span className={`px-1 py-0.2 font-sans font-bold uppercase tracking-widest border ${badge.textClass} ${badge.borderClass}`}>
                                             {badge.label.replace('Canônico / ', '')}
@@ -10448,13 +10448,13 @@ export default function CharacterEditorView({
                       {/* Warning Messages and Save Buttons */}
                       <div className="pt-1.5 space-y-2">
                         {isFocusAllocationOverspent && (
-                          <div className="p-2 bg-red-950/40 border border-red-800 text-red-400 font-sans text-[11px] flex items-center gap-2">
+                          <div className="p-2 bg-red-950/40 border border-red-800 text-red-400 font-sans text-caption flex items-center gap-2">
                             <span className="material-symbols-outlined text-sm">warning</span>
                             <span>Pontos excedidos! Você distribuiu {currentTotalTempFocus} de {totalFocusPoints} pontos.</span>
                           </div>
                         )}
                         {!isFocusAllocationOverspent && (!hasAtLeastOneForm || !hasAtLeastOnePath) && (
-                          <div className="p-2 bg-amber-950/40 border border-amber-800 text-[#ffe082] font-sans text-[11px] flex items-center gap-2 leading-relaxed">
+                          <div className="p-2 bg-amber-950/40 border border-amber-800 text-[#ffe082] font-sans text-caption flex items-center gap-2 leading-relaxed">
                             <span className="material-symbols-outlined text-sm">info</span>
                             <span>Selecione pelo menos uma Forma (Criar/Controlar/Entender) e um Caminho.</span>
                           </div>
@@ -10492,7 +10492,7 @@ export default function CharacterEditorView({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Nome do Feitiço */}
                     <div className="col-span-1 sm:col-start-1 sm:row-start-1 flex flex-col gap-1">
-                      <label className="font-sans text-[10px] font-bold text-outline uppercase tracking-widest">
+                      <label className="font-sans text-micro font-bold text-outline uppercase tracking-widest">
                         Nome do Feitiço
                       </label>
                       <>
@@ -10504,7 +10504,7 @@ export default function CharacterEditorView({
                         className={`w-full bg-surface-container border border-outline-variant/60 p-2 text-on-surface font-sans text-sm focus:ring-1 focus:ring-primary outline-none ${editingSpell?.name?.length >= 50 ? '!text-red-500' : ''}`}
                       />
                       {editingSpell?.name?.length >= 50 && (
-                        <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+                        <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
                           Limite atingido (50)
                         </div>
                       )}
@@ -10514,7 +10514,7 @@ export default function CharacterEditorView({
 
                     {/* Forma & Caminho with Granular Fields & Limits Validation */}
                     <div className="col-span-1 sm:col-start-2 sm:row-start-1 sm:row-span-4 flex flex-col gap-2">
-                      <label className="font-sans text-[10px] font-bold text-outline uppercase tracking-widest border-b border-outline-variant/30 pb-1">
+                      <label className="font-sans text-micro font-bold text-outline uppercase tracking-widest border-b border-outline-variant/30 pb-1">
                         Forma & Caminho
                       </label>
                       <div className="space-y-2 bg-surface-container border border-outline-variant/40 p-3">
@@ -10522,7 +10522,7 @@ export default function CharacterEditorView({
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex flex-col">
                             <span className="font-sans text-xs font-medium text-on-surface uppercase">CRIAR</span>
-                            <span className="font-mono text-[9px] text-outline">Limite Alocado: {editedChar.focusAllocation?.criar || 0}</span>
+                            <span className="font-mono text-micro text-outline">Limite Alocado: {editedChar.focusAllocation?.criar || 0}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <button
@@ -10554,7 +10554,7 @@ export default function CharacterEditorView({
                         <div className="flex items-center justify-between gap-4 border-t border-outline-variant/20 pt-2">
                           <div className="flex flex-col">
                             <span className="font-sans text-xs font-medium text-on-surface uppercase">CONTROLAR</span>
-                            <span className="font-mono text-[9px] text-outline">Limite Alocado: {editedChar.focusAllocation?.controlar || 0}</span>
+                            <span className="font-mono text-micro text-outline">Limite Alocado: {editedChar.focusAllocation?.controlar || 0}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <button
@@ -10586,7 +10586,7 @@ export default function CharacterEditorView({
                         <div className="flex items-center justify-between gap-4 border-t border-outline-variant/20 pt-2">
                           <div className="flex flex-col">
                             <span className="font-sans text-xs font-medium text-on-surface uppercase">ENTENDER</span>
-                            <span className="font-mono text-[9px] text-outline">Limite Alocado: {editedChar.focusAllocation?.entender || 0}</span>
+                            <span className="font-mono text-micro text-outline">Limite Alocado: {editedChar.focusAllocation?.entender || 0}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <button
@@ -10627,7 +10627,7 @@ export default function CharacterEditorView({
                               <div key={idx} className="flex items-center justify-between gap-4 border-t border-outline-variant/20 pt-2">
                                 <div className="flex flex-col">
                                   <span className="font-sans text-xs font-medium text-[#4cc9f0] uppercase">{cam.nome}</span>
-                                  <span className="font-mono text-[9px] text-outline">Limite Alocado: {cam.valor}</span>
+                                  <span className="font-mono text-micro text-outline">Limite Alocado: {cam.valor}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <button
@@ -10666,7 +10666,7 @@ export default function CharacterEditorView({
 
                     {/* Custo em PM */}
                     <div className="col-span-1 sm:col-start-1 sm:row-start-2 flex flex-col gap-1">
-                      <label className="font-sans text-[10px] font-bold text-outline uppercase tracking-widest">
+                      <label className="font-sans text-micro font-bold text-outline uppercase tracking-widest">
                         Custo em PM
                       </label>
                       <input
@@ -10681,7 +10681,7 @@ export default function CharacterEditorView({
 
                     {/* Alcance (metros) */}
                     <div className="col-span-1 sm:col-start-1 sm:row-start-3 flex flex-col gap-1">
-                      <label className="font-sans text-[10px] font-bold text-outline uppercase tracking-widest">
+                      <label className="font-sans text-micro font-bold text-outline uppercase tracking-widest">
                         Alcance (metros)
                       </label>
                       <input
@@ -10700,12 +10700,12 @@ export default function CharacterEditorView({
 
                     {/* Duração (HH:MM:SS) */}
                     <div className="col-span-1 sm:col-start-1 sm:row-start-4 flex flex-col gap-1">
-                      <label className="font-sans text-[10px] font-bold text-outline uppercase tracking-widest">
+                      <label className="font-sans text-micro font-bold text-outline uppercase tracking-widest">
                         Duração
                       </label>
                       <div className="grid grid-cols-3 gap-2">
                         <div className="flex flex-col gap-0.5">
-                          <span className="font-sans text-[8px] font-semibold text-outline/70 text-center uppercase tracking-wider">Horas</span>
+                          <span className="font-sans text-micro font-semibold text-outline/70 text-center uppercase tracking-wider">Horas</span>
                           <input
                             type="number"
                             min="0"
@@ -10719,7 +10719,7 @@ export default function CharacterEditorView({
                           />
                         </div>
                         <div className="flex flex-col gap-0.5">
-                          <span className="font-sans text-[8px] font-semibold text-outline/70 text-center uppercase tracking-wider">Minutos</span>
+                          <span className="font-sans text-micro font-semibold text-outline/70 text-center uppercase tracking-wider">Minutos</span>
                           <input
                             type="number"
                             min="0"
@@ -10734,7 +10734,7 @@ export default function CharacterEditorView({
                           />
                         </div>
                         <div className="flex flex-col gap-0.5">
-                          <span className="font-sans text-[8px] font-semibold text-outline/70 text-center uppercase tracking-wider">Segundos</span>
+                          <span className="font-sans text-micro font-semibold text-outline/70 text-center uppercase tracking-wider">Segundos</span>
                           <input
                             type="number"
                             min="0"
@@ -10753,7 +10753,7 @@ export default function CharacterEditorView({
 
                     {/* Descrição / Efeito */}
                     <div className="col-span-1 sm:col-span-2 flex flex-col gap-1">
-                      <label className="font-sans text-[10px] font-bold text-outline uppercase tracking-widest">
+                      <label className="font-sans text-micro font-bold text-outline uppercase tracking-widest">
                         Efeito / Descrição
                       </label>
                       <>
@@ -10765,7 +10765,7 @@ export default function CharacterEditorView({
                         className={`w-full bg-surface-container border border-outline-variant/60 p-2 text-on-surface font-sans text-sm focus:ring-1 focus:ring-primary outline-none resize-none ${editingSpell?.description?.length >= 300 ? '!text-red-500' : ''}`}
                       />
                       {editingSpell?.description?.length >= 300 && (
-                        <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+                        <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
                           Limite atingido (300)
                         </div>
                       )}
@@ -10862,28 +10862,28 @@ export default function CharacterEditorView({
                               {/* Overlay for removed spell */}
                               {isRemoved && (
                                 <div className="absolute inset-0 bg-red-950/85 border border-red-500/50 flex flex-col items-center justify-center z-10 p-4 text-center">
-                                  <span className="bg-red-600 text-on-surface text-[9px] font-bold px-2 py-0.5 uppercase tracking-wider font-sans rounded-sm">
+                                  <span className="bg-red-600 text-on-surface text-micro font-bold px-2 py-0.5 uppercase tracking-wider font-sans rounded-sm">
                                     [REMOVIDO]
                                   </span>
                                   <span className="text-xs text-on-surface font-serif font-bold mt-2">
                                     {spell.name}
                                   </span>
-                                  <span className="text-[10px] text-on-surface/75 font-mono mt-1">
+                                  <span className="text-micro text-on-surface/75 font-mono mt-1">
                                     Foco: {spell.focus} | Custo: {spell.cost} PM
                                   </span>
                                 </div>
                               )}
 
                               <div className="flex justify-between items-start mb-2">
-                                <h5 className="font-serif text-sm text-primary font-semibold tracking-wide flex flex-wrap items-center gap-1.5">
+                                <h5 className="font-serif text-sm text-primary font-semibold tracking-wider flex flex-wrap items-center gap-1.5">
                                   {spell.name}
                                   {spellEdited && (
-                                    <span className="inline-flex items-center gap-0.5 bg-amber-500 text-on-primary px-1.5 py-0.2 text-[8px] font-bold uppercase tracking-widest rounded-sm">
+                                    <span className="inline-flex items-center gap-0.5 bg-amber-500 text-on-primary px-1.5 py-0.2 text-micro font-bold uppercase tracking-widest rounded-sm">
                                       Alterada
                                     </span>
                                   )}
                                   {isAdded && (
-                                    <span className="inline-flex items-center gap-0.5 bg-emerald-500 text-on-primary px-1.5 py-0.2 text-[8px] font-bold uppercase tracking-widest rounded-sm">
+                                    <span className="inline-flex items-center gap-0.5 bg-emerald-500 text-on-primary px-1.5 py-0.2 text-micro font-bold uppercase tracking-widest rounded-sm">
                                       Adicionada
                                     </span>
                                   )}
@@ -10913,7 +10913,7 @@ export default function CharacterEditorView({
                               </div>
 
                               {/* Magic Details tags */}
-                              <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] font-mono text-on-surface-variant/80 mb-3 border-b border-outline-variant/20 pb-2">
+                              <div className="flex flex-wrap gap-x-3 gap-y-1 text-micro font-mono text-on-surface-variant/80 mb-3 border-b border-outline-variant/20 pb-2">
                                 {spell.focus && <span>Foco: <strong className="text-on-surface">{spell.focus}</strong></span>}
                                 {spell.cost && <span>Custo: <strong className="text-[#ffe082]">{spell.cost}</strong></span>}
                                 {spell.range && <span>Alcance: <strong className="text-on-surface">{spell.range}</strong></span>}
@@ -10921,7 +10921,7 @@ export default function CharacterEditorView({
                               </div>
 
                               {/* Description text */}
-                              <p className="font-sans text-[11px] text-on-surface-variant leading-relaxed whitespace-pre-wrap mt-2">
+                              <p className="font-sans text-caption text-on-surface-variant leading-relaxed whitespace-pre-wrap mt-2">
                                 {spell.description || <span className="italic opacity-50">Sem descrição adicional...</span>}
                               </p>
                             </div>
@@ -10978,7 +10978,7 @@ export default function CharacterEditorView({
               {!modalPortraitUrl ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center p-4 bg-surface-container-low">
                   <span className="material-symbols-outlined text-primary text-3xl">upload</span>
-                  <span className="text-[11px] font-sans font-bold tracking-wider text-outline uppercase">
+                  <span className="text-caption font-sans font-bold tracking-wider text-outline uppercase">
                     Sem imagem definida
                   </span>
                 </div>
@@ -11006,7 +11006,7 @@ export default function CharacterEditorView({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 py-2 px-3 border border-outline-variant text-[11px] font-sans font-bold uppercase tracking-wider text-on-surface-variant hover:text-on-surface hover:border-white transition-colors flex items-center justify-center gap-1.5 cursor-pointer rounded-none bg-surface-container-low"
+                  className="flex-1 py-2 px-3 border border-outline-variant text-caption font-sans font-bold uppercase tracking-wider text-on-surface-variant hover:text-on-surface hover:border-white transition-colors flex items-center justify-center gap-1.5 cursor-pointer rounded-none bg-surface-container-low"
                   title="Upload de imagem local"
                 >
                   <span className="material-symbols-outlined text-sm">upload</span>
@@ -11022,7 +11022,7 @@ export default function CharacterEditorView({
 
                 {/* Link Action Indicator */}
                 <div
-                  className="flex-1 py-1.5 px-3 border border-primary/40 text-[11px] font-sans font-bold uppercase tracking-wider text-primary flex items-center justify-center gap-1.5 rounded-none bg-primary-container bg-opacity-5 cursor-default select-none"
+                  className="flex-1 py-1.5 px-3 border border-primary/40 text-caption font-sans font-bold uppercase tracking-wider text-primary flex items-center justify-center gap-1.5 rounded-none bg-primary-container bg-opacity-5 cursor-default select-none"
                 >
                   <span className="material-symbols-outlined text-sm text-primary">link</span>
                   <span>Link de Rede</span>
@@ -11031,8 +11031,8 @@ export default function CharacterEditorView({
 
               {/* Space below for the input link */}
               <div className="space-y-1.5">
-                <label className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[11px]">link</span>
+                <label className="text-micro font-sans font-bold text-outline uppercase tracking-wider flex items-center gap-1">
+                  <span className="material-symbols-outlined text-caption">link</span>
                   Insira a URL da Imagem Abaixo:
                 </label>
                 <>
@@ -11047,7 +11047,7 @@ export default function CharacterEditorView({
                   className={`w-full bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2.5 placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none ${modalPortraitUrl?.length >= 50 ? '!text-red-500' : ''}`}
                 />
 {modalPortraitUrl?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -11091,7 +11091,7 @@ export default function CharacterEditorView({
 
             {/* Search Input */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-sans font-bold text-outline uppercase tracking-wider">
+              <label className="text-micro font-sans font-bold text-outline uppercase tracking-wider">
                 Digite para buscar aprimoramentos:
               </label>
               <>
@@ -11107,7 +11107,7 @@ export default function CharacterEditorView({
                 className={`w-full bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2.5 placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none ${enhancementSearchQuery?.length >= 50 ? '!text-red-500' : ''}`}
               />
 {enhancementSearchQuery?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -11122,7 +11122,7 @@ export default function CharacterEditorView({
                 <div className="space-y-4">
                   <div className="bg-surface-container p-3 border border-outline-variant/40">
                     <h4 className="text-sm font-bold text-on-surface mb-1">{selectedEnhancement.name}</h4>
-                    <span className="text-[9px] uppercase px-1.5 py-0.5 bg-surface-container font-mono tracking-wider font-bold text-outline">
+                    <span className="text-micro uppercase px-1.5 py-0.5 bg-surface-container font-mono tracking-wider font-bold text-outline">
                       {selectedEnhancement.tipo}
                     </span>
                     
@@ -11135,7 +11135,7 @@ export default function CharacterEditorView({
 
                   {selectedEnhancement.tem_niveis && selectedEnhancement.niveis ? (
                     <div className="space-y-2">
-                      <label className="text-[10px] font-sans font-bold text-outline uppercase tracking-wider block">
+                      <label className="text-micro font-sans font-bold text-outline uppercase tracking-wider block">
                         Selecione o Nível Desejado:
                       </label>
                       <div className="grid grid-cols-1 gap-2">
@@ -11158,7 +11158,7 @@ export default function CharacterEditorView({
                                 {enhancementModalType === 'POSITIVO' ? '-' : '+'}{lvl.custo} pts
                               </span>
                             </div>
-                            <span className="text-[10px] text-outline-variant leading-tight">
+                            <span className="text-micro text-outline-variant leading-tight">
                               {lvl.descricao}
                             </span>
                           </button>
@@ -11179,7 +11179,7 @@ export default function CharacterEditorView({
                     <button
                       type="button"
                       onClick={() => setSelectedEnhancement(null)}
-                      className="flex-1 py-2 border border-outline-variant text-[11px] font-sans font-bold uppercase tracking-wider text-outline hover:text-on-surface transition-colors cursor-pointer rounded-none bg-transparent"
+                      className="flex-1 py-2 border border-outline-variant text-caption font-sans font-bold uppercase tracking-wider text-outline hover:text-on-surface transition-colors cursor-pointer rounded-none bg-transparent"
                     >
                       Voltar à lista
                     </button>
@@ -11273,7 +11273,7 @@ export default function CharacterEditorView({
                         setSelectedEnhancement(null);
                         setEnhancementSearchQuery('');
                       }}
-                      className="flex-1 py-2 bg-primary text-on-primary font-sans text-[11px] font-bold uppercase tracking-wider hover:brightness-110 cursor-pointer rounded-none border border-transparent"
+                      className="flex-1 py-2 bg-primary text-on-primary font-sans text-caption font-bold uppercase tracking-wider hover:brightness-110 cursor-pointer rounded-none border border-transparent"
                     >
                       Adicionar
                     </button>
@@ -11342,18 +11342,18 @@ export default function CharacterEditorView({
                                 {item.name}
                               </span>
                               {isAlreadyChosen && (
-                                <span className="text-[8px] bg-outline-variant/20 text-outline px-1.5 py-0.5 rounded-sm font-sans font-bold uppercase tracking-wider shrink-0">
+                                <span className="text-micro bg-outline-variant/20 text-outline px-1.5 py-0.5 rounded-sm font-sans font-bold uppercase tracking-wider shrink-0">
                                   Já Escolhido
                                 </span>
                               )}
                             </div>
                             {!item.tem_niveis && item.descricao && (
-                              <p className="text-[10px] text-outline-variant/80 line-clamp-2 leading-tight">
+                              <p className="text-micro text-outline-variant/80 line-clamp-2 leading-tight">
                                 {item.descricao}
                               </p>
                             )}
                             {item.tem_niveis && (
-                              <span className="text-[9px] uppercase tracking-wider font-bold text-outline-variant/60 block">
+                              <span className="text-micro uppercase tracking-wider font-bold text-outline-variant/60 block">
                                 Possui {item.niveis?.length} níveis
                               </span>
                             )}
@@ -11430,7 +11430,7 @@ export default function CharacterEditorView({
               
               {/* Column 1: Catalog & Creation */}
               <div className={`md:col-span-5 flex flex-col space-y-4 min-h-0 ${activeMobileTab === 'adicionar' ? 'flex' : 'hidden md:flex'}`}>
-                <h4 className="hidden md:flex text-[10px] font-sans font-bold text-outline-variant uppercase tracking-widest border-b border-outline-variant/30 pb-1 items-center gap-1.5 shrink-0">
+                <h4 className="hidden md:flex text-micro font-sans font-bold text-outline-variant uppercase tracking-widest border-b border-outline-variant/30 pb-1 items-center gap-1.5 shrink-0">
                   <span className="material-symbols-outlined text-xs">search</span>
                   1. Buscar ou Criar Perícias
                 </h4>
@@ -11443,7 +11443,7 @@ export default function CharacterEditorView({
                       <button 
                         type="button"
                         onClick={() => setShowCreatePericiaForm(false)}
-                        className="text-[10px] text-outline-variant hover:text-on-surface underline font-sans min-h-[32px] px-2 flex items-center"
+                        className="text-micro text-outline-variant hover:text-on-surface underline font-sans min-h-[32px] px-2 flex items-center"
                       >
                         Cancelar
                       </button>
@@ -11451,7 +11451,7 @@ export default function CharacterEditorView({
                     
                     {/* Nome */}
                     <div className="space-y-1 shrink-0">
-                      <label className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider">Nome *</label>
+                      <label className="text-micro font-sans font-bold text-outline uppercase tracking-wider">Nome *</label>
                       <>
 <input maxLength={50}
                         type="text"
@@ -11461,7 +11461,7 @@ export default function CharacterEditorView({
                         className={`w-full bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2 placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none min-h-[44px] ${newPericiaName?.length >= 50 ? '!text-red-500' : ''}`}
                       />
 {newPericiaName?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -11471,7 +11471,7 @@ export default function CharacterEditorView({
 
                     {/* Atributo Base */}
                     <div className="space-y-1 shrink-0">
-                      <label className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider">Atributo Base</label>
+                      <label className="text-micro font-sans font-bold text-outline uppercase tracking-wider">Atributo Base</label>
                       <CustomSelect
                         value={newPericiaAttr}
                         onChange={(e) => setNewPericiaAttr(e.target.value)}
@@ -11491,7 +11491,7 @@ export default function CharacterEditorView({
 
                     {/* Descrição */}
                     <div className="space-y-1 flex-grow flex flex-col min-h-0">
-                      <label className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider">Descrição</label>
+                      <label className="text-micro font-sans font-bold text-outline uppercase tracking-wider">Descrição</label>
                       <>
 <textarea maxLength={300}
                         value={newPericiaDesc}
@@ -11501,7 +11501,7 @@ export default function CharacterEditorView({
                         className={`w-full flex-grow bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2 placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none resize-none min-h-[60px] ${newPericiaDesc?.length >= 300 ? '!text-red-500' : ''}`}
                       />
 {newPericiaDesc?.length >= 300 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (300)
       </div>
     )}
@@ -11513,14 +11513,14 @@ export default function CharacterEditorView({
                       <button
                         type="button"
                         onClick={() => setShowCreatePericiaForm(false)}
-                        className="flex-1 py-2 border border-outline-variant text-[10px] font-sans font-bold uppercase tracking-wider text-outline hover:text-on-surface transition-colors cursor-pointer rounded-none bg-transparent min-h-[44px]"
+                        className="flex-1 py-2 border border-outline-variant text-micro font-sans font-bold uppercase tracking-wider text-outline hover:text-on-surface transition-colors cursor-pointer rounded-none bg-transparent min-h-[44px]"
                       >
                         Voltar
                       </button>
                       <button
                         type="button"
                         onClick={handleCreateCustomSkill}
-                        className="flex-1 py-2 bg-primary hover:bg-surface-container/90 text-on-primary font-sans text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer rounded-none border border-transparent min-h-[44px]"
+                        className="flex-1 py-2 bg-primary hover:bg-surface-container/90 text-on-primary font-sans text-micro font-bold uppercase tracking-wider transition-colors cursor-pointer rounded-none border border-transparent min-h-[44px]"
                       >
                         Criar e Adicionar
                       </button>
@@ -11534,18 +11534,18 @@ export default function CharacterEditorView({
                       <button
                         type="button"
                         onClick={() => setShowMobileFilters(!showMobileFilters)}
-                        className="w-full flex items-center justify-between px-3 py-1.5 bg-surface-container border border-outline-variant/30 text-[10px] font-sans font-bold uppercase tracking-wider text-primary hover:text-on-surface transition-all min-h-[32px]"
+                        className="w-full flex items-center justify-between px-3 py-1.5 bg-surface-container border border-outline-variant/30 text-micro font-sans font-bold uppercase tracking-wider text-primary hover:text-on-surface transition-all min-h-[32px]"
                       >
                         <div className="flex items-center gap-1.5">
                           <span className="material-symbols-outlined text-[13px]">filter_list</span>
                           <span>Busca & Filtros</span>
                           {catalogFilter !== 'all' && (
-                            <span className="bg-primary text-on-primary text-[8px] px-1.5 py-0.2 rounded-full font-sans font-black uppercase">
+                            <span className="bg-primary text-on-primary text-micro px-1.5 py-0.2 rounded-full font-sans font-black uppercase">
                               {catalogFilter}
                             </span>
                           )}
                           {periciaSearchQuery.trim() && (
-                            <span className="bg-white/10 text-on-surface text-[8px] px-1.5 py-0.2 rounded-full font-sans">
+                            <span className="bg-white/10 text-on-surface text-micro px-1.5 py-0.2 rounded-full font-sans">
                               Ativa
                             </span>
                           )}
@@ -11565,10 +11565,10 @@ export default function CharacterEditorView({
                               value={periciaSearchQuery}
                               onChange={(e) => setPericiaSearchQuery(e.target.value)}
                               placeholder="Filtrar por nome de perícia..."
-                              className={`w-full bg-surface-container border border-outline-variant text-[11px] text-on-surface px-2.5 py-1.5 placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none pl-8 min-h-[32px] ${periciaSearchQuery?.length >= 50 ? '!text-red-500' : ''}`}
+                              className={`w-full bg-surface-container border border-outline-variant text-caption text-on-surface px-2.5 py-1.5 placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none pl-8 min-h-[32px] ${periciaSearchQuery?.length >= 50 ? '!text-red-500' : ''}`}
                             />
 {periciaSearchQuery?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -11596,7 +11596,7 @@ export default function CharacterEditorView({
                                 onClick={() => {
                                   setCatalogFilter(pill.id);
                                 }}
-                                className={`px-2 py-0.5 text-[9px] font-sans font-bold uppercase tracking-wider rounded-full transition-all border min-h-[24px] whitespace-nowrap cursor-pointer flex items-center justify-center ${
+                                className={`px-2 py-0.5 text-micro font-sans font-bold uppercase tracking-wider rounded-full transition-all border min-h-[24px] whitespace-nowrap cursor-pointer flex items-center justify-center ${
                                   catalogFilter === pill.id
                                     ? 'bg-primary border-transparent text-on-primary font-black'
                                     : 'bg-transparent border-outline-variant/30 text-outline hover:border-outline-variant/80 hover:text-on-surface'
@@ -11621,7 +11621,7 @@ export default function CharacterEditorView({
                         className={`w-full bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2 placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none pl-9 min-h-[44px] ${periciaSearchQuery?.length >= 50 ? '!text-red-500' : ''}`}
                       />
 {periciaSearchQuery?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -11636,7 +11636,7 @@ export default function CharacterEditorView({
                     <button
                       type="button"
                       onClick={() => setShowCreatePericiaForm(true)}
-                      className="w-full py-1.5 max-md:py-1 border border-dashed border-primary/30 hover:border-primary/60 bg-surface-container/5 hover:bg-surface-container/10 text-[10px] font-sans text-primary uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 rounded-none cursor-pointer shrink-0 min-h-[32px] md:min-h-[44px]"
+                      className="w-full py-1.5 max-md:py-1 border border-dashed border-primary/30 hover:border-primary/60 bg-surface-container/5 hover:bg-surface-container/10 text-micro font-sans text-primary uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 rounded-none cursor-pointer shrink-0 min-h-[32px] md:min-h-[44px]"
                     >
                       <span className="material-symbols-outlined text-xs">add</span>
                       Criar perícia personalizada
@@ -11657,7 +11657,7 @@ export default function CharacterEditorView({
                           key={pill.id}
                           type="button"
                           onClick={() => setCatalogFilter(pill.id)}
-                          className={`px-3 py-1 text-[10px] font-sans font-bold uppercase tracking-wider rounded-full transition-all border min-h-[32px] whitespace-nowrap cursor-pointer flex items-center justify-center ${
+                          className={`px-3 py-1 text-micro font-sans font-bold uppercase tracking-wider rounded-full transition-all border min-h-[32px] whitespace-nowrap cursor-pointer flex items-center justify-center ${
                             catalogFilter === pill.id
                               ? 'bg-primary border-transparent text-on-primary font-black'
                               : 'bg-transparent border-outline-variant/40 text-outline hover:border-outline-variant/80 hover:text-on-surface'
@@ -11734,13 +11734,13 @@ export default function CharacterEditorView({
                                       {item.nome}
                                     </span>
                                     {isAlreadyChosen && (
-                                      <span className="text-[7px] bg-outline-variant/20 text-outline px-1.5 py-0.5 rounded-sm font-sans font-bold uppercase tracking-wider">
+                                      <span className="text-micro bg-outline-variant/20 text-outline px-1.5 py-0.5 rounded-sm font-sans font-bold uppercase tracking-wider">
                                         Adicionada
                                       </span>
                                     )}
                                   </div>
                                   {item.atributo_base !== '0' && (
-                                    <span className="text-[8px] font-mono text-outline-variant uppercase tracking-wider block">
+                                    <span className="text-micro font-mono text-outline-variant uppercase tracking-wider block">
                                       {item.atributo_base}
                                     </span>
                                   )}
@@ -11754,9 +11754,9 @@ export default function CharacterEditorView({
                                         e.stopPropagation();
                                         handleAddSelectedSkill(item.nome, item.atributo_base);
                                       }}
-                                      className="bg-primary hover:bg-surface-container/90 text-on-primary px-2.5 md:px-3 py-1 md:py-1.5 text-[8px] md:text-[9px] font-bold uppercase tracking-wider transition-colors rounded-none border border-transparent flex items-center gap-1 min-h-[32px] md:min-h-[44px] min-w-[70px] md:min-w-[80px] justify-center cursor-pointer"
+                                      className="bg-primary hover:bg-surface-container/90 text-on-primary px-2.5 md:px-3 py-1 md:py-1.5 text-micro md:text-micro font-bold uppercase tracking-wider transition-colors rounded-none border border-transparent flex items-center gap-1 min-h-[32px] md:min-h-[44px] min-w-[70px] md:min-w-[80px] justify-center cursor-pointer"
                                     >
-                                      <span className="material-symbols-outlined text-[10px] md:text-[11px] font-bold">add</span>
+                                      <span className="material-symbols-outlined text-micro md:text-caption font-bold">add</span>
                                       Adicionar
                                     </button>
                                   )}
@@ -11771,7 +11771,7 @@ export default function CharacterEditorView({
                               {/* Card Content (Description) */}
                               {isExpanded && !isAlreadyChosen && item.descricao && (
                                 <div className="px-3 pb-3 border-t border-outline-variant/10 pt-2 bg-surface-container/60 animate-fadeIn">
-                                  <p className="text-[10px] text-outline-variant/80 leading-relaxed font-sans">
+                                  <p className="text-micro text-outline-variant/80 leading-relaxed font-sans">
                                     {item.descricao}
                                   </p>
                                 </div>
@@ -11787,7 +11787,7 @@ export default function CharacterEditorView({
 
               {/* Column 2: Points Distribution */}
               <div className={`md:col-span-7 flex flex-col space-y-4 min-h-0 md:border-l border-outline-variant/30 md:pl-6 ${activeMobileTab === 'minhas' ? 'flex' : 'hidden md:flex'}`}>
-                <h4 className="hidden md:flex text-[10px] font-sans font-bold text-outline-variant uppercase tracking-widest border-b border-outline-variant/30 pb-1 items-center gap-1.5 shrink-0">
+                <h4 className="hidden md:flex text-micro font-sans font-bold text-outline-variant uppercase tracking-widest border-b border-outline-variant/30 pb-1 items-center gap-1.5 shrink-0">
                   <span className="material-symbols-outlined text-xs">edit_note</span>
                   2. Distribuir Pontos
                 </h4>
@@ -11809,21 +11809,21 @@ export default function CharacterEditorView({
                     <div className="bg-surface-container border border-outline-variant/40 p-2.5 flex justify-between items-center gap-2 text-xs shrink-0 rounded-none">
                       <div className="flex gap-4">
                         <div className="flex flex-col">
-                          <span className="text-[8px] uppercase tracking-wider text-outline-variant font-bold block">Pontos de perícia</span>
+                          <span className="text-micro uppercase tracking-wider text-outline-variant font-bold block">Pontos de perícia</span>
                           <span className={`text-sm font-mono font-black ${tempRemaining < 0 ? 'text-red-500 animate-pulse' : tempRemaining === 0 ? 'text-primary' : 'text-green-400'}`}>
                             {tempRemaining}  /  {calculatedPointsMax}
                           </span>
                         </div>
                         {bibliotecaLevel !== null && (
                           <div className="flex flex-col border-l border-outline-variant/30 pl-4">
-                            <span className="text-[8px] uppercase tracking-wider text-cyan-400 font-bold block">Subgrupos Biblioteca</span>
+                            <span className="text-micro uppercase tracking-wider text-cyan-400 font-bold block">Subgrupos Biblioteca</span>
                             <span className={`text-sm font-mono font-black ${currentSpecialCount > maxSubgroups ? 'text-red-400 animate-pulse' : 'text-cyan-300'}`}>
                               {currentSpecialCount}  /  {maxSubgroups}
                             </span>
                           </div>
                         )}
                       </div>
-                      <div className="text-right text-[8px] text-outline-variant/40 font-mono">
+                      <div className="text-right text-micro text-outline-variant/40 font-mono">
                         <span>Fórmula: (Idade × 10) + (INT × 5)</span>
                       </div>
                     </div>
@@ -11946,7 +11946,7 @@ export default function CharacterEditorView({
                               )}
                               
                               {resolvedAttrKey ? (
-                                <span className="text-[8px] font-mono text-outline-variant uppercase tracking-wider block mt-0.5">
+                                <span className="text-micro font-mono text-outline-variant uppercase tracking-wider block mt-0.5">
                                   {resolvedAttrKey}
                                   {familiarBonus > 0 && ` (+${familiarBonus}% Familiar)`}
                                   {corpoMaleavelBonus > 0 && ` (+10% Corpo Maleável)`}
@@ -11956,7 +11956,7 @@ export default function CharacterEditorView({
                                   {tempRacialBonus > 0 && ` (+${tempRacialBonus}% Raça)`}
                                 </span>
                               ) : (
-                                <span className="text-[8px] font-mono text-red-400 uppercase tracking-wider block mt-0.5">
+                                <span className="text-micro font-mono text-red-400 uppercase tracking-wider block mt-0.5">
                                   TÉCNICA
                                   {familiarBonus > 0 && ` (+${familiarBonus}% Familiar)`}
                                   {corpoMaleavelBonus > 0 && ` (+10% Corpo Maleável)`}
@@ -12012,7 +12012,7 @@ export default function CharacterEditorView({
                                     {/* Points distribution */}
                                     {!skill.isCustomBuild ? (
                                       <div className="flex flex-col gap-1.5">
-                                        <span className="text-[9px] font-sans font-bold text-outline-variant uppercase tracking-wider">Pontos Totais para Distribuir:</span>
+                                        <span className="text-micro font-sans font-bold text-outline-variant uppercase tracking-wider">Pontos Totais para Distribuir:</span>
                                         <div className="flex items-center">
                                           <button
                                             type="button"
@@ -12057,7 +12057,7 @@ export default function CharacterEditorView({
                                       <div className="flex gap-4">
                                         {/* ATK spent input */}
                                         <div className="flex flex-col gap-1 flex-1">
-                                          <span className="text-[9px] font-sans font-bold text-outline-variant uppercase tracking-wider text-center">ATAQUE (Pontos)</span>
+                                          <span className="text-micro font-sans font-bold text-outline-variant uppercase tracking-wider text-center">ATAQUE (Pontos)</span>
                                           <div className="flex items-center justify-center">
                                             <button
                                               type="button"
@@ -12129,7 +12129,7 @@ export default function CharacterEditorView({
 
                                         {/* DEF spent input */}
                                         <div className="flex flex-col gap-1 flex-1">
-                                          <span className="text-[9px] font-sans font-bold text-outline-variant uppercase tracking-wider text-center">DEFESA (Pontos)</span>
+                                          <span className="text-micro font-sans font-bold text-outline-variant uppercase tracking-wider text-center">DEFESA (Pontos)</span>
                                           <div className="flex items-center justify-center">
                                             <button
                                               type="button"
@@ -12205,7 +12205,7 @@ export default function CharacterEditorView({
                                   {/* Slider Control (Simple mode only) */}
                                   {!skill.isCustomBuild && (
                                     <div className="space-y-1.5 bg-surface-container p-2.5 border border-outline-variant/10">
-                                      <div className="flex justify-between items-center text-[10px] font-mono text-outline-variant">
+                                      <div className="flex justify-between items-center text-micro font-mono text-outline-variant">
                                         <span>ATK: {skill.sliderVal ?? 50}%</span>
                                         <span>DEF: {100 - (skill.sliderVal ?? 50)}%</span>
                                       </div>
@@ -12269,11 +12269,11 @@ export default function CharacterEditorView({
                                     </label>
 
                                     {resolvedAttrKey ? (
-                                      <div className="text-[10px] text-outline-variant/75 font-sans leading-relaxed bg-surface-container/40 p-2 border border-outline-variant/10">
+                                      <div className="text-micro text-outline-variant/75 font-sans leading-relaxed bg-surface-container/40 p-2 border border-outline-variant/10">
                                         Cálculo: Atributo {resolvedAttrKey} ({attrVal}) + Gasto (ATK: {skill.atkGasto ?? 0} / DEF: {skill.defGasto ?? 0}){obraPrimaBonus > 0 ? " + Obra-prima (+10%)" : ""}{magicWeaponAtkDefBonus > 0 ? ` + Mágico (+${magicWeaponAtkDefBonus}%)` : ""}{armaPreferencialBonus > 0 ? ` + Arma Preferencial (+${Math.floor(armaPreferencialBonus / 2)}%)` : ""}{corpoMaleavelBonus > 0 ? " + Corpo Maleável (+10%)" : ""}{tempRacialBonus > 0 ? ` + Raça (+${tempRacialBonus}%)` : ""} = <span className="text-primary font-bold">{totalAtk}% ATK / {totalDef}% DEF</span>
                                       </div>
                                     ) : (
-                                      <div className="text-[10px] text-outline-variant/75 font-sans leading-relaxed bg-surface-container/40 p-2 border border-outline-variant/10">
+                                      <div className="text-micro text-outline-variant/75 font-sans leading-relaxed bg-surface-container/40 p-2 border border-outline-variant/10">
                                         Cálculo: Perícia Técnica (0) + Gasto (ATK: {skill.atkGasto ?? 0} / DEF: {skill.defGasto ?? 0}){obraPrimaBonus > 0 ? " + Obra-prima (+10%)" : ""}{magicWeaponAtkDefBonus > 0 ? ` + Mágico (+${magicWeaponAtkDefBonus}%)` : ""}{armaPreferencialBonus > 0 ? ` + Arma Preferencial (+${Math.floor(armaPreferencialBonus / 2)}%)` : ""}{corpoMaleavelBonus > 0 ? " + Corpo Maleável (+10%)" : ""}{tempRacialBonus > 0 ? ` + Raça (+${tempRacialBonus}%)` : ""} = <span className="text-primary font-bold">{totalAtk}% ATK / {totalDef}% DEF</span>
                                       </div>
                                     )}
@@ -12283,7 +12283,7 @@ export default function CharacterEditorView({
                                 // Common skill view
                                 <div className="space-y-3">
                                   <div className="flex flex-col gap-1.5">
-                                    <span className="text-[10px] font-sans font-bold text-outline-variant uppercase tracking-wider">Distribuir Pontos:</span>
+                                    <span className="text-micro font-sans font-bold text-outline-variant uppercase tracking-wider">Distribuir Pontos:</span>
                                     <div className="flex items-center justify-start">
                                       <button
                                         type="button"
@@ -12308,7 +12308,7 @@ export default function CharacterEditorView({
                                         placeholder="0"
                                       />
 {String(skill.gasto ?? '').length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -12331,11 +12331,11 @@ export default function CharacterEditorView({
                                   </div>
 
                                   {resolvedAttrKey ? (
-                                    <div className="text-[10px] text-outline-variant/75 font-sans leading-relaxed pt-2 border-t border-outline-variant/10">
+                                    <div className="text-micro text-outline-variant/75 font-sans leading-relaxed pt-2 border-t border-outline-variant/10">
                                       Cálculo: Atributo {resolvedAttrKey} ({attrVal}) + Pontos Gastos ({Number(skill.gasto) || 0}){obraPrimaBonus > 0 ? " + Obra-prima (+10%)" : ""}{magicWeaponBonus > 0 ? ` + Mágico (+${magicWeaponBonus}%)` : ""}{armaPreferencialBonus > 0 ? ` + Arma Preferencial (+${armaPreferencialBonus}%)` : ""}{corpoMaleavelBonus > 0 ? " + Corpo Maleável (+10%)" : ""}{tempRacialBonus > 0 ? ` + Raça (+${tempRacialBonus}%)` : ""} = <span className="text-primary font-bold">{totalVal}%</span>
                                     </div>
                                   ) : (
-                                    <div className="text-[10px] text-outline-variant/75 font-sans leading-relaxed pt-2 border-t border-outline-variant/10">
+                                    <div className="text-micro text-outline-variant/75 font-sans leading-relaxed pt-2 border-t border-outline-variant/10">
                                       Cálculo: Perícia Técnica (0) + Pontos Gastos ({Number(skill.gasto) || 0}){obraPrimaBonus > 0 ? " + Obra-prima (+10%)" : ""}{magicWeaponBonus > 0 ? ` + Mágico (+${magicWeaponBonus}%)` : ""}{armaPreferencialBonus > 0 ? ` + Arma Preferencial (+${armaPreferencialBonus}%)` : ""}{corpoMaleavelBonus > 0 ? " + Corpo Maleável (+10%)" : ""}{tempRacialBonus > 0 ? ` + Raça (+${tempRacialBonus}%)` : ""} = <span className="text-primary font-bold">{totalVal}%</span>
                                     </div>
                                   )}
@@ -12359,7 +12359,7 @@ export default function CharacterEditorView({
                   const tempRemaining = calculatedPointsMax - tempTotalSpent;
                   if (tempRemaining < 0) {
                     return (
-                      <div className="bg-surface-container/20 border border-red-500/30 text-red-400 text-[10px] p-2.5 font-medium flex items-center gap-1.5 rounded-sm animate-pulse shrink-0">
+                      <div className="bg-surface-container/20 border border-red-500/30 text-red-400 text-micro p-2.5 font-medium flex items-center gap-1.5 rounded-sm animate-pulse shrink-0">
                         <span className="material-symbols-outlined text-xs text-red-400">warning</span>
                         <span>Saldo de pontos excedido! Você gastou {Math.abs(tempRemaining)} pontos extras.</span>
                       </div>
@@ -12453,8 +12453,8 @@ export default function CharacterEditorView({
               <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
                 Você tem certeza que deseja evoluir este personagem para o <strong>Nível {nextL}</strong>?
               </p>
-              <div className="bg-surface-container p-3 border border-outline-variant/30 text-left space-y-2 rounded-none font-sans text-[11px] leading-relaxed text-on-surface-variant/90">
-                <p className="font-bold text-secondary uppercase tracking-widest text-[9px] mb-1">Novos Pontos & Bônus:</p>
+              <div className="bg-surface-container p-3 border border-outline-variant/30 text-left space-y-2 rounded-none font-sans text-caption leading-relaxed text-on-surface-variant/90">
+                <p className="font-bold text-secondary uppercase tracking-widest text-micro mb-1">Novos Pontos & Bônus:</p>
                 <ul className="list-disc list-inside space-y-0.5">
                   {(() => {
                     const nextRules = rulesToUse?.[String(nextL)] || DEFAULT_LEVELUP_RULES.niveis_personagem[String(nextL)];
@@ -12546,7 +12546,7 @@ export default function CharacterEditorView({
                   className={`w-full bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2 placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none pl-9 min-h-[44px] ${itemSearchQuery?.length >= 50 ? '!text-red-500' : ''}`}
                 />
 {itemSearchQuery?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -12565,7 +12565,7 @@ export default function CharacterEditorView({
                     setIsMagicActiveInModal(false);
                     setIsCustomItemModalOpen(true);
                   }}
-                  className="w-full py-1.5 border border-dashed border-primary/30 hover:border-primary/60 bg-surface-container/5 hover:bg-surface-container/10 text-[10px] font-sans text-primary uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 rounded-none cursor-pointer min-h-[44px]"
+                  className="w-full py-1.5 border border-dashed border-primary/30 hover:border-primary/60 bg-surface-container/5 hover:bg-surface-container/10 text-micro font-sans text-primary uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 rounded-none cursor-pointer min-h-[44px]"
                 >
                   <span className="material-symbols-outlined text-xs">add</span>
                   Criar Item Customizado
@@ -12594,7 +12594,7 @@ export default function CharacterEditorView({
                       key={cat.key}
                       type="button"
                       onClick={() => setActiveItemCategory(cat.key)}
-                      className={`px-3 py-1 text-[9px] font-sans font-bold uppercase tracking-wider transition-all border min-h-[32px] cursor-pointer rounded-none flex items-center justify-center whitespace-nowrap ${
+                      className={`px-3 py-1 text-micro font-sans font-bold uppercase tracking-wider transition-all border min-h-[32px] cursor-pointer rounded-none flex items-center justify-center whitespace-nowrap ${
                         isActive
                           ? 'bg-primary border-transparent text-on-primary font-black'
                           : 'bg-transparent border-outline-variant/30 text-outline hover:text-on-surface hover:border-outline-variant/80'
@@ -12607,7 +12607,7 @@ export default function CharacterEditorView({
               </div>
             ) : (
               <div className="flex gap-1.5 py-3 border-b border-outline-variant/20 shrink-0 select-none">
-                <span className="px-3 py-1 text-[9px] font-sans font-bold uppercase tracking-wider bg-primary border-transparent text-on-primary font-black flex items-center justify-center h-[32px]">
+                <span className="px-3 py-1 text-micro font-sans font-bold uppercase tracking-wider bg-primary border-transparent text-on-primary font-black flex items-center justify-center h-[32px]">
                   {openedFromCard === 'armas' ? 'Filtro Travado: Armas' : 'Filtro Travado: Armaduras & Escudos'}
                 </span>
               </div>
@@ -12666,16 +12666,16 @@ export default function CharacterEditorView({
                         
                         {/* Line 2: Categoria, Preço, Adicionado feedback */}
                         <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                          <span className="text-[9px] bg-surface-container/30 text-secondary border border-outline-variant/60 px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">
+                          <span className="text-micro bg-surface-container/30 text-secondary border border-outline-variant/60 px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">
                             {item.categoria}
                           </span>
                           {item.preco && (
-                            <span className="text-[10px] font-mono text-secondary flex items-center gap-1">
+                            <span className="text-micro font-mono text-secondary flex items-center gap-1">
                               <span className="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block shrink-0"></span> {item.preco} Prata
                             </span>
                           )}
                           {isAddedJustNow && (
-                            <span className="text-[10px] font-mono text-green-400 font-bold animate-bounce flex items-center gap-1">
+                            <span className="text-micro font-mono text-green-400 font-bold animate-bounce flex items-center gap-1">
                               ✓ +1 Adicionado!
                             </span>
                           )}
@@ -12689,7 +12689,7 @@ export default function CharacterEditorView({
 
                         {/* If weapon details exist */}
                         {(item.dano !== undefined || item.penalidade !== undefined || item.alcance !== undefined) && (
-                          <div className="mt-1.5 text-[10px] font-mono text-outline flex gap-3 flex-wrap">
+                          <div className="mt-1.5 text-micro font-mono text-outline flex gap-3 flex-wrap">
                             {item.dano !== undefined && item.dano !== null && item.dano !== "" && (
                               <span>Dano: <strong className="text-on-surface">{item.dano}</strong></span>
                             )}
@@ -12703,7 +12703,7 @@ export default function CharacterEditorView({
                         )}
 
                         {item.dano_penalidade_alcance && !item.dano && !item.penalidade && !item.alcance && (
-                          <div className="mt-1 text-[10px] font-mono text-outline">
+                          <div className="mt-1 text-micro font-mono text-outline">
                             Dano/Pen./Alcance: <strong className="text-on-surface">{item.dano_penalidade_alcance}</strong>
                           </div>
                         )}
@@ -12712,11 +12712,11 @@ export default function CharacterEditorView({
                         {item.equipamento && (
                           <div className="mt-1.5 space-y-1">
                             {item.equipamento.slot && (
-                              <div className="text-[10px] font-sans text-outline">
+                              <div className="text-micro font-sans text-outline">
                                 Tipo: <span className="text-on-surface font-medium">{capitalizeFirstLetter(item.equipamento.slot)}</span>
                               </div>
                             )}
-                            <div className="text-[10px] font-mono text-outline flex gap-3 flex-wrap">
+                            <div className="text-micro font-mono text-outline flex gap-3 flex-wrap">
                               {item.equipamento.ip !== undefined && <span>IP: <strong className="text-on-surface">{item.equipamento.ip}</strong></span>}
                               {item.equipamento.penalidade_dex !== undefined && <span>DEX: <strong className="text-red-400">{item.equipamento.penalidade_dex}</strong></span>}
                               {item.equipamento.penalidade_agi !== undefined && <span>AGI: <strong className="text-red-400">{item.equipamento.penalidade_agi}</strong></span>}
@@ -12782,7 +12782,7 @@ export default function CharacterEditorView({
             <div className="space-y-4">
               {/* Field: Nome */}
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-sans font-bold text-outline uppercase tracking-wider">
+                <label className="text-micro font-sans font-bold text-outline uppercase tracking-wider">
                   Nome do Item <span className="text-red-400">*</span>
                 </label>
                 <>
@@ -12795,7 +12795,7 @@ export default function CharacterEditorView({
                   className={`w-full h-11 bg-surface-container border border-outline-variant/60 px-3 text-xs text-on-surface focus:border-primary focus:ring-0 outline-none rounded-none font-sans ${newCustomItemName?.length >= 50 ? '!text-red-500' : ''}`}
                 />
 {newCustomItemName?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -12807,7 +12807,7 @@ export default function CharacterEditorView({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Field: Preço */}
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-sans font-bold text-outline uppercase tracking-wider">
+                  <label className="text-micro font-sans font-bold text-outline uppercase tracking-wider">
                     Preço (moedas)
                   </label>
                   <>
@@ -12819,7 +12819,7 @@ export default function CharacterEditorView({
                     className={`w-full h-11 bg-surface-container border border-outline-variant/60 px-3 text-xs text-on-surface focus:border-primary focus:ring-0 outline-none rounded-none font-sans ${newCustomItemPrice?.length >= 50 ? '!text-red-500' : ''}`}
                   />
 {newCustomItemPrice?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -12829,7 +12829,7 @@ export default function CharacterEditorView({
 
                 {/* Field: Categoria */}
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-sans font-bold text-outline uppercase tracking-wider">
+                  <label className="text-micro font-sans font-bold text-outline uppercase tracking-wider">
                     Categoria
                   </label>
                   <CustomSelect
@@ -12853,7 +12853,7 @@ export default function CharacterEditorView({
 
               {/* Field: Descrição */}
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-sans font-bold text-outline uppercase tracking-wider">
+                <label className="text-micro font-sans font-bold text-outline uppercase tracking-wider">
                   Descrição / Observações
                 </label>
                 <>
@@ -12864,7 +12864,7 @@ export default function CharacterEditorView({
                   className={`w-full h-24 bg-surface-container border border-outline-variant/60 p-3 text-xs text-on-surface focus:border-primary focus:ring-0 outline-none rounded-none font-sans resize-none ${newCustomItemDesc?.length >= 300 ? '!text-red-500' : ''}`}
                 />
 {newCustomItemDesc?.length >= 300 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (300)
       </div>
     )}
@@ -12879,7 +12879,7 @@ export default function CharacterEditorView({
                 if (magicLevel === null && malditoLevel === null) return null;
                 return (
                   <div className="flex flex-col gap-2 p-3 bg-surface-container/40 border border-outline-variant/30 text-left">
-                    <span className="text-[10px] font-sans font-bold text-outline uppercase tracking-wider block">
+                    <span className="text-micro font-sans font-bold text-outline uppercase tracking-wider block">
                       Efeitos Ativos Disponíveis
                     </span>
                     {magicLevel !== null && (
@@ -12892,10 +12892,10 @@ export default function CharacterEditorView({
                             : 'bg-surface-container-high/30 border-outline-variant hover:border-cyan-500/50 text-outline hover:text-on-surface'
                         }`}
                       >
-                        <span className="font-mono text-[9px] font-bold uppercase tracking-wider">
+                        <span className="font-mono text-micro font-bold uppercase tracking-wider">
                           Arma ou Amuleto Mágico - Nível {magicLevel}
                         </span>
-                        <span className={`text-[8px] font-bold font-mono px-1 py-0.5 border ${
+                        <span className={`text-micro font-bold font-mono px-1 py-0.5 border ${
                           isMagicActiveInModal 
                             ? 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30' 
                             : 'text-outline-variant group-hover/effect:text-cyan-400 border-transparent'
@@ -12914,10 +12914,10 @@ export default function CharacterEditorView({
                             : 'bg-surface-container-high/30 border-outline-variant hover:border-red-500/50 text-outline hover:text-on-surface'
                         }`}
                       >
-                        <span className="font-mono text-[9px] font-bold uppercase tracking-wider">
+                        <span className="font-mono text-micro font-bold uppercase tracking-wider">
                           Arma ou Amuleto Maldito - Nível {malditoLevel}
                         </span>
-                        <span className={`text-[8px] font-bold font-mono px-1 py-0.5 border ${
+                        <span className={`text-micro font-bold font-mono px-1 py-0.5 border ${
                           isMalditoActiveInModal 
                             ? 'text-red-400 bg-red-500/10 border-red-500/30' 
                             : 'text-outline-variant group-hover/effect:text-red-400 border-transparent'
@@ -13037,7 +13037,7 @@ export default function CharacterEditorView({
               <button
                 type="button"
                 onClick={handleSaveCompanionAnimal}
-                className="px-6 py-2.5 bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container text-[11px] font-sans font-bold uppercase tracking-wider transition-all cursor-pointer rounded-none border-none"
+                className="px-6 py-2.5 bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container text-caption font-sans font-bold uppercase tracking-wider transition-all cursor-pointer rounded-none border-none"
               >
                 Salvar Ficha
               </button>
@@ -13049,7 +13049,7 @@ export default function CharacterEditorView({
               {/* Fields: Nome and Animal */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 shrink-0 bg-surface-container p-3 border border-outline-variant/30">
               <div className="flex flex-col gap-1 text-left">
-                <label className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider">Nome</label>
+                <label className="text-micro font-sans font-bold text-outline uppercase tracking-wider">Nome</label>
                 <>
 <input maxLength={50}
                   type="text"
@@ -13059,7 +13059,7 @@ export default function CharacterEditorView({
                   className={`bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none min-h-[36px] ${tempNomeAnimal?.length >= 50 ? '!text-red-500' : ''}`}
                 />
 {tempNomeAnimal?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -13067,7 +13067,7 @@ export default function CharacterEditorView({
               
               </div>
               <div className="flex flex-col gap-1 text-left">
-                <label className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider">Animal</label>
+                <label className="text-micro font-sans font-bold text-outline uppercase tracking-wider">Animal</label>
                 <>
 <input maxLength={50}
                   type="text"
@@ -13077,7 +13077,7 @@ export default function CharacterEditorView({
                   className={`bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none min-h-[36px] ${tempTipoAnimal?.length >= 50 ? '!text-red-500' : ''}`}
                 />
 {tempTipoAnimal?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -13099,11 +13099,11 @@ export default function CharacterEditorView({
                       {remaining}/{maxCompanionAttrs} Total
                     </div>
                     {remaining < 0 ? (
-                      <p className="text-[10px] text-red-500 font-bold uppercase animate-pulse">
+                      <p className="text-micro text-red-500 font-bold uppercase animate-pulse">
                         Você ultrapassou o limite de {maxCompanionAttrs} pontos!
                       </p>
                     ) : (
-                      <p className="text-[9px] text-outline-variant/60 font-sans">
+                      <p className="text-micro text-outline-variant/60 font-sans">
                         Pontos base: 80 + 5 pontos adicionais por nível além do 1º (Nível do personagem: {companionL})
                       </p>
                     )}
@@ -13114,7 +13114,7 @@ export default function CharacterEditorView({
 
             {/* Attributes Table */}
             <div className="overflow-x-auto custom-scrollbar shrink-0">
-              <table className="w-full text-[10px] font-sans border-collapse border border-outline-variant">
+              <table className="w-full text-micro font-sans border-collapse border border-outline-variant">
                 <thead>
                   <tr className="bg-surface-container-highest text-center text-on-surface-variant font-bold tracking-widest uppercase scale-y-95">
                     <th className="border border-outline-variant p-2 text-left">Atributo</th>
@@ -13153,7 +13153,7 @@ export default function CharacterEditorView({
                           <span className="hidden sm:inline">{labels[attrKey].full}</span>
                           <span className="inline sm:hidden">{labels[attrKey].short}</span>
                           {attrKey === 'int' && (
-                            <span className="text-[10px] text-amber-500 font-sans block font-normal">
+                            <span className="text-micro text-amber-500 font-sans block font-normal">
                               Max. 2
                             </span>
                           )}
@@ -13199,7 +13199,7 @@ export default function CharacterEditorView({
                         <h4 className="font-serif text-sm text-primary font-bold uppercase tracking-wider">
                           Perícias do Companheiro
                         </h4>
-                        <span className={`text-[11px] font-mono font-bold ${remainingSkillPoints < 0 ? 'text-red-400 animate-pulse' : 'text-secondary'}`}>
+                        <span className={`text-caption font-mono font-bold ${remainingSkillPoints < 0 ? 'text-red-400 animate-pulse' : 'text-secondary'}`}>
                           ({remainingSkillPoints}/{maxCompanionSkills} Pts)
                         </span>
                       </div>
@@ -13220,7 +13220,7 @@ export default function CharacterEditorView({
                           Nenhuma perícia adicionada ainda. Clique no botão [+] para criar.
                         </p>
                       ) : (
-                        <table className="w-full text-[10px] font-sans border-collapse">
+                        <table className="w-full text-micro font-sans border-collapse">
                           <thead>
                             <tr className="bg-surface-container-highest text-center text-on-surface-variant font-bold tracking-widest uppercase scale-y-95">
                               <th className="border border-outline-variant p-2 text-left">
@@ -13258,7 +13258,7 @@ export default function CharacterEditorView({
                                       className={`w-full bg-transparent border-none p-1 font-sans text-xs text-on-surface focus:ring-0 outline-none placeholder:text-outline-variant/40 resize-none h-11 sm:h-7 leading-tight block overflow-hidden ${skill.nome?.length >= 300 ? '!text-red-500' : ''}`}
                                     />
 {skill.nome?.length >= 300 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (300)
       </div>
     )}
@@ -13293,7 +13293,7 @@ export default function CharacterEditorView({
                                     />
                                   </td>
                                   <td className={`${!isLocked ? 'border-r border-outline-variant/20' : ''} p-1 text-center`}>
-                                    <span className="text-primary font-bold text-[10px] sm:text-xs">
+                                    <span className="text-primary font-bold text-micro sm:text-xs">
                                       {total}%
                                     </span>
                                   </td>
@@ -13338,7 +13338,7 @@ export default function CharacterEditorView({
               <button
                 type="button"
                 onClick={handleSaveMontaria}
-                className="px-6 py-2.5 bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container text-[11px] font-sans font-bold uppercase tracking-wider transition-all cursor-pointer rounded-none border-none text-center"
+                className="px-6 py-2.5 bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container text-caption font-sans font-bold uppercase tracking-wider transition-all cursor-pointer rounded-none border-none text-center"
               >
                 Salvar Ficha
               </button>
@@ -13350,7 +13350,7 @@ export default function CharacterEditorView({
               {/* Fields: Nome and Animal */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 shrink-0 bg-surface-container p-3 border border-outline-variant/30">
               <div className="flex flex-col gap-1 text-left">
-                <label className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider">Nome</label>
+                <label className="text-micro font-sans font-bold text-outline uppercase tracking-wider">Nome</label>
                 <>
 <input maxLength={50}
                   type="text"
@@ -13360,7 +13360,7 @@ export default function CharacterEditorView({
                   className={`bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none min-h-[36px] ${tempNomeMontaria?.length >= 50 ? '!text-red-500' : ''}`}
                 />
 {tempNomeMontaria?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -13368,7 +13368,7 @@ export default function CharacterEditorView({
               
               </div>
               <div className="flex flex-col gap-1 text-left">
-                <label className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider">Animal</label>
+                <label className="text-micro font-sans font-bold text-outline uppercase tracking-wider">Animal</label>
                 <CustomSelect
                   value={tempAnimalMontariaId}
                   onChange={(e) => setTempAnimalMontariaId(e.target.value)}
@@ -13406,27 +13406,27 @@ export default function CharacterEditorView({
                         <TrendingUp className="w-4 h-4 text-secondary shrink-0" />
                         Progresso de Evolução da Montaria (Nível {charL})
                       </span>
-                      <span className="text-[10px] font-mono text-on-surface bg-outline-variant px-2 py-0.5 uppercase tracking-widest font-bold">
+                      <span className="text-micro font-mono text-on-surface bg-outline-variant px-2 py-0.5 uppercase tracking-widest font-bold">
                         Faixa {band}
                       </span>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                       <div className="space-y-1">
-                        <div className="flex justify-between text-[11px] text-outline-variant">
+                        <div className="flex justify-between text-caption text-outline-variant">
                           <span>Bônus de Vida (PV):</span>
                           <span className="font-bold text-green-400">+{pv_bonus} PV</span>
                         </div>
-                        <div className="flex justify-between text-[11px] text-outline-variant">
+                        <div className="flex justify-between text-caption text-outline-variant">
                           <span>Bônus de IP Natural:</span>
                           <span className="font-bold text-green-400">+{ip_bonus} IP</span>
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <div className="flex justify-between text-[11px] text-outline-variant">
+                        <div className="flex justify-between text-caption text-outline-variant">
                           <span>Bônus de Força (FR):</span>
                           <span className="font-bold text-green-400">+{fr_bonus} FR</span>
                         </div>
-                        <div className="flex justify-between text-[11px] text-outline-variant">
+                        <div className="flex justify-between text-caption text-outline-variant">
                           <span>Bônus de Inteligência (INT):</span>
                           <span className="font-bold text-green-400">+{int_bonus} INT</span>
                         </div>
@@ -13437,26 +13437,26 @@ export default function CharacterEditorView({
                   {/* Status: PV and IP */}
                   <div className="grid grid-cols-2 gap-4 shrink-0 bg-surface-container p-3 border border-outline-variant/30 text-center font-mono">
                     <div className="bg-surface-container border border-outline-variant/40 p-2">
-                      <span className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider block">Pontos de Vida (PV)</span>
+                      <span className="text-micro font-sans font-bold text-outline uppercase tracking-wider block">Pontos de Vida (PV)</span>
                       <div className="flex flex-col items-center justify-center">
                         <span className="text-lg font-bold text-green-400">
                           {(selectedMontariaData.pv_base || 0) + pv_bonus}
                         </span>
                         {pv_bonus > 0 && (
-                          <span className="text-[9px] text-green-400 font-sans">
+                          <span className="text-micro text-green-400 font-sans">
                             (Base {selectedMontariaData.pv_base || 0} + {pv_bonus} Evolução)
                           </span>
                         )}
                       </div>
                     </div>
                     <div className="bg-surface-container border border-outline-variant/40 p-2">
-                      <span className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider block">Índice de Proteção (IP)</span>
+                      <span className="text-micro font-sans font-bold text-outline uppercase tracking-wider block">Índice de Proteção (IP)</span>
                       <div className="flex flex-col items-center justify-center">
                         <span className="text-lg font-bold text-secondary">
                           {(selectedMontariaData.ip_base || 0) + ip_bonus}
                         </span>
                         {ip_bonus > 0 && (
-                          <span className="text-[9px] text-green-400 font-sans">
+                          <span className="text-micro text-green-400 font-sans">
                             (Base {selectedMontariaData.ip_base || 0} + {ip_bonus} Evolução)
                           </span>
                         )}
@@ -13470,7 +13470,7 @@ export default function CharacterEditorView({
                       Atributos da Montaria
                     </h4>
                     <div className="overflow-x-auto custom-scrollbar shrink-0">
-                      <table className="w-full text-[10px] font-sans border-collapse border border-outline-variant">
+                      <table className="w-full text-micro font-sans border-collapse border border-outline-variant">
                         <thead>
                           <tr className="bg-surface-container-highest text-center text-on-surface-variant font-bold tracking-widest uppercase scale-y-95">
                             <th className="border border-outline-variant p-2 text-left">Atributo</th>
@@ -13531,7 +13531,7 @@ export default function CharacterEditorView({
                     </h4>
                     {selectedMontariaData.ataques && selectedMontariaData.ataques.length > 0 ? (
                       <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full text-[10px] font-sans border-collapse border border-outline-variant">
+                        <table className="w-full text-micro font-sans border-collapse border border-outline-variant">
                           <thead>
                             <tr className="bg-surface-container-highest text-center text-on-surface-variant font-bold tracking-widest uppercase scale-y-95">
                               <th className="border border-outline-variant p-2 text-left">Ataque</th>
@@ -13603,7 +13603,7 @@ export default function CharacterEditorView({
                               <span className="font-serif text-secondary font-bold uppercase tracking-wider block mb-1">
                                 {spec.nome}
                               </span>
-                              <p className="text-[11px] text-on-surface-variant leading-relaxed">
+                              <p className="text-caption text-on-surface-variant leading-relaxed">
                                 {spec.efeito}
                               </p>
                             </div>
@@ -13632,7 +13632,7 @@ export default function CharacterEditorView({
                 type="button"
                 disabled={!tempAnimalFamiliarId || (tempAnimalFamiliarId === 'customizado' && !tempAnimalFamiliarNome.trim())}
                 onClick={handleSaveFamiliar}
-                className="px-6 py-2.5 bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-sans font-bold uppercase tracking-wider transition-all cursor-pointer rounded-none border-none text-center"
+                className="px-6 py-2.5 bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container disabled:opacity-40 disabled:cursor-not-allowed text-caption font-sans font-bold uppercase tracking-wider transition-all cursor-pointer rounded-none border-none text-center"
               >
                 Salvar Ficha do Familiar
               </button>
@@ -13644,7 +13644,7 @@ export default function CharacterEditorView({
               {/* Fields: Nome and Animal */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 shrink-0 bg-surface-container p-3 border border-outline-variant/30">
               <div className="flex flex-col gap-1 text-left">
-                <label className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider">Nome do Familiar</label>
+                <label className="text-micro font-sans font-bold text-outline uppercase tracking-wider">Nome do Familiar</label>
                 <>
 <input maxLength={50}
                   type="text"
@@ -13654,7 +13654,7 @@ export default function CharacterEditorView({
                   className={`bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none min-h-[36px] ${tempNomeFamiliar?.length >= 50 ? '!text-red-500' : ''}`}
                 />
 {tempNomeFamiliar?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -13663,7 +13663,7 @@ export default function CharacterEditorView({
               </div>
               
               <div className="flex flex-col gap-1 text-left">
-                <label className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider">Animal / Tipo</label>
+                <label className="text-micro font-sans font-bold text-outline uppercase tracking-wider">Animal / Tipo</label>
                 <CustomSelect
                   value={tempAnimalFamiliarId}
                   onChange={(e) => {
@@ -13736,7 +13736,7 @@ export default function CharacterEditorView({
 
             {tempAnimalFamiliarId === 'customizado' && (
               <div className="flex flex-col gap-1 text-left bg-surface-container p-3 border border-outline-variant/30 shrink-0">
-                <label className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider">Espécie do Animal Customizado</label>
+                <label className="text-micro font-sans font-bold text-outline uppercase tracking-wider">Espécie do Animal Customizado</label>
                 <>
 <input maxLength={50}
                   type="text"
@@ -13746,7 +13746,7 @@ export default function CharacterEditorView({
                   className={`bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none min-h-[36px] ${tempAnimalFamiliarNome?.length >= 50 ? '!text-red-500' : ''}`}
                 />
 {tempAnimalFamiliarNome?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -13772,26 +13772,26 @@ export default function CharacterEditorView({
                           <TrendingUp className="w-4 h-4 text-secondary shrink-0" />
                           Progresso de Evolução do Familiar (Nível {charL})
                         </span>
-                        <span className="text-[10px] font-mono text-on-surface bg-outline-variant px-2 py-0.5 uppercase tracking-widest font-bold">
+                        <span className="text-micro font-mono text-on-surface bg-outline-variant px-2 py-0.5 uppercase tracking-widest font-bold">
                           Faixa {band}
                         </span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                         <div className="space-y-1">
-                          <div className="flex justify-between text-[11px] text-outline-variant">
+                          <div className="flex justify-between text-caption text-outline-variant">
                             <span>Bônus de Inteligência:</span>
                             <span className="font-bold text-green-400">+{int_bonus} INT (Sobrescreve)</span>
                           </div>
-                          <div className="flex justify-between text-[11px] text-outline-variant">
+                          <div className="flex justify-between text-caption text-outline-variant">
                             <span>Bônus de IP Natural:</span>
                             <span className="font-bold text-green-400">+{ip_natural_bonus} IP (Sobrescreve)</span>
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[10px] text-outline block uppercase tracking-wider font-bold">Habilidades Ativas:</span>
+                          <span className="text-micro text-outline block uppercase tracking-wider font-bold">Habilidades Ativas:</span>
                           <div className="flex flex-wrap gap-1">
                             {especiais.map((esp, idx) => (
-                              <span key={idx} className="bg-amber-500/10 text-secondary border border-amber-500/20 text-[9px] px-1.5 py-0.5 rounded-none font-sans font-bold">
+                              <span key={idx} className="bg-amber-500/10 text-secondary border border-amber-500/20 text-micro px-1.5 py-0.5 rounded-none font-sans font-bold">
                                 {esp}
                               </span>
                             ))}
@@ -13805,7 +13805,7 @@ export default function CharacterEditorView({
                 {/* Stats: PV and IP */}
                 <div className="grid grid-cols-2 gap-4 shrink-0 bg-surface-container p-3 border border-outline-variant/30 text-center font-mono">
                   <div className="bg-surface-container border border-outline-variant/40 p-2">
-                    <span className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider block">Pontos de Vida (PV)</span>
+                    <span className="text-micro font-sans font-bold text-outline uppercase tracking-wider block">Pontos de Vida (PV)</span>
                     {tempAnimalFamiliarId === 'customizado' ? (
                       <span className="text-lg font-bold text-green-400">
                         {Math.ceil(((tempFamiliarAtributos.CON || 0) + (tempFamiliarAtributos.FR || 0)) / 2)}
@@ -13815,7 +13815,7 @@ export default function CharacterEditorView({
                     )}
                   </div>
                   <div className="bg-surface-container border border-outline-variant/40 p-2">
-                    <span className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider block">Índice de Proteção (IP)</span>
+                    <span className="text-micro font-sans font-bold text-outline uppercase tracking-wider block">Índice de Proteção (IP)</span>
                     {tempAnimalFamiliarId === 'customizado' ? (
                       <div className="flex items-center justify-center gap-2 mt-1">
                         <button
@@ -13844,7 +13844,7 @@ export default function CharacterEditorView({
                             {baseIP + ip_natural_bonus}
                           </span>
                           {ip_natural_bonus > 0 && (
-                            <span className="text-[9px] text-green-400 font-sans">
+                            <span className="text-micro text-green-400 font-sans">
                               (Base {baseIP} + {ip_natural_bonus} Evolução)
                             </span>
                           )}
@@ -13876,7 +13876,7 @@ export default function CharacterEditorView({
                     );
                   })()}
                   <div className="overflow-x-auto custom-scrollbar shrink-0">
-                    <table className="w-full text-[10px] font-sans border-collapse border border-outline-variant">
+                    <table className="w-full text-micro font-sans border-collapse border border-outline-variant">
                       <thead>
                         <tr className="bg-surface-container-highest text-center text-on-surface-variant font-bold tracking-widest uppercase scale-y-95">
                           <th className="border border-outline-variant p-2 text-left">Atributo</th>
@@ -13984,7 +13984,7 @@ export default function CharacterEditorView({
                   })()}
                   {tempFamiliarPericias.length > 0 ? (
                     <div className="overflow-x-auto custom-scrollbar">
-                      <table className="w-full text-[10px] font-sans border-collapse border border-outline-variant">
+                      <table className="w-full text-micro font-sans border-collapse border border-outline-variant">
                         <thead>
                           <tr className="bg-surface-container-highest text-center text-on-surface-variant font-bold tracking-widest uppercase scale-y-95">
                             <th className="border border-outline-variant p-2 text-left">Perícia / Ataque</th>
@@ -14030,7 +14030,7 @@ export default function CharacterEditorView({
                   {/* Add Custom Attack Form */}
                   {tempAnimalFamiliarId === 'customizado' && (
                     <div className="bg-surface-container p-3 border border-outline-variant/30 space-y-2 mt-2 text-left">
-                      <h5 className="text-[10px] text-primary uppercase font-bold tracking-wider">Adicionar Ataque / Perícia</h5>
+                      <h5 className="text-micro text-primary uppercase font-bold tracking-wider">Adicionar Ataque / Perícia</h5>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <>
 <input maxLength={50}
@@ -14038,10 +14038,10 @@ export default function CharacterEditorView({
                           placeholder="Perícia (Ex: Mordida, Furtividade)"
                           value={newFamPericia}
                           onChange={(e) => setNewFamPericia(e.target.value)}
-                          className={`bg-surface-container border border-outline-variant text-[11px] text-on-surface px-2.5 py-1.5 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none ${newFamPericia?.length >= 50 ? '!text-red-500' : ''}`}
+                          className={`bg-surface-container border border-outline-variant text-caption text-on-surface px-2.5 py-1.5 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none ${newFamPericia?.length >= 50 ? '!text-red-500' : ''}`}
                         />
 {newFamPericia?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -14052,7 +14052,7 @@ export default function CharacterEditorView({
                           placeholder="Acerto % (Ex: 40)"
                           value={newFamChance || ''}
                           onChange={(e) => setNewFamChance(Math.max(0, Number(e.target.value)))}
-                          className="bg-surface-container border border-outline-variant text-[11px] text-on-surface px-2.5 py-1.5 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none"
+                          className="bg-surface-container border border-outline-variant text-caption text-on-surface px-2.5 py-1.5 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none"
                         />
                         <>
 <input maxLength={50}
@@ -14060,10 +14060,10 @@ export default function CharacterEditorView({
                           placeholder="Fórmula de Dano (Ex: 1d4, 1d6-1)"
                           value={newFamDano}
                           onChange={(e) => setNewFamDano(e.target.value)}
-                          className={`bg-surface-container border border-outline-variant text-[11px] text-on-surface px-2.5 py-1.5 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none ${newFamDano?.length >= 50 ? '!text-red-500' : ''}`}
+                          className={`bg-surface-container border border-outline-variant text-caption text-on-surface px-2.5 py-1.5 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none ${newFamDano?.length >= 50 ? '!text-red-500' : ''}`}
                         />
 {newFamDano?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -14083,7 +14083,7 @@ export default function CharacterEditorView({
                           setNewFamChance(0);
                           setNewFamDano('');
                         }}
-                        className="w-full py-1.5 bg-primary/20 hover:bg-primary/30 text-primary font-bold text-[10px] uppercase tracking-wider border border-primary/30 transition-all rounded-none cursor-pointer"
+                        className="w-full py-1.5 bg-primary/20 hover:bg-primary/30 text-primary font-bold text-micro uppercase tracking-wider border border-primary/30 transition-all rounded-none cursor-pointer"
                       >
                         + Adicionar Linha de Perícia
                       </button>
@@ -14102,9 +14102,9 @@ export default function CharacterEditorView({
                         <div key={hIdx} className="p-2.5 bg-surface-container border border-outline-variant/30 flex justify-between items-start gap-4 text-left">
                           <div className="space-y-1">
                             <span className="text-xs font-bold text-secondary block">
-                              {h.habilidade} {isBaseFamiliarAbility(h.habilidade) && <span className="text-[9px] text-outline font-normal font-sans tracking-wide">(Base)</span>}
+                              {h.habilidade} {isBaseFamiliarAbility(h.habilidade) && <span className="text-micro text-outline font-normal font-sans tracking-wider">(Base)</span>}
                             </span>
-                            <p className="text-[10px] text-outline-variant leading-relaxed">{h.efeito}</p>
+                            <p className="text-micro text-outline-variant leading-relaxed">{h.efeito}</p>
                           </div>
                           {tempAnimalFamiliarId === 'customizado' && !isBaseFamiliarAbility(h.habilidade) && (
                             <button
@@ -14129,7 +14129,7 @@ export default function CharacterEditorView({
 
                     return (
                       <div className="bg-surface-container p-3 border border-outline-variant/30 space-y-2 mt-2 text-left">
-                        <h5 className="text-[10px] text-primary uppercase font-bold tracking-wider">
+                        <h5 className="text-micro text-primary uppercase font-bold tracking-wider">
                           Adicionar Habilidade Especial / Vantagem Customizada (Máx: 1)
                         </h5>
                         {hasCustomAbility ? (
@@ -14145,10 +14145,10 @@ export default function CharacterEditorView({
                                 placeholder="Nome da Habilidade (Ex: Sopro de Gelo)"
                                 value={newFamHabilidade}
                                 onChange={(e) => setNewFamHabilidade(e.target.value)}
-                                className={`bg-surface-container border border-outline-variant text-[11px] text-on-surface px-2.5 py-1.5 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none min-h-[36px] ${newFamHabilidade?.length >= 50 ? '!text-red-500' : ''}`}
+                                className={`bg-surface-container border border-outline-variant text-caption text-on-surface px-2.5 py-1.5 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none min-h-[36px] ${newFamHabilidade?.length >= 50 ? '!text-red-500' : ''}`}
                               />
 {newFamHabilidade?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -14160,10 +14160,10 @@ export default function CharacterEditorView({
                                 placeholder="Descrição do Efeito (Ex: Causa 1d6 de dano de frio)"
                                 value={newFamEfeito}
                                 onChange={(e) => setNewFamEfeito(e.target.value)}
-                                className={`bg-surface-container border border-outline-variant text-[11px] text-on-surface px-2.5 py-1.5 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none min-h-[36px] ${newFamEfeito?.length >= 50 ? '!text-red-500' : ''}`}
+                                className={`bg-surface-container border border-outline-variant text-caption text-on-surface px-2.5 py-1.5 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none min-h-[36px] ${newFamEfeito?.length >= 50 ? '!text-red-500' : ''}`}
                               />
 {newFamEfeito?.length >= 50 && (
-      <div className="w-full text-right text-[10px] text-red-500 font-bold animate-pulse mt-0.5 pr-1">
+      <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
         Limite atingido (50)
       </div>
     )}
@@ -14184,7 +14184,7 @@ export default function CharacterEditorView({
                                 setNewFamHabilidade('');
                                 setNewFamEfeito('');
                               }}
-                              className="w-full py-1.5 bg-primary/20 hover:bg-primary/30 text-primary font-bold text-[10px] uppercase tracking-wider border border-primary/30 transition-all rounded-none cursor-pointer"
+                              className="w-full py-1.5 bg-primary/20 hover:bg-primary/30 text-primary font-bold text-micro uppercase tracking-wider border border-primary/30 transition-all rounded-none cursor-pointer"
                             >
                               + Adicionar Habilidade Customizada
                             </button>
@@ -14260,7 +14260,7 @@ export default function CharacterEditorView({
                 <h4 className="font-serif text-xs text-primary font-bold uppercase tracking-wider">Identificação</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div className={`p-2 border rounded-sm ${compNameChanged ? 'bg-amber-500/10 border-amber-500/50' : 'bg-surface-container/50 border-outline-variant/20'}`}>
-                    <span className="text-[10px] text-outline uppercase block font-bold mb-1">Nome</span>
+                    <span className="text-micro text-outline uppercase block font-bold mb-1">Nome</span>
                     {compNameChanged ? (
                       <span className="font-mono text-on-surface">
                         <span className="text-red-400 line-through mr-1">{origComp?.nomeAnimal || "(Vazio)"}</span>
@@ -14271,7 +14271,7 @@ export default function CharacterEditorView({
                     )}
                   </div>
                   <div className={`p-2 border rounded-sm ${compTypeChanged ? 'bg-amber-500/10 border-amber-500/50' : 'bg-surface-container/50 border-outline-variant/20'}`}>
-                    <span className="text-[10px] text-outline uppercase block font-bold mb-1">Animal</span>
+                    <span className="text-micro text-outline uppercase block font-bold mb-1">Animal</span>
                     {compTypeChanged ? (
                       <span className="font-mono text-on-surface">
                         <span className="text-red-400 line-through mr-1">{origComp?.tipoAnimal || "(Vazio)"}</span>
@@ -14288,7 +14288,7 @@ export default function CharacterEditorView({
               <div className="bg-surface-container p-4 border border-outline-variant/30 space-y-3">
                 <h4 className="font-serif text-xs text-primary font-bold uppercase tracking-wider">Atributos</h4>
                 <div className="overflow-x-auto custom-scrollbar">
-                  <table className="w-full text-[10px] font-sans border-collapse border border-outline-variant">
+                  <table className="w-full text-micro font-sans border-collapse border border-outline-variant">
                     <thead>
                       <tr className="bg-surface-container-highest text-center text-on-surface-variant font-bold tracking-widest uppercase scale-y-95">
                         <th className="border border-outline-variant p-2 text-left">Atributo</th>
@@ -14339,7 +14339,7 @@ export default function CharacterEditorView({
               <div className="bg-surface-container p-4 border border-outline-variant/30 space-y-3">
                 <h4 className="font-serif text-xs text-primary font-bold uppercase tracking-wider">Perícias e Ataques</h4>
                 <div className="overflow-x-auto custom-scrollbar">
-                  <table className="w-full text-[10px] font-sans border-collapse border border-outline-variant">
+                  <table className="w-full text-micro font-sans border-collapse border border-outline-variant">
                     <thead>
                       <tr className="bg-surface-container-highest text-center text-on-surface-variant font-bold tracking-widest uppercase scale-y-95">
                         <th className="border border-outline-variant p-2 text-left">Perícia</th>
@@ -14360,15 +14360,15 @@ export default function CharacterEditorView({
                         if (skill.diffStatus === 'added') {
                           rowBg = 'bg-emerald-500/10 border-emerald-500/20';
                           textClass = 'text-emerald-300';
-                          badge = <span className="ml-2 text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded font-sans uppercase">Novo</span>;
+                          badge = <span className="ml-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded font-sans uppercase">Novo</span>;
                         } else if (skill.diffStatus === 'modified') {
                           rowBg = 'bg-amber-500/10 border-amber-500/20';
                           textClass = 'text-secondary';
-                          badge = <span className="ml-2 text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded font-sans uppercase">Editado</span>;
+                          badge = <span className="ml-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded font-sans uppercase">Editado</span>;
                         } else if (skill.diffStatus === 'removed') {
                           rowBg = 'bg-red-500/5 border-red-500/10 opacity-60';
                           textClass = 'text-red-400 line-through';
-                          badge = <span className="ml-2 text-[8px] bg-red-500/20 text-red-400 border border-red-500/30 px-1 py-0.5 rounded font-sans uppercase">Removido</span>;
+                          badge = <span className="ml-2 text-micro bg-red-500/20 text-red-400 border border-red-500/30 px-1 py-0.5 rounded font-sans uppercase">Removido</span>;
                         }
 
                         return (
@@ -14463,7 +14463,7 @@ export default function CharacterEditorView({
                 <h4 className="font-serif text-xs text-primary font-bold uppercase tracking-wider">Identificação</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div className={`p-2 border rounded-sm ${montNameChanged ? 'bg-amber-500/10 border-amber-500/50' : 'bg-surface-container/50 border-outline-variant/20'}`}>
-                    <span className="text-[10px] text-outline uppercase block font-bold mb-1">Nome</span>
+                    <span className="text-micro text-outline uppercase block font-bold mb-1">Nome</span>
                     {montNameChanged ? (
                       <span className="font-mono text-on-surface">
                         <span className="text-red-400 line-through mr-1">{origMont?.nome || "(Vazio)"}</span>
@@ -14474,7 +14474,7 @@ export default function CharacterEditorView({
                     )}
                   </div>
                   <div className={`p-2 border rounded-sm ${montTypeChanged ? 'bg-amber-500/10 border-amber-500/50' : 'bg-surface-container/50 border-outline-variant/20'}`}>
-                    <span className="text-[10px] text-outline uppercase block font-bold mb-1">Tipo da Montaria</span>
+                    <span className="text-micro text-outline uppercase block font-bold mb-1">Tipo da Montaria</span>
                     {montTypeChanged ? (
                       <span className="font-mono text-on-surface">
                         <span className="text-red-400 line-through mr-1">{oldMontariaData?.nome || "(Vazio)"}</span>
@@ -14492,7 +14492,7 @@ export default function CharacterEditorView({
                   {/* Status base diff */}
                   <div className="grid grid-cols-2 gap-4 shrink-0 bg-surface-container p-3 border border-outline-variant/30 text-center font-mono text-xs">
                     <div className={`bg-surface-container border p-2 rounded-sm ${selectedMontariaData.pv_base !== oldMontariaData?.pv_base ? 'border-amber-500 bg-amber-500/5' : 'border-outline-variant/20'}`}>
-                      <span className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider block">PV Base</span>
+                      <span className="text-micro font-sans font-bold text-outline uppercase tracking-wider block">PV Base</span>
                       {selectedMontariaData.pv_base !== oldMontariaData?.pv_base ? (
                         <div className="flex items-center justify-center gap-1 text-sm font-bold">
                           <span className="text-red-400 line-through">{oldMontariaData?.pv_base || 0}</span>
@@ -14503,7 +14503,7 @@ export default function CharacterEditorView({
                       )}
                     </div>
                     <div className={`bg-surface-container border p-2 rounded-sm ${selectedMontariaData.ip_base !== oldMontariaData?.ip_base ? 'border-amber-500 bg-amber-500/5' : 'border-outline-variant/20'}`}>
-                      <span className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider block">IP Base</span>
+                      <span className="text-micro font-sans font-bold text-outline uppercase tracking-wider block">IP Base</span>
                       {selectedMontariaData.ip_base !== oldMontariaData?.ip_base ? (
                         <div className="flex items-center justify-center gap-1 text-sm font-bold">
                           <span className="text-red-400 line-through">{oldMontariaData?.ip_base || 0}</span>
@@ -14519,7 +14519,7 @@ export default function CharacterEditorView({
                   <div className="bg-surface-container p-4 border border-outline-variant/30 space-y-3">
                     <h4 className="font-serif text-xs text-primary font-bold uppercase tracking-wider">Atributos</h4>
                     <div className="overflow-x-auto custom-scrollbar">
-                      <table className="w-full text-[10px] font-sans border-collapse border border-outline-variant">
+                      <table className="w-full text-micro font-sans border-collapse border border-outline-variant">
                         <thead>
                           <tr className="bg-surface-container-highest text-center text-on-surface-variant font-bold tracking-widest uppercase scale-y-95">
                             <th className="border border-outline-variant p-2 text-left">Atributo</th>
@@ -14672,7 +14672,7 @@ export default function CharacterEditorView({
                 <h4 className="font-serif text-xs text-primary font-bold uppercase tracking-wider">Identificação</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div className={`p-2 border rounded-sm ${famNameChanged ? 'bg-amber-500/10 border-amber-500/50' : 'bg-surface-container/50 border-outline-variant/20'}`}>
-                    <span className="text-[10px] text-outline uppercase block font-bold mb-1">Nome</span>
+                    <span className="text-micro text-outline uppercase block font-bold mb-1">Nome</span>
                     {famNameChanged ? (
                       <span className="font-mono text-on-surface">
                         <span className="text-red-400 line-through mr-1">{origFam?.nome || "(Vazio)"}</span>
@@ -14683,7 +14683,7 @@ export default function CharacterEditorView({
                     )}
                   </div>
                   <div className={`p-2 border rounded-sm ${famTypeChanged ? 'bg-amber-500/10 border-amber-500/50' : 'bg-surface-container/50 border-outline-variant/20'}`}>
-                    <span className="text-[10px] text-outline uppercase block font-bold mb-1">Animal / Tipo</span>
+                    <span className="text-micro text-outline uppercase block font-bold mb-1">Animal / Tipo</span>
                     {famTypeChanged ? (
                       <span className="font-mono text-on-surface">
                         <span className="text-red-400 line-through mr-1">{(origFam?.animalId === 'customizado' ? origFam?.animalNome : familiaresBase.find(f => f.id === origFam?.animalId)?.animal) || "(Vazio)"}</span>
@@ -14699,7 +14699,7 @@ export default function CharacterEditorView({
               {/* Status base diff */}
               <div className="grid grid-cols-2 gap-4 shrink-0 bg-surface-container p-3 border border-outline-variant/30 text-center font-mono text-xs">
                 <div className={`bg-surface-container border p-2 rounded-sm ${currFam?.atributos?.PV !== origFam?.atributos?.PV ? 'border-amber-500 bg-amber-500/5' : 'border-outline-variant/20'}`}>
-                  <span className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider block">PV Base</span>
+                  <span className="text-micro font-sans font-bold text-outline uppercase tracking-wider block">PV Base</span>
                   {currFam?.atributos?.PV !== origFam?.atributos?.PV ? (
                     <div className="flex items-center justify-center gap-1 text-sm font-bold">
                       <span className="text-red-400 line-through">{origFam?.atributos?.PV || 0}</span>
@@ -14710,7 +14710,7 @@ export default function CharacterEditorView({
                   )}
                 </div>
                 <div className={`bg-surface-container border p-2 rounded-sm ${currFam?.atributos?.IP !== origFam?.atributos?.IP ? 'border-amber-500 bg-amber-500/5' : 'border-outline-variant/20'}`}>
-                  <span className="text-[9px] font-sans font-bold text-outline uppercase tracking-wider block">IP Base</span>
+                  <span className="text-micro font-sans font-bold text-outline uppercase tracking-wider block">IP Base</span>
                   {currFam?.atributos?.IP !== origFam?.atributos?.IP ? (
                     <div className="flex items-center justify-center gap-1 text-sm font-bold">
                       <span className="text-red-400 line-through">{origFam?.atributos?.IP || 0}</span>
@@ -14726,7 +14726,7 @@ export default function CharacterEditorView({
               <div className="bg-surface-container p-4 border border-outline-variant/30 space-y-3">
                 <h4 className="font-serif text-xs text-primary font-bold uppercase tracking-wider">Atributos</h4>
                 <div className="overflow-x-auto custom-scrollbar">
-                  <table className="w-full text-[10px] font-sans border-collapse border border-outline-variant">
+                  <table className="w-full text-micro font-sans border-collapse border border-outline-variant">
                     <thead>
                       <tr className="bg-surface-container-highest text-center text-on-surface-variant font-bold tracking-widest uppercase scale-y-95">
                         <th className="border border-outline-variant p-2 text-left">Atributo</th>
@@ -14778,7 +14778,7 @@ export default function CharacterEditorView({
               <div className="bg-surface-container p-4 border border-outline-variant/30 space-y-3">
                 <h4 className="font-serif text-xs text-primary font-bold uppercase tracking-wider font-bold">Perícias e Combate</h4>
                 <div className="overflow-x-auto custom-scrollbar">
-                  <table className="w-full text-[10px] font-sans border-collapse border border-outline-variant">
+                  <table className="w-full text-micro font-sans border-collapse border border-outline-variant">
                     <thead>
                       <tr className="bg-surface-container-highest text-center text-on-surface-variant font-bold tracking-widest uppercase scale-y-95">
                         <th className="border border-outline-variant p-2 text-left">Perícia / Ataque</th>
@@ -14795,15 +14795,15 @@ export default function CharacterEditorView({
                         if (p.diffStatus === 'added') {
                           rowBg = 'bg-emerald-500/10 border-emerald-500/20';
                           textClass = 'text-emerald-300';
-                          badge = <span className="ml-2 text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded font-sans uppercase">Novo</span>;
+                          badge = <span className="ml-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded font-sans uppercase">Novo</span>;
                         } else if (p.diffStatus === 'modified') {
                           rowBg = 'bg-amber-500/10 border-amber-500/20';
                           textClass = 'text-secondary';
-                          badge = <span className="ml-2 text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded font-sans uppercase">Editado</span>;
+                          badge = <span className="ml-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded font-sans uppercase">Editado</span>;
                         } else if (p.diffStatus === 'removed') {
                           rowBg = 'bg-red-500/5 border-red-500/10 opacity-60';
                           textClass = 'text-red-400 line-through';
-                          badge = <span className="ml-2 text-[8px] bg-red-500/20 text-red-400 border border-red-500/30 px-1 py-0.5 rounded font-sans uppercase">Removido</span>;
+                          badge = <span className="ml-2 text-micro bg-red-500/20 text-red-400 border border-red-500/30 px-1 py-0.5 rounded font-sans uppercase">Removido</span>;
                         }
 
                         return (
@@ -14852,13 +14852,13 @@ export default function CharacterEditorView({
 
                     if (h.diffStatus === 'added') {
                       containerClass = 'p-2.5 bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 flex justify-between items-start gap-4 text-left';
-                      badge = <span className="ml-1.5 text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">Adicionado</span>;
+                      badge = <span className="ml-1.5 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">Adicionado</span>;
                     } else if (h.diffStatus === 'modified') {
                       containerClass = 'p-2.5 bg-amber-500/10 border border-amber-500/40 text-secondary flex justify-between items-start gap-4 text-left';
-                      badge = <span className="ml-1.5 text-[8px] bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">Modificado</span>;
+                      badge = <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">Modificado</span>;
                     } else if (h.diffStatus === 'removed') {
                       containerClass = 'p-2.5 bg-red-500/5 border border-red-500/10 opacity-50 text-red-400 line-through flex justify-between items-start gap-4 text-left';
-                      badge = <span className="ml-1.5 text-[8px] bg-red-500/20 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">Removido</span>;
+                      badge = <span className="ml-1.5 text-micro bg-red-500/20 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">Removido</span>;
                     }
 
                     return (
@@ -14869,12 +14869,12 @@ export default function CharacterEditorView({
                             {badge}
                           </span>
                           {h.diffStatus === 'modified' ? (
-                            <div className="space-y-1 text-[10px]">
+                            <div className="space-y-1 text-micro">
                               <p className="text-red-400 line-through">Anterior: {h.oldEfeito}</p>
                               <p className="text-secondary">Atual: {h.efeito}</p>
                             </div>
                           ) : (
-                            <p className="text-[10px] text-outline-variant leading-relaxed">{h.efeito}</p>
+                            <p className="text-micro text-outline-variant leading-relaxed">{h.efeito}</p>
                           )}
                         </div>
                       </div>

@@ -1,7 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+  }
+}
 
 @media (min-width: 1024px) {
   html {
@@ -62,6 +67,10 @@
   --font-serif: "EB Garamond", Georgia, serif;
   --font-sans: "Hanken Grotesk", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
+
+  /* Type-scale tokens (replace arbitrary text-[Npx]) */
+  --text-micro: 0.625rem;   /* 10px - labels, badges, metadata */
+  --text-caption: 0.6875rem; /* 11px - buttons, small captions */
   
   --border-radius-none: 0px;
 
@@ -577,6 +586,17 @@ input[type="number"] {
   filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.6));
 }
 
-
-
-
+/* Card fast fade for NPC toggle */
+@keyframes cardFadeFast {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.card-fade-fast {
+  animation: cardFadeFast 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

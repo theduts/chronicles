@@ -47,6 +47,15 @@ public class CampaignNpc {
     @Builder.Default
     private Boolean isPersona = false;
 
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "data", columnDefinition = "jsonb", nullable = false)
+    @Builder.Default
+    private java.util.Map<String, Object> data = new java.util.HashMap<>();
+
+    @Column(name = "is_template", nullable = false)
+    @Builder.Default
+    private Boolean isTemplate = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

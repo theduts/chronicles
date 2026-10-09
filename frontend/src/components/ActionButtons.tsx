@@ -35,8 +35,8 @@ export function ActionButton({
   const displayLabel = label || (typeof children === 'string' ? children : undefined);
 
   const sizeClasses = {
-    sm: hideLabelOnMobile && displayLabel ? "w-8 h-8 sm:w-auto sm:h-auto p-0 sm:px-3 sm:py-1.5 text-[10px]" : "px-3 py-1.5 text-[10px]",
-    md: hideLabelOnMobile && displayLabel ? "w-10 h-10 sm:w-auto sm:h-auto p-0 sm:px-5 sm:py-2.5 text-[11px]" : "px-5 py-2.5 text-[11px]",
+    sm: hideLabelOnMobile && displayLabel ? "w-8 h-8 sm:w-auto sm:h-auto p-0 sm:px-3 sm:py-1.5 text-micro" : "px-3 py-1.5 text-micro",
+    md: hideLabelOnMobile && displayLabel ? "w-10 h-10 sm:w-auto sm:h-auto p-0 sm:px-5 sm:py-2.5 text-caption" : "px-5 py-2.5 text-caption",
     lg: hideLabelOnMobile && displayLabel ? "w-12 h-12 sm:w-auto sm:h-auto p-0 sm:px-6 sm:py-3 text-xs" : "px-6 py-3 text-xs",
     icon: "w-8 h-8 p-1.5 text-sm", // For icon-only buttons
   };

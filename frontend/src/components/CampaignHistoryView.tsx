@@ -32,6 +32,7 @@ import {
 import Modal from './Modal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { ActionButton, SaveButton, AddButton, EditButton, DeleteButton } from './ActionButtons';
+import { toast } from 'sonner';
 import ImageWithFallback from './ImageWithFallback';
 import {
   useLoreQuery,
@@ -40,20 +41,24 @@ import {
   useToggleLoreVisibilityMutation,
   useDeleteLoreMutation,
 } from '../hooks/useLoreMutations';
+import { useChroniclesQuery } from '../hooks/useChroniclesMutations';
+import { useCampaignNpcs } from '../hooks/useNpcMutations';
+import { toRoman, formatDisplayDate } from './ChroniclesView';
+import { useQueryClient } from '@tanstack/react-query';
+import { api } from '../services/api';
+import { uploadImage } from '../services/api/upload';
 
 interface CampaignHistoryViewProps {
   onBack: () => void;
   userRole?: 'player' | 'dm';
   campaignId?: string;
+  activeCampaign?: any;
+  onNavigateToCampaigns?: () => void;
 }
 
 type TabType = 'panteao' | 'faccoes' | 'geografia' | 'mapas' | 'personas';
 
-const DEFAULT_STORY_TEXT = `Há quatro séculos, o continente de Occultus era iluminado pelas sete balizas de prata de Aethelgard. Mágicos e mortais prosperavam sob o benevolente manto da Deusa Astraea. No entanto, na trágica Noite do Sangue Profano, o selo primordial do abismo foi rompidos por heresiarcas, libertando a influência corruptora do demônio Valthor.
-
-A maldição converteu as grandes florestas do leste em pântanos de névoa sussurrante, envenenando rios e corrompendo a própria essência da magia arcana. O Imperador Kaelen IV caiu em combate defendendo a grande biblioteca, deixando o império fragmentado entre dogmáticos inquisidores, lordes necromantes e ligas de mercenários insaciáveis.
-
-Hoje, os aventureiros navegam pelas intrigas das facções rivais enquanto buscam reunificar as sete relíquias rúnicas necessárias para selar novamente a fenda de Morvia antes que o sol de prata se apague definitivamente.`;
+const DEFAULT_STORY_TEXT = '';
 
 interface PhotoItem {
   id: string;
@@ -62,6 +67,8 @@ interface PhotoItem {
   url: string;
   description: string;
   date?: string;
+  sourceType?: 'lore' | 'chronicle' | 'photo';
+  createdAt?: string;
 }
 
 interface PantheonItem {
@@ -123,251 +130,71 @@ interface PersonaItem {
   description: string;
   image?: string;
   isVisible?: boolean;
+  npcId?: string;
 }
 
-// Initial Mock Data
-const INITIAL_PHOTOS: PhotoItem[] = [
-  {
-    id: 'photo-1',
-    title: 'Aethelgard sob a Névoa Rúnica',
-    category: 'Cidades',
-    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuApaoQQsXhFuJ7cnHYim1KAq_ihU2Sf_xG5CGjFEPgNbhiuPsddO96GWeZbOWMENEh5vNo9hBtlfWmRgQPhRtv5jxPFTbN5uyXeZ4upiymyfffad_QDcNvScGlT_8wY0rCE3FfRShqdcJQVPTHEmOYoVObV49PN2V5LgIncvPaxsJSorBU3jFWhZDeZkimJ5F3OBeN8ZV3Dio3Kby7oJK-Ey4wbx3Y_eayiVvFs8RKdviqwJ42g3eL3IbehJn2PWPa2cpxK4qYGy4E',
-    description: 'Vista panorâmica da cidadela imperial durante o cerne da lua profana.',
-    date: 'Ato I'
-  },
-  {
-    id: 'photo-2',
-    title: 'A Floresta das Brumas Sussurrantes',
-    category: 'Ermos',
-    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuHZvY37Hs1hVLXx0XzG8rFUpHmP5wdHVCSCCkr16Rkz56fZNUIdTmgjbdiL8LJbmVM-nzqyfxDiBeEq-Aq-7ztUz4lZFoyfOgRqQFO4URtVRZvdQAe9T9bOPd3j5nPVWjZ58FrCTHu9omekQxSbMiZ2lIiU2Kd2FA9yjC69WUd9WLm4-idR4gIcZWkYBpB5Y73Hb8uzeEInjO55GfBBHyBGY-DNkIatnnsmXy6HoodYkElB1O758CwNr4QDk6EAljAprNw0EhNKU',
-    description: 'Brumas eternas onde criaturas abissais aguardam os viajantes incautos.',
-    date: 'Ato II'
-  },
-  {
-    id: 'photo-3',
-    title: 'Altar Rúnico nas Profundezas',
-    category: 'Ruínas',
-    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAH02OPokynjplaAoYJ5Dh_mYVv9kxVNgs9GieyHtShVvopAbzKMJG-C8c0yhJgCROG1bkCaS9w-7iasUIrTnJf-DfK2cDZg9b8zP_2IGFOpWJsMHtB2HMKnXtSJr6FZlGrARVDI14wQPtIELkJghHXYacTrlRJCaNWT_KyDyr6cCK4LOGIie2DVGGnFf_w6KO5wCvw0oNAh407zMeCt5yO9NPob94UWsBR3ygCWTnxapKIeLuSQOUwOQE-NFsCdo-SJM4I25nHctk',
-    description: 'A cripta ancestral onde o Pacto de Sangue foi selado por sacerdotes negros.',
-    date: 'Ato III'
-  },
-  {
-    id: 'photo-4',
-    title: 'O Portão dos Inquisidores',
-    category: 'Monumentos',
-    url: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?q=80&w=1200',
-    description: 'Entrada fortificada da Ordem do Sol Prateado nas terras ocidentais.',
-    date: 'Ato I'
-  }
-];
+// Initial Data (Empty for precise testing)
+const INITIAL_PHOTOS: PhotoItem[] = [];
+const INITIAL_PANTHEON: PantheonItem[] = [];
+const INITIAL_FACTIONS: FactionItem[] = [];
+const INITIAL_GEO: GeoItem[] = [];
+const INITIAL_MAPS: MapItem[] = [];
+const INITIAL_PERSONAS: PersonaItem[] = [];
 
-const INITIAL_PANTHEON: PantheonItem[] = [
-  {
-    id: 'pan-1',
-    name: 'Astraea, a Dama do Sol Prateado',
-    title: 'Deusa da Luz, da Justiça e do Destino Purificado',
-    type: 'Divindade Maior',
-    domains: ['Luz', 'Justiça', 'Proteção', 'Destino'],
-    symbol: 'Um eclipse solar emoldurado por asas prateadas',
-    description: 'Venerada pelos paladinos e inquisidores de Aethelgard, Astraea concede visões proféticas aos seus devotos fiéis, exigindo purificação constante contra a corrupção do Sangue.',
-    worshippers: 'Inquisidores, Cavaleiros da Ordem e Povo de Aethelgard',
-    alignment: 'Leal e Bom',
-    image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=600',
-    isVisible: true
-  },
-  {
-    id: 'pan-2',
-    name: 'Valthor, o Senhor da Serpente Profana',
-    title: 'Arquidemônio da Sangue, Tirania e Conquista',
-    type: 'Entidade Profana',
-    domains: ['Sangue', 'Guerra', 'Medo', 'Maldade'],
-    symbol: 'Crânio de serpente atravessado por uma adaga rubi',
-    description: 'Entidade aprisionada nos abismos sob Morvia. Seus cultistas sacrificam sangue em altares rúnicos em troca de vitalidade monstruosa e magias de necromancia proibida.',
-    worshippers: 'Cultistas do Sangue, Mercenários Renegados e Bruxos do Caos',
-    alignment: 'Caótico e Mau',
-    image: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?q=80&w=600',
-    isVisible: true
-  },
-  {
-    id: 'pan-3',
-    name: 'Nyxaria, a Matriarca da Névoa',
-    title: 'Guardiã dos Segredos Eternos e das Almas Perdidas',
-    type: 'Divindade Menor',
-    domains: ['Sombras', 'Segredos', 'Misterios', 'Ilusão'],
-    symbol: 'Três luas crescentes entrelaçadas em prata',
-    description: 'Patrona dos ladinos, espiões e magos ilusionistas. Nyxaria não exige templos, apenas segredos sussurrados sob a luz da lua rúnica.',
-    worshippers: 'Assassinos, Magos das Sombras e Viajantes Noturnos',
-    alignment: 'Neutro e Caótico',
-    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=600',
-    isVisible: true
-  }
-];
-
-const INITIAL_FACTIONS: FactionItem[] = [
-  {
-    id: 'fac-1',
-    name: 'Inquisição do Sol Prateado',
-    leader: 'Alto Inquisidor Vane',
-    headquarters: 'Catedral Solar de Aethelgard',
-    alignment: 'Leal e Neutro',
-    influence: 88,
-    description: 'Força militar fanática dedicada a erradicar cultos de necromancia, mutações pelo Sangue e heresias arcanas em todo o continente.',
-    allies: ['Guarda Imperial', 'Ordem dos Clérigos de Astraea'],
-    enemies: ['Culto da Serpente', 'Aliança dos Renegados'],
-    image: 'https://images.unsplash.com/photo-1519074069444-1ba4e6664104?q=80&w=600',
-    isVisible: true
-  },
-  {
-    id: 'fac-2',
-    name: 'Aliança dos Renegados',
-    leader: 'Malakor, o Sem-Rosto',
-    headquarters: 'Sub-Vala (Cidade Subterrânea)',
-    alignment: 'Caótico e Neutro',
-    influence: 62,
-    description: 'Rede clandestina de contrabandistas, proscritos e mercenários que dominam o mercado negro de artefatos rúnicos e substâncias proibidas.',
-    allies: ['Sindicato dos Ladrões de Névoa'],
-    enemies: ['Inquisição do Sol Prateado', 'Patrulha de Aethelgard'],
-    image: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=600',
-    isVisible: true
-  },
-  {
-    id: 'fac-3',
-    name: 'Conselho Arcano de Eldoria',
-    leader: 'Arquimaga Lyra Vane',
-    headquarters: 'Torre de Marfim Amarelada',
-    alignment: 'Neutro Verdadeiro',
-    influence: 75,
-    description: 'Sociedade de eruditos e conjuradores que catalogam as anomalias mágicas provocadas pelo declínio do véu dimensional.',
-    allies: ['Academia de Alquimia'],
-    enemies: ['Fanáticos Inquisitoriais'],
-    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=600',
-    isVisible: true
-  }
-];
-
-const INITIAL_GEO: GeoItem[] = [
-  {
-    id: 'geo-1',
-    name: 'Cidadela de Aethelgard',
-    region: 'Terras Centrais',
-    dangerLevel: 'Médio',
-    climate: 'Frio Imperial e Neve Rara',
-    population: '45.000 Habitantes',
-    description: 'A majestosa capital de pedra branca e torres agulhadas. Centro político e religioso de Occultus, protegida por muralhas duplas e runas antigas.',
-    secrets: 'As catacumbas sob a praça central escondem os cadáveres incorruptos dos primeiros fundadores da ordem.',
-    image: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?q=80&w=600',
-    isVisible: true
-  },
-  {
-    id: 'geo-2',
-    name: 'Floresta das Brumas Sussurrantes',
-    region: 'Fronteira Leste',
-    dangerLevel: 'Alto',
-    climate: 'Névoa Úmida e Congelante',
-    population: 'Desconhecida (Acampamentos Nômades)',
-    description: 'Uma vasta expansão de árvores ancestralmente mutadas. Dizem que a névoa faz viajantes ouvirem os mortos e perderem a noção da razão.',
-    secrets: 'Abriga as ruínas do templo perdido de Nyxaria, onde a água do lago concede visões do futuro.',
-    image: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?q=80&w=600',
-    isVisible: true
-  },
-  {
-    id: 'geo-3',
-    name: 'Abismo Rúnico de Morvia',
-    region: 'Serrania do Sul',
-    dangerLevel: 'Extremo',
-    climate: 'Calor Vulcânico Subterrâneo',
-    population: 'Apenas Monstros e Cultistas',
-    description: 'Uma fenda gigantesca na terra, da qual vertem vapores de enxofre e resíduos arcanos profanos.',
-    secrets: 'No fundo do abismo encontra-se o selo de ferro primordial que aprisiona Valthor.',
-    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=600',
-    isVisible: true
-  }
-];
-
-const INITIAL_MAPS: MapItem[] = [
-  {
-    id: 'map-1',
-    title: 'Cartografia Geral de Occultus',
-    scale: '1:500.000 Leguas',
-    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuApaoQQsXhFuJ7cnHYim1KAq_ihU2Sf_xG5CGjFEPgNbhiuPsddO96GWeZbOWMENEh5vNo9hBtlfWmRgQPhRtv5jxPFTbN5uyXeZ4upiymyfffad_QDcNvScGlT_8wY0rCE3FfRShqdcJQVPTHEmOYoVObV49PN2V5LgIncvPaxsJSorBU3jFWhZDeZkimJ5F3OBeN8ZV3Dio3Kby7oJK-Ey4wbx3Y_eayiVvFs8RKdviqwJ42g3eL3IbehJn2PWPa2cpxK4qYGy4E',
-    description: 'O mapa do continente completo exibindo as províncias imperiais, principados e ermos proibidos.',
-    poiCount: 18,
-    isVisible: true
-  },
-  {
-    id: 'map-2',
-    title: 'Planta Tática: Catedral Solar de Aethelgard',
-    scale: '1:50 Metros',
-    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAH02OPokynjplaAoYJ5Dh_mYVv9kxVNgs9GieyHtShVvopAbzKMJG-C8c0yhJgCROG1bkCaS9w-7iasUIrTnJf-DfK2cDZg9b8zP_2IGFOpWJsMHtB2HMKnXtSJr6FZlGrARVDI14wQPtIELkJghHXYacTrlRJCaNWT_KyDyr6cCK4LOGIie2DVGGnFf_w6KO5wCvw0oNAh407zMeCt5yO9NPob94UWsBR3ygCWTnxapKIeLuSQOUwOQE-NFsCdo-SJM4I25nHctk',
-    description: 'Diagrama interno dos nave, claustro, criptas inferiores e aposentos do Alto Inquisidor.',
-    poiCount: 7,
-    isVisible: true
-  }
-];
-
-const INITIAL_PERSONAS: PersonaItem[] = [
-  {
-    id: 'per-1',
-    name: 'Alto Inquisidor Vane',
-    title: 'A Lança Divina de Astraea',
-    role: 'Líder da Inquisição e Mestre Estrategista',
-    description: 'Lorde impiedoso que governa a Inquisição com punho de ferro. Vane acredita que a única salvação contra o Sangue é a fogueira e o aço sagrado.',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600',
-    isVisible: true
-  },
-  {
-    id: 'per-2',
-    name: 'Malakor, o Sem-Rosto',
-    title: 'O Rei das Sombras de Sub-Vala',
-    role: 'Mestre dos Assassinos',
-    description: 'Figura enigmática que usa uma máscara de porcelana rúnica. Ninguém conhece sua verdadeira identidade ou suas intenções finais.',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=600',
-    isVisible: true
-  },
-  {
-    id: 'per-3',
-    name: 'Imperador Kaelen IV',
-    title: 'O Último Rei de Prata',
-    role: 'Monarca Falecido',
-    description: 'O nobre imperador assassinado na Noite do Sangue Profano, desencadeando a crise dinástica e a ascensão dos lordes de guerra.',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=600',
-    isVisible: true
-  },
-  {
-    id: 'per-4',
-    name: 'Arquimaga Lyra Vane',
-    title: 'Guardiã do Códice Amarelado',
-    role: 'Sumo Maga de Eldoria',
-    description: 'Irmã do Alto Inquisidor que divergiu dos dogmas da igreja e desapareceu nas ruínas de Morvia buscando reverter a maldição rúnica.',
-    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600',
-    isVisible: true
-  }
-];
-
-export default function CampaignHistoryView({ onBack, userRole = 'player', campaignId }: CampaignHistoryViewProps) {
+export default function CampaignHistoryView({ onBack, userRole = 'player', campaignId, activeCampaign, onNavigateToCampaigns }: CampaignHistoryViewProps) {
   const [activeTab, setActiveTab] = useState<TabType>('panteao');
   const [searchTerm, setSearchTerm] = useState('');
 
   // Server state via React Query
   const { data: dbLore = [], isLoading: isLoadingLore } = useLoreQuery(campaignId);
+  const { data: dbChronicles = [] } = useChroniclesQuery(campaignId);
+  const { data: personaNpcs = [] } = useCampaignNpcs(campaignId, { personaOnly: true });
   const createLoreMutation = useCreateLoreMutation(campaignId);
   const updateLoreMutation = useUpdateLoreMutation(campaignId);
   const toggleLoreVisibilityMutation = useToggleLoreVisibilityMutation(campaignId);
   const deleteLoreMutation = useDeleteLoreMutation(campaignId);
 
-  // Story state with localStorage persistence
+  // Helper to filter legacy mock items
+  const parseCleanStorage = <T extends { id: string }>(key: string, prefix: string): T[] => {
+    try {
+      const saved = localStorage.getItem(key);
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(item => item && item.id && !item.id.startsWith(prefix));
+      }
+    } catch {}
+    return [];
+  };
+
+  const isDmUser = userRole === 'dm' || activeCampaign?.isDm === true;
+  const queryClient = useQueryClient();
+
+  // Story state initialized from activeCampaign?.lore or localStorage fallback
   const [storyText, setStoryText] = useState<string>(() => {
+    if (activeCampaign?.lore) return activeCampaign.lore;
     try {
       const saved = localStorage.getItem('daemon_campaign_story');
+      if (saved && (saved.includes('Occultus') || saved.includes('Aethelgard'))) {
+        localStorage.removeItem('daemon_campaign_story');
+        return '';
+      }
       return saved || DEFAULT_STORY_TEXT;
     } catch {
       return DEFAULT_STORY_TEXT;
     }
   });
 
+  useEffect(() => {
+    if (activeCampaign?.lore !== undefined && activeCampaign?.lore !== null) {
+      setStoryText(activeCampaign.lore);
+    }
+  }, [activeCampaign?.lore]);
+
   const [showStoryModal, setShowStoryModal] = useState(false);
   const [isEditingStory, setIsEditingStory] = useState(false);
   const [editedStory, setEditedStory] = useState(storyText);
+  const [isSavingStory, setIsSavingStory] = useState(false);
 
   const handleOpenStoryModal = () => {
     setEditedStory(storyText);
@@ -375,77 +202,58 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
     setShowStoryModal(true);
   };
 
-  const handleSaveStory = () => {
+  const handleSaveStory = async () => {
+    setIsSavingStory(true);
     setStoryText(editedStory);
-    localStorage.setItem('daemon_campaign_story', editedStory);
+    if (campaignId) {
+      try {
+        await api.patch(`/campaigns/${campaignId}/lore`, { lore: editedStory });
+        queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+        toast.success('História da campanha salva com sucesso!');
+      } catch (err) {
+        // Fallback to full update
+        try {
+          await api.put(`/campaigns/${campaignId}`, {
+            name: activeCampaign?.name,
+            subtitulo: activeCampaign?.subtitulo,
+            universo: activeCampaign?.universo,
+            currentAct: activeCampaign?.currentAct,
+            ilustracao: activeCampaign?.ilustracao || activeCampaign?.illustrationUrl,
+            lore: editedStory,
+          });
+          queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+          toast.success('História da campanha salva com sucesso!');
+        } catch (fallbackErr) {
+          console.error('Erro ao salvar história da campanha:', fallbackErr);
+          toast.error('Erro ao persistir história da campanha.');
+        }
+      }
+    } else {
+      localStorage.setItem('daemon_campaign_story', editedStory);
+      toast.success('História salva localmente!');
+    }
+    setIsSavingStory(false);
     setIsEditingStory(false);
   };
 
-  const getStoryPreview = (text: string, maxLength = 260) => {
+  const getStoryPreview = (text: string, maxLength = 800) => {
     const clean = text.replace(/\n+/g, ' ').trim();
     if (clean.length <= maxLength) return clean;
     return clean.slice(0, maxLength).trim() + '...';
   };
 
   // Local fallback states persisted in localStorage (used if no campaignId is active)
-  const [localPhotos, setLocalPhotos] = useState<PhotoItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('daemon_history_photos');
-      return saved ? JSON.parse(saved) : INITIAL_PHOTOS;
-    } catch {
-      return INITIAL_PHOTOS;
-    }
-  });
-
-  const [localPantheon, setLocalPantheon] = useState<PantheonItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('daemon_history_pantheon');
-      return saved ? JSON.parse(saved) : INITIAL_PANTHEON;
-    } catch {
-      return INITIAL_PANTHEON;
-    }
-  });
-
-  const [localFactions, setLocalFactions] = useState<FactionItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('daemon_history_factions');
-      return saved ? JSON.parse(saved) : INITIAL_FACTIONS;
-    } catch {
-      return INITIAL_FACTIONS;
-    }
-  });
-
-  const [localGeo, setLocalGeo] = useState<GeoItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('daemon_history_geo');
-      return saved ? JSON.parse(saved) : INITIAL_GEO;
-    } catch {
-      return INITIAL_GEO;
-    }
-  });
-
-  const [localMaps, setLocalMaps] = useState<MapItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('daemon_history_maps');
-      return saved ? JSON.parse(saved) : INITIAL_MAPS;
-    } catch {
-      return INITIAL_MAPS;
-    }
-  });
-
-  const [localPersonas, setLocalPersonas] = useState<PersonaItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('daemon_history_personas');
-      return saved ? JSON.parse(saved) : INITIAL_PERSONAS;
-    } catch {
-      return INITIAL_PERSONAS;
-    }
-  });
+  const [localPhotos, setLocalPhotos] = useState<PhotoItem[]>(() => parseCleanStorage<PhotoItem>('daemon_history_photos', 'photo-'));
+  const [localPantheon, setLocalPantheon] = useState<PantheonItem[]>(() => parseCleanStorage<PantheonItem>('daemon_history_pantheon', 'pan-'));
+  const [localFactions, setLocalFactions] = useState<FactionItem[]>(() => parseCleanStorage<FactionItem>('daemon_history_factions', 'fac-'));
+  const [localGeo, setLocalGeo] = useState<GeoItem[]>(() => parseCleanStorage<GeoItem>('daemon_history_geo', 'geo-'));
+  const [localMaps, setLocalMaps] = useState<MapItem[]>(() => parseCleanStorage<MapItem>('daemon_history_maps', 'map-'));
+  const [localPersonas, setLocalPersonas] = useState<PersonaItem[]>(() => parseCleanStorage<PersonaItem>('daemon_history_personas', 'per-'));
 
   // Unified getters: React Query server state when campaignId is present, local state otherwise
   const pantheon: PantheonItem[] = React.useMemo(() => {
-    if (campaignId && dbLore.length > 0) {
-      const items = dbLore.filter((l) => l.category === 'deidade').map((l) => ({
+    if (campaignId) {
+      return dbLore.filter((l) => l.category === 'deidade').map((l) => ({
         id: l.id,
         name: l.title,
         title: (l.data?.title as string) || '',
@@ -458,14 +266,13 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         image: l.imageUrl || '',
         isVisible: l.isVisible !== false,
       }));
-      if (items.length > 0) return items;
     }
     return localPantheon;
   }, [campaignId, dbLore, localPantheon]);
 
   const factions: FactionItem[] = React.useMemo(() => {
-    if (campaignId && dbLore.length > 0) {
-      const items = dbLore.filter((l) => l.category === 'faccao').map((l) => ({
+    if (campaignId) {
+      return dbLore.filter((l) => l.category === 'faccao').map((l) => ({
         id: l.id,
         name: l.title,
         leader: (l.data?.leader as string) || '',
@@ -478,14 +285,13 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         image: l.imageUrl || '',
         isVisible: l.isVisible !== false,
       }));
-      if (items.length > 0) return items;
     }
     return localFactions;
   }, [campaignId, dbLore, localFactions]);
 
   const geo: GeoItem[] = React.useMemo(() => {
-    if (campaignId && dbLore.length > 0) {
-      const items = dbLore.filter((l) => l.category === 'geografia' || l.category === 'local').map((l) => ({
+    if (campaignId) {
+      return dbLore.filter((l) => l.category === 'geografia' || l.category === 'local').map((l) => ({
         id: l.id,
         name: l.title,
         region: (l.data?.region as string) || '',
@@ -497,14 +303,13 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         image: l.imageUrl || '',
         isVisible: l.isVisible !== false,
       }));
-      if (items.length > 0) return items;
     }
     return localGeo;
   }, [campaignId, dbLore, localGeo]);
 
   const maps: MapItem[] = React.useMemo(() => {
-    if (campaignId && dbLore.length > 0) {
-      const items = dbLore.filter((l) => l.category === 'mapa').map((l) => ({
+    if (campaignId) {
+      return dbLore.filter((l) => l.category === 'mapa').map((l) => ({
         id: l.id,
         title: l.title,
         scale: (l.data?.scale as string) || '1:1000',
@@ -513,41 +318,226 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         poiCount: typeof l.data?.poiCount === 'number' ? l.data.poiCount : 0,
         isVisible: l.isVisible !== false,
       }));
-      if (items.length > 0) return items;
     }
     return localMaps;
   }, [campaignId, dbLore, localMaps]);
 
   const personas: PersonaItem[] = React.useMemo(() => {
-    if (campaignId && dbLore.length > 0) {
-      const items = dbLore.filter((l) => l.category === 'persona').map((l) => ({
-        id: l.id,
-        name: l.title,
-        title: (l.data?.title as string) || '',
-        role: (l.data?.role as string) || '',
-        description: l.description || '',
-        image: l.imageUrl || '',
-        isVisible: l.isVisible !== false,
-      }));
-      if (items.length > 0) return items;
+    if (campaignId) {
+      const lorePersonas: PersonaItem[] = dbLore
+        .filter((l) => l.category === 'persona')
+        .map((l) => ({
+          id: l.id,
+          name: l.title,
+          title: (l.data?.title as string) || '',
+          role: (l.data?.role as string) || '',
+          description: l.description || '',
+          image: l.imageUrl || '',
+          isVisible: l.isVisible !== false,
+          npcId: (l.data?.npcId as string) || undefined,
+        }));
+
+      const existingNpcIds = new Set(lorePersonas.map((p) => p.npcId).filter(Boolean));
+      const existingNames = new Set(lorePersonas.map((p) => p.name.trim().toLowerCase()));
+
+      const directPersonas: PersonaItem[] = personaNpcs
+        .filter((npc) => !existingNpcIds.has(npc.id) && !existingNames.has(npc.name.trim().toLowerCase()))
+        .map((npc) => ({
+          id: npc.id,
+          name: npc.name,
+          title: [npc.race, npc.occupation].filter(Boolean).join(' • '),
+          role: npc.occupation || '',
+          description: npc.description || '',
+          image: npc.portraitUrl || npc.image || '',
+          isVisible: true,
+          npcId: npc.id,
+        }));
+
+      return [...lorePersonas, ...directPersonas];
     }
     return localPersonas;
-  }, [campaignId, dbLore, localPersonas]);
+  }, [campaignId, dbLore, personaNpcs, localPersonas]);
 
   const photos: PhotoItem[] = React.useMemo(() => {
-    if (campaignId && dbLore.length > 0) {
-      const items = dbLore.filter((l) => l.category === 'galeria' || l.category === 'photo').map((l) => ({
-        id: l.id,
-        title: l.title,
-        category: (l.data?.category as string) || 'Galeria',
-        url: l.imageUrl || '',
-        description: l.description || '',
-        date: (l.data?.date as string) || '',
-      }));
-      if (items.length > 0) return items;
+    if (campaignId) {
+      const items: PhotoItem[] = [];
+
+      // 1. Fotos adicionadas diretamente à Galeria
+      dbLore
+        .filter((l) => (l.category === 'galeria' || l.category === 'photo') && !!l.imageUrl)
+        .forEach((l) => {
+          items.push({
+            id: l.id,
+            title: l.title || 'Sem título',
+            category: 'Galeria',
+            url: l.imageUrl || '',
+            description: l.description || '',
+            date: (l.data?.date as string) || '',
+            sourceType: 'photo',
+            createdAt: l.createdAt || l.updatedAt || '',
+          });
+        });
+
+      // 2. Crônicas com ilustração
+      dbChronicles
+        .filter((c) => !!(c.illustrationUrl || (c as any).ilustration_url))
+        .forEach((c) => {
+          items.push({
+            id: `chronicle-${c.id}`,
+            title: c.title ? `Sessão ${toRoman(c.sessionNumber)}: ${c.title}` : `Sessão ${toRoman(c.sessionNumber)}`,
+            category: 'Crônica',
+            url: c.illustrationUrl || (c as any).ilustration_url || '',
+            description: c.narrative || c.mission || '',
+            date: formatDisplayDate(c.sessionDate),
+            sourceType: 'chronicle',
+            createdAt: c.createdAt || c.updatedAt || c.sessionDate || '',
+          });
+        });
+
+      // 3. Panteão / Divindades com imagem
+      dbLore
+        .filter((l) => l.category === 'deidade' && !!l.imageUrl)
+        .forEach((l) => {
+          items.push({
+            id: `deidade-${l.id}`,
+            title: l.title,
+            category: 'Panteão',
+            url: l.imageUrl || '',
+            description: l.description || '',
+            date: (l.data?.domains as string[])?.join(', ') || '',
+            sourceType: 'lore',
+            createdAt: l.createdAt || l.updatedAt || '',
+          });
+        });
+
+      // 4. Facções com imagem
+      dbLore
+        .filter((l) => l.category === 'faccao' && !!l.imageUrl)
+        .forEach((l) => {
+          items.push({
+            id: `faccao-${l.id}`,
+            title: l.title,
+            category: 'Facção',
+            url: l.imageUrl || '',
+            description: l.description || '',
+            date: (l.data?.leader as string) ? `Líder: ${l.data.leader}` : '',
+            sourceType: 'lore',
+            createdAt: l.createdAt || l.updatedAt || '',
+          });
+        });
+
+      // 5. Geografia / Locais com imagem
+      dbLore
+        .filter((l) => (l.category === 'geografia' || l.category === 'local') && !!l.imageUrl)
+        .forEach((l) => {
+          items.push({
+            id: `geo-${l.id}`,
+            title: l.title,
+            category: 'Geografia',
+            url: l.imageUrl || '',
+            description: l.description || '',
+            date: (l.data?.region as string) ? `Região: ${l.data.region}` : '',
+            sourceType: 'lore',
+            createdAt: l.createdAt || l.updatedAt || '',
+          });
+        });
+
+      // 6. Mapas com imagem
+      dbLore
+        .filter((l) => l.category === 'mapa' && !!l.imageUrl)
+        .forEach((l) => {
+          items.push({
+            id: `mapa-${l.id}`,
+            title: l.title,
+            category: 'Mapa',
+            url: l.imageUrl || '',
+            description: l.description || '',
+            date: (l.data?.scale as string) ? `Escala: ${l.data.scale}` : '',
+            sourceType: 'lore',
+            createdAt: l.createdAt || l.updatedAt || '',
+          });
+        });
+
+      // 7. Personas com imagem
+      dbLore
+        .filter((l) => l.category === 'persona' && !!l.imageUrl)
+        .forEach((l) => {
+          items.push({
+            id: `persona-${l.id}`,
+            title: l.title,
+            category: 'Persona',
+            url: l.imageUrl || '',
+            description: l.description || '',
+            date: (l.data?.role as string) || '',
+            sourceType: 'lore',
+            createdAt: l.createdAt || l.updatedAt || '',
+          });
+        });
+
+      // Ordenar pelas fotos mais recentes primeiro
+      items.sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return timeB - timeA;
+      });
+
+      return items;
     }
-    return localPhotos;
-  }, [campaignId, dbLore, localPhotos]);
+
+    // Local / Offline fallback
+    const items: PhotoItem[] = localPhotos.map((p) => ({ ...p, sourceType: 'photo' as const }));
+    localPantheon.filter((p) => !!p.image).forEach((p) => {
+      items.push({
+        id: `pan-${p.id}`,
+        title: p.name,
+        category: 'Panteão',
+        url: p.image || '',
+        description: p.description,
+        sourceType: 'lore',
+      });
+    });
+    localFactions.filter((f) => !!f.image).forEach((f) => {
+      items.push({
+        id: `fac-${f.id}`,
+        title: f.name,
+        category: 'Facção',
+        url: f.image || '',
+        description: f.description,
+        sourceType: 'lore',
+      });
+    });
+    localGeo.filter((g) => !!g.image).forEach((g) => {
+      items.push({
+        id: `geo-${g.id}`,
+        title: g.name,
+        category: 'Geografia',
+        url: g.image || '',
+        description: g.description,
+        sourceType: 'lore',
+      });
+    });
+    localMaps.filter((m) => !!m.url).forEach((m) => {
+      items.push({
+        id: `map-${m.id}`,
+        title: m.title,
+        category: 'Mapa',
+        url: m.url || '',
+        description: m.description,
+        sourceType: 'lore',
+      });
+    });
+    localPersonas.filter((per) => !!per.image).forEach((per) => {
+      items.push({
+        id: `per-${per.id}`,
+        title: per.name,
+        category: 'Persona',
+        url: per.image || '',
+        description: per.description,
+        sourceType: 'lore',
+      });
+    });
+    return items;
+  }, [campaignId, dbLore, dbChronicles, localPhotos, localPantheon, localFactions, localGeo, localMaps, localPersonas]);
 
   // Modal inspection / add states
   const [selectedGod, setSelectedGod] = useState<PantheonItem | null>(null);
@@ -559,6 +549,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
   const [editGodDomains, setEditGodDomains] = useState('');
   const [editGodSymbol, setEditGodSymbol] = useState('');
   const [editGodWorshippers, setEditGodWorshippers] = useState('');
+  const [editGodImage, setEditGodImage] = useState('');
 
   // Faction modal / add states
   const [selectedFaction, setSelectedFaction] = useState<FactionItem | null>(null);
@@ -569,6 +560,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
   const [editFactionDescription, setEditFactionDescription] = useState('');
   const [editFactionAllies, setEditFactionAllies] = useState('');
   const [editFactionEnemies, setEditFactionEnemies] = useState('');
+  const [editFactionImage, setEditFactionImage] = useState('');
 
   // Geography modal / add states
   const [selectedGeo, setSelectedGeo] = useState<GeoItem | null>(null);
@@ -579,6 +571,28 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
   const [editGeoPopulation, setEditGeoPopulation] = useState('');
   const [editGeoDescription, setEditGeoDescription] = useState('');
   const [editGeoSecrets, setEditGeoSecrets] = useState('');
+  const [editGeoImage, setEditGeoImage] = useState('');
+
+  // Helper for generic file upload (MinIO with base64 fallback)
+  const handleGenericFileUpload = async (file: File, onUrl: (url: string) => void) => {
+    try {
+      const res = await uploadImage(file);
+      if (res && res.url) {
+        onUrl(res.url);
+        toast.success('Imagem enviada com sucesso!');
+        return;
+      }
+    } catch {
+      // Fallback to FileReader Data URL
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        onUrl(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Map modal / edit states
   const [selectedMap, setSelectedMap] = useState<MapItem | null>(null);
@@ -600,7 +614,21 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
   const [showImportNpcModal, setShowImportNpcModal] = useState(false);
   const [availableNpcs, setAvailableNpcs] = useState<any[]>([]);
 
-  const handleOpenImportNpcModal = () => {
+  const handleOpenImportNpcModal = async () => {
+    if (campaignId) {
+      try {
+        const res = await api.get<any[]>(`/campaigns/${campaignId}/npcs`);
+        const serverList = (res.data || []).map((npc) => ({
+          ...npc,
+          image: npc.portraitUrl || npc.image || '',
+        }));
+        setAvailableNpcs(serverList);
+        setShowImportNpcModal(true);
+        return;
+      } catch (err) {
+        console.error('Erro ao buscar NPCs da campanha:', err);
+      }
+    }
     try {
       const saved = localStorage.getItem('daemon_npcs');
       if (saved) {
@@ -614,15 +642,49 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
     setShowImportNpcModal(true);
   };
 
-  const handleImportNpcAsPersona = (npc: any) => {
+  const handleImportNpcAsPersona = async (npc: any) => {
+    if (campaignId) {
+      try {
+        if (npc.id && !String(npc.id).startsWith('npc_')) {
+          await api.post(`/campaigns/${campaignId}/npcs/${npc.id}/promote`);
+          queryClient.invalidateQueries({ queryKey: ['lore', campaignId] });
+          queryClient.invalidateQueries({ queryKey: ['campaign-npcs', campaignId] });
+          toast.success(`"${npc.name}" promovido(a) a Persona com sucesso!`);
+          setShowImportNpcModal(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('Tentando criar artigo de lore diretamente para o NPC importado...', err);
+      }
+
+      // Fallback create directly in Lore
+      const payload = {
+        category: 'persona',
+        title: npc.name,
+        description: npc.description || '',
+        imageUrl: npc.portraitUrl || npc.image || '',
+        isVisible: true,
+        data: {
+          title: `${npc.race || 'Desconhecido'} • ${npc.occupation || 'Sem papel'}`,
+          role: npc.occupation || '',
+          race: npc.race || '',
+          notes: npc.notes || '',
+          npcId: String(npc.id || ''),
+        },
+      };
+      await createLoreMutation.mutateAsync(payload);
+      setShowImportNpcModal(false);
+      return;
+    }
+
     const newPersona: PersonaItem = {
       id: `per-npc-${npc.id}-${Date.now()}`,
       name: npc.name,
       title: `${npc.race || 'Desconhecido'} • ${npc.occupation || 'Sem papel'}`,
       role: npc.occupation || '',
       description: `${npc.description || ''}${npc.notes ? `\n\nSegredos & Anotações: ${npc.notes}` : ''}`,
-      image: npc.image || '',
-      isVisible: true
+      image: npc.image || npc.portraitUrl || '',
+      isVisible: true,
     };
     savePersonas([newPersona, ...personas]);
     setShowImportNpcModal(false);
@@ -645,6 +707,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
       setEditGodDomains((selectedGod.domains || []).join(', '));
       setEditGodSymbol(selectedGod.symbol || '');
       setEditGodWorshippers(selectedGod.worshippers || '');
+      setEditGodImage(selectedGod.image || '');
     }
   }, [selectedGod]);
 
@@ -656,6 +719,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
       setEditFactionDescription(selectedFaction.description || '');
       setEditFactionAllies((selectedFaction.allies || []).join(', '));
       setEditFactionEnemies((selectedFaction.enemies || []).join(', '));
+      setEditFactionImage(selectedFaction.image || '');
     }
   }, [selectedFaction]);
 
@@ -667,6 +731,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
       setEditGeoPopulation(selectedGeo.population || '');
       setEditGeoDescription(selectedGeo.description || '');
       setEditGeoSecrets(selectedGeo.secrets || '');
+      setEditGeoImage(selectedGeo.image || '');
     }
   }, [selectedGeo]);
 
@@ -709,6 +774,10 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
   };
 
   const handleCreateNewPersona = () => {
+    if (!campaignId) {
+      toast.error('Crie uma campanha antes para vincular esta persona!');
+      return;
+    }
     const newPersona: PersonaItem = {
       id: `per-${Date.now()}`,
       name: '',
@@ -808,6 +877,10 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
   };
 
   const handleCreateNewMap = () => {
+    if (!campaignId) {
+      toast.error('Crie uma campanha antes para vincular este mapa!');
+      return;
+    }
     const newMap: MapItem = {
       id: `map-${Date.now()}`,
       title: '',
@@ -927,6 +1000,11 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
   };
 
   const handleCreateNewGeo = () => {
+    if (!campaignId) {
+      toast.error('Crie uma campanha antes para vincular este local!');
+      return;
+    }
+    setEditGeoImage('');
     const newLoc: GeoItem = {
       id: `geo-${Date.now()}`,
       name: '',
@@ -936,6 +1014,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
       population: '',
       description: '',
       secrets: '',
+      image: '',
       isVisible: true,
     };
     setSelectedGeo(newLoc);
@@ -953,6 +1032,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
       population: editGeoPopulation.trim(),
       description: editGeoDescription.trim(),
       secrets: editGeoSecrets.trim(),
+      image: editGeoImage.trim(),
     };
 
     if (campaignId) {
@@ -999,6 +1079,11 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
   };
 
   const handleCreateNewFaction = () => {
+    if (!campaignId) {
+      toast.error('Crie uma campanha antes para vincular esta facção!');
+      return;
+    }
+    setEditFactionImage('');
     const newFac: FactionItem = {
       id: `fac-${Date.now()}`,
       name: '',
@@ -1009,6 +1094,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
       description: '',
       allies: [],
       enemies: [],
+      image: '',
       isVisible: true,
     };
     setSelectedFaction(newFac);
@@ -1035,6 +1121,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
       description: editFactionDescription.trim(),
       allies: parsedAllies,
       enemies: parsedEnemies,
+      image: editFactionImage.trim(),
     };
 
     if (campaignId) {
@@ -1103,6 +1190,11 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
   };
 
   const handleCreateNewGod = () => {
+    if (!campaignId) {
+      toast.error('Crie uma campanha antes para vincular esta deidade!');
+      return;
+    }
+    setEditGodImage('');
     const newGod: PantheonItem = {
       id: `god-${Date.now()}`,
       name: '',
@@ -1113,6 +1205,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
       domains: [],
       symbol: '',
       worshippers: '',
+      image: '',
       isVisible: true,
     };
     setSelectedGod(newGod);
@@ -1135,6 +1228,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
       domains: parsedDomains.length > 0 ? parsedDomains : ['Geral'],
       symbol: editGodSymbol.trim(),
       worshippers: editGodWorshippers.trim(),
+      image: editGodImage.trim(),
     };
 
     if (campaignId) {
@@ -1189,6 +1283,19 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
   const [newPhotoTitle, setNewPhotoTitle] = useState('');
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
   const [newPhotoDesc, setNewPhotoDesc] = useState('');
+  const [galleryCategoryFilter, setGalleryCategoryFilter] = useState<string>('Todas');
+
+  const galleryCategories = React.useMemo(() => {
+    const cats = new Set(photos.map((p) => p.category).filter(Boolean));
+    return ['Todas', ...Array.from(cats)];
+  }, [photos]);
+
+  const filteredPhotos = React.useMemo(() => {
+    if (galleryCategoryFilter === 'Todas') return photos;
+    return photos.filter((p) => p.category === galleryCategoryFilter);
+  }, [photos, galleryCategoryFilter]);
+
+  const activePhotoList = galleryCategoryFilter === 'Todas' ? photos : filteredPhotos;
 
   const savePhotos = (updated: PhotoItem[]) => {
     setLocalPhotos(updated);
@@ -1199,11 +1306,15 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
 
   const handleDeletePhoto = () => {
     if (!photoToDelete) return;
-    if (campaignId && photoToDelete.id && !photoToDelete.id.startsWith('photo-')) {
-      deleteLoreMutation.mutate(photoToDelete.id);
+    if (photoToDelete.sourceType === 'photo' || (!photoToDelete.sourceType && !photoToDelete.id.startsWith('photo-'))) {
+      if (campaignId && photoToDelete.id && !photoToDelete.id.startsWith('photo-')) {
+        deleteLoreMutation.mutate(photoToDelete.id);
+      } else {
+        const updatedList = localPhotos.filter((p) => p.id !== photoToDelete.id);
+        savePhotos(updatedList);
+      }
     } else {
-      const updatedList = photos.filter((p) => p.id !== photoToDelete.id);
-      savePhotos(updatedList);
+      toast.info(`Esta imagem pertence a ${photoToDelete.category} e deve ser gerenciada em seu respectivo card.`);
     }
     setPhotoToDelete(null);
     setShowDeletePhotoConfirm(false);
@@ -1211,18 +1322,18 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
 
   const handlePrevPhoto = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (!selectedPhoto || photos.length === 0) return;
-    const currentIndex = photos.findIndex((p) => p.id === selectedPhoto.id);
-    const prevIndex = (currentIndex - 1 + photos.length) % photos.length;
-    setSelectedPhoto(photos[prevIndex]);
+    if (!selectedPhoto || activePhotoList.length === 0) return;
+    const currentIndex = activePhotoList.findIndex((p) => p.id === selectedPhoto.id);
+    const prevIndex = (currentIndex - 1 + activePhotoList.length) % activePhotoList.length;
+    setSelectedPhoto(activePhotoList[prevIndex]);
   };
 
   const handleNextPhoto = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (!selectedPhoto || photos.length === 0) return;
-    const currentIndex = photos.findIndex((p) => p.id === selectedPhoto.id);
-    const nextIndex = (currentIndex + 1) % photos.length;
-    setSelectedPhoto(photos[nextIndex]);
+    if (!selectedPhoto || activePhotoList.length === 0) return;
+    const currentIndex = activePhotoList.findIndex((p) => p.id === selectedPhoto.id);
+    const nextIndex = (currentIndex + 1) % activePhotoList.length;
+    setSelectedPhoto(activePhotoList[nextIndex]);
   };
 
   useEffect(() => {
@@ -1236,11 +1347,13 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedPhoto, photos]);
+  }, [selectedPhoto, activePhotoList]);
+
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   const handleAddPhoto = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPhotoUrl.trim() || newPhotoDesc.length > 150) return;
+    if (!newPhotoUrl.trim() || newPhotoDesc.length > 300) return;
     const item: PhotoItem = {
       id: `photo-${Date.now()}`,
       title: newPhotoTitle.trim() || 'Sem título',
@@ -1263,6 +1376,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
       });
     } else {
       savePhotos([item, ...photos]);
+      toast.success('Imagem adicionada à galeria!');
     }
     setShowAddPhotoModal(false);
     setNewPhotoTitle('');
@@ -1274,11 +1388,11 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
     <div className="space-y-8 max-w-7xl mx-auto px-0 sm:px-1 p-0 sm:p-4 md:p-8 bg-transparent sm:bg-surface-container-lowest text-on-surface animate-fadeIn">
       {/* Top Header Bar */}
       <div className="border-b border-outline-variant/40 pb-6">
-        <h1 className="font-serif text-3xl md:text-4xl text-on-surface font-normal tracking-wide">
-          O Crepúsculo de Occultus
+        <h1 className="font-serif text-3xl md:text-4xl text-on-surface font-medium">
+          {activeCampaign?.name || 'História & Enciclopédia da Campanha'}
         </h1>
         <p className="font-sans text-xs text-on-surface-variant max-w-3xl leading-relaxed mt-1">
-          Explore a enciclopédia completa do mundo.
+          {activeCampaign?.description || 'Explore a enciclopédia completa do mundo e os registros desta campanha.'}
         </p>
       </div>
 
@@ -1287,51 +1401,57 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         onClick={handleOpenStoryModal}
-        className="bg-surface-container border border-outline-variant hover:border-primary/80 transition-all cursor-pointer parchment-texture p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 relative overflow-hidden shadow-2xl group"
+        className="bg-surface-container border border-outline-variant hover:border-primary/80 transition-all cursor-pointer parchment-texture p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 relative overflow-hidden shadow-2xl group min-h-[220px] sm:min-h-[250px]"
       >
-        <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-8 items-stretch">
           {/* Banner cover */}
-          <div className="w-full lg:w-1/3 h-40 sm:h-48 lg:h-auto relative overflow-hidden border border-outline-variant/60 shrink-0">
-            <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuApaoQQsXhFuJ7cnHYim1KAq_ihU2Sf_xG5CGjFEPgNbhiuPsddO96GWeZbOWMENEh5vNo9hBtlfWmRgQPhRtv5jxPFTbN5uyXeZ4upiymyfffad_QDcNvScGlT_8wY0rCE3FfRShqdcJQVPTHEmOYoVObV49PN2V5LgIncvPaxsJSorBU3jFWhZDeZkimJ5F3OBeN8ZV3Dio3Kby7oJK-Ey4wbx3Y_eayiVvFs8RKdviqwJ42g3eL3IbehJn2PWPa2cpxK4qYGy4E"
-              alt="Occultus Lore Banner"
-              className="w-full h-full object-cover  group-hover:scale-105 transition-transform duration-500"
+          <div className="w-full lg:w-1/3 min-h-[180px] sm:min-h-[220px] lg:min-h-[250px] relative overflow-hidden border border-outline-variant/60 shrink-0">
+            <ImageWithFallback
+              src={activeCampaign?.ilustracao || activeCampaign?.illustrationUrl || activeCampaign?.ilustration_url || "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=600"}
+              alt={activeCampaign?.name || "Lore Banner"}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               referrerPolicy="no-referrer"
             />
           </div>
 
           {/* Full History Lore text */}
-          <div className="flex-1 space-y-4 flex flex-col justify-between">
+          <div className="flex-1 space-y-4 flex flex-col justify-between min-h-[180px] sm:min-h-[220px]">
             <div>
               <div className="flex items-center justify-between gap-2 border-b border-outline-variant/30 pb-3 mb-3">
                 <div className="flex items-center gap-2 text-primary">
                   <BookOpen className="w-5 h-5" />
-                  <h2 className="font-serif text-2xl text-on-surface font-medium group-hover:text-primary transition-colors">
+                  <h2 className="font-serif text-xl sm:text-2xl text-on-surface font-medium group-hover:text-primary transition-colors">
                     A História
                   </h2>
                 </div>
-                <div className="flex items-center gap-1.5 text-primary text-[10px] font-mono font-bold tracking-wider group-hover:underline">
+                <div className="flex items-center gap-1.5 text-primary text-micro font-mono font-bold tracking-wider group-hover:underline">
                   <span>EXPANDIR</span>
                   <Maximize2 className="w-3.5 h-3.5" />
                 </div>
               </div>
 
               <div className="prose prose-invert max-w-none text-xs text-on-surface-variant leading-relaxed font-sans text-justify">
-                <p className="line-clamp-4">
-                  {getStoryPreview(storyText)}
-                </p>
+                {storyText ? (
+                  <p className="line-clamp-4 sm:line-clamp-6 lg:line-clamp-8">
+                    {getStoryPreview(storyText, 800)}
+                  </p>
+                ) : (
+                  <p className="line-clamp-4 italic text-on-surface-variant/60">
+                    Nenhuma história registrada ainda para esta campanha. Clique para adicionar a narrativa principal.
+                  </p>
+                )}
               </div>
             </div>
 
             {/* Lore key facts */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-outline-variant/30 text-[11px] font-mono">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-outline-variant/30 text-caption font-mono">
               <div className="bg-surface-container-low p-2.5 border border-outline-variant/40">
-                <span className="text-on-surface-variant/60 block text-[9px] uppercase">UNIVERSO</span>
-                <span className="text-primary font-bold">Fantasia Sombria / Daemon</span>
+                <span className="text-on-surface-variant/60 block text-micro uppercase">SISTEMA / UNIVERSO</span>
+                <span className="text-primary font-bold">{activeCampaign?.universo || activeCampaign?.system || 'Daemon'}</span>
               </div>
               <div className="bg-surface-container-low p-2.5 border border-outline-variant/40">
-                <span className="text-on-surface-variant/60 block text-[9px] uppercase">ESTADO ATUAL</span>
-                <span className="text-on-surface font-bold">Ato II: O Sangue do Dragão</span>
+                <span className="text-on-surface-variant/60 block text-micro uppercase">STATUS</span>
+                <span className="text-on-surface font-bold">Campanha Ativa</span>
               </div>
             </div>
           </div>
@@ -1345,9 +1465,13 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             <ImageIcon className="w-5 h-5 text-primary" />
             <h3 className="font-serif text-xl text-on-surface font-medium">Galeria</h3>
           </div>
-          {userRole === 'dm' && (
+          {(isDmUser || !!campaignId) && (
             <AddButton
               onClick={() => {
+                if (!campaignId) {
+                  toast.error('Crie uma campanha antes para vincular esta imagem!');
+                  return;
+                }
                 setNewPhotoTitle('');
                 setNewPhotoUrl('');
                 setNewPhotoDesc('');
@@ -1376,6 +1500,12 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                   referrerPolicy="no-referrer"
                   fallbackText={item.title}
                 />
+                {/* Category Badge */}
+                <div className="absolute top-2 left-2 z-10 pointer-events-none">
+                  <span className="text-micro font-mono font-bold uppercase tracking-wider px-2 py-0.5 bg-black/75 border border-outline-variant/60 text-primary backdrop-blur-sm">
+                    {item.category}
+                  </span>
+                </div>
                 <div className="absolute inset-0 dark:bg-gradient-to-t dark:from-black/80 dark:via-transparent dark:to-transparent opacity-60 group-hover:opacity-30 transition-opacity"></div>
                 <button
                   className="absolute bottom-2 right-2 p-1.5 bg-black/80 border border-outline-variant/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-on-primary"
@@ -1389,19 +1519,19 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                 <div className="font-serif text-sm text-on-surface font-medium truncate group-hover:text-primary transition-colors">
                   {item.title}
                 </div>
-                <p className="font-sans text-[11px] text-on-surface-variant/80 line-clamp-2">
+                <p className="font-sans text-caption text-on-surface-variant/80 line-clamp-2">
                   {item.description}
                 </p>
                 {item.date && (
-                  <div className="text-[9px] font-mono text-on-surface-variant/50 pt-1">
-                    Época: {item.date}
+                  <div className="text-micro font-mono text-on-surface-variant/50 pt-1 truncate">
+                    {item.date}
                   </div>
                 )}
               </div>
             </motion.div>
           ))}
 
-          {/* Card Visitar Galeria at the 5th slot */}
+          {/* Card Visitar Galeria */}
           <motion.div
             whileHover={{ y: -3 }}
             onClick={() => setShowFullGalleryModal(true)}
@@ -1413,8 +1543,8 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             <span className="font-serif text-sm font-medium text-on-surface group-hover:text-primary transition-colors">
               Visitar Galeria
             </span>
-            <span className="font-sans text-[10px] text-on-surface-variant/70">
-              Ver todos os registros
+            <span className="font-sans text-micro text-on-surface-variant/70">
+              Ver todos os registros ({photos.length})
             </span>
           </motion.div>
         </div>
@@ -1447,7 +1577,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               >
                 <IconComp className={`w-4 h-4 ${isActive ? 'text-on-primary' : 'text-primary'}`} />
                 <span>{tab.label}</span>
-                <span className={`text-[10px] px-1.5 py-0.2 font-mono ${isActive ? 'bg-on-primary/20 text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}>
+                <span className={`text-micro px-1.5 py-0.2 font-mono ${isActive ? 'bg-on-primary/20 text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}>
                   {tab.count}
                 </span>
               </button>
@@ -1467,7 +1597,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               onChange={(e) => setSearchTerm(e.target.value)}
               className="`${editGodName.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} bg-transparent border-none outline-none text-xs w-full  placeholder:-variant/50 font-sans pr-12`"
             />
-            <div className={`absolute right-8 text-[9px] font-mono ${searchTerm.length >= 50 ? 'text-red-500' : 'text-on-surface-variant/50'}`}>
+            <div className={`absolute right-8 text-micro font-mono ${searchTerm.length >= 50 ? 'text-red-500' : 'text-on-surface-variant/50'}`}>
               {searchTerm.length}/50
             </div>
             {searchTerm && (
@@ -1477,7 +1607,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             )}
           </div>
 
-          {activeTab === 'panteao' && userRole === 'dm' && (
+          {activeTab === 'panteao' && isDmUser && (
             <AddButton
               onClick={handleCreateNewGod}
               label="Deidade"
@@ -1485,7 +1615,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             />
           )}
 
-          {activeTab === 'faccoes' && userRole === 'dm' && (
+          {activeTab === 'faccoes' && isDmUser && (
             <AddButton
               onClick={handleCreateNewFaction}
               label="Facção"
@@ -1493,7 +1623,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             />
           )}
 
-          {activeTab === 'geografia' && userRole === 'dm' && (
+          {activeTab === 'geografia' && isDmUser && (
             <AddButton
               onClick={handleCreateNewGeo}
               label="Local"
@@ -1501,7 +1631,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             />
           )}
 
-          {activeTab === 'mapas' && userRole === 'dm' && (
+          {activeTab === 'mapas' && isDmUser && (
             <AddButton
               onClick={handleCreateNewMap}
               label="Mapa"
@@ -1509,7 +1639,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             />
           )}
 
-          {activeTab === 'personas' && userRole === 'dm' && (
+          {activeTab === 'personas' && isDmUser && (
             <div className="flex gap-2">
               <ActionButton
                 onClick={handleOpenImportNpcModal}
@@ -1539,7 +1669,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               className="grid grid-cols-1 md:grid-cols-3 gap-6"
             >
               {pantheon
-                .filter((p) => userRole === 'dm' || p.isVisible !== false)
+                .filter((p) => isDmUser || p.isVisible !== false)
                 .filter((p) =>
                   p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   p.domains.some((d) => d.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -1552,7 +1682,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                       god.isVisible === false ? 'border-dashed border-error/50 opacity-70' : 'border-outline-variant'
                     }`}
                   >
-                    {userRole === 'dm' && (
+                    {isDmUser && (
                       <button
                         type="button"
                         title={god.isVisible !== false ? 'Visível para os jogadores' : 'Oculto dos jogadores'}
@@ -1586,7 +1716,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                         <h4 className="font-serif text-lg text-on-surface font-medium group-hover:text-primary transition-colors">
                           {god.name}
                         </h4>
-                        <p className="font-sans text-[11px] text-on-surface-variant/70 italic mt-0.5">
+                        <p className="font-sans text-caption text-on-surface-variant/70 italic mt-0.5">
                           {god.title}
                         </p>
                       </div>
@@ -1595,12 +1725,12 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                         {god.description}
                       </p>
 
-                      <div className="space-y-2 text-[11px] font-sans pt-2">
+                      <div className="space-y-2 text-caption font-sans pt-2">
                         <div>
-                          <span className="font-bold text-on-surface uppercase text-[10px] block">Domínios:</span>
+                          <span className="font-bold text-on-surface uppercase text-micro block">Domínios:</span>
                           <div className="flex flex-wrap gap-1 mt-1">
                             {god.domains.map((dom, idx) => (
-                              <span key={idx} className="bg-surface-container border border-outline-variant px-2 py-0.5 text-[10px] font-mono text-primary">
+                              <span key={idx} className="bg-surface-container border border-outline-variant px-2 py-0.5 text-micro font-mono text-primary">
                                 {dom}
                               </span>
                             ))}
@@ -1609,7 +1739,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                       </div>
                     </div>
 
-                    <div className="pt-3 border-t border-outline-variant/30 flex justify-between items-center text-[10px] font-mono text-on-surface-variant/60">
+                    <div className="pt-3 border-t border-outline-variant/30 flex justify-between items-center text-micro font-mono text-on-surface-variant/60">
                       <span>Alinhamento: {god.alignment}</span>
                     </div>
                   </div>
@@ -1627,7 +1757,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6"
             >
               {factions
-                .filter((f) => userRole === 'dm' || f.isVisible !== false)
+                .filter((f) => isDmUser || f.isVisible !== false)
                 .filter((f) =>
                   f.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   f.leader.toLowerCase().includes(searchTerm.toLowerCase())
@@ -1640,7 +1770,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                       fac.isVisible === false ? 'border-dashed border-error/50 opacity-70' : 'border-outline-variant'
                     }`}
                   >
-                    {userRole === 'dm' && (
+                    {isDmUser && (
                       <button
                         type="button"
                         title={fac.isVisible !== false ? 'Visível para os jogadores' : 'Oculto dos jogadores'}
@@ -1680,18 +1810,18 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                         {fac.description}
                       </p>
 
-                      <div className="space-y-1.5 text-[11px] font-sans pt-2 border-t border-outline-variant/30">
+                      <div className="space-y-1.5 text-caption font-sans pt-2 border-t border-outline-variant/30">
                         <div className="flex justify-between">
-                          <span className="text-on-surface-variant/70 uppercase text-[10px] font-bold">Líder Supremo:</span>
+                          <span className="text-on-surface-variant/70 uppercase text-micro font-bold">Líder Supremo:</span>
                           <span className="text-on-surface font-bold">{fac.leader}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-on-surface-variant/70 uppercase text-[10px] font-bold">Sede / Quartel:</span>
+                          <span className="text-on-surface-variant/70 uppercase text-micro font-bold">Sede / Quartel:</span>
                           <span className="text-on-surface">{fac.headquarters}</span>
                         </div>
                       </div>
 
-                      <div className="pt-2 grid grid-cols-2 gap-2 text-[10px] font-mono">
+                      <div className="pt-2 grid grid-cols-2 gap-2 text-micro font-mono">
                         <div className="bg-surface-container p-2 border border-outline-variant/40">
                           <span className="text-primary block font-bold mb-1">Aliados:</span>
                           <ul className="list-disc list-inside text-on-surface-variant space-y-0.5">
@@ -1725,7 +1855,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6"
             >
               {geo
-                .filter((g) => userRole === 'dm' || g.isVisible !== false)
+                .filter((g) => isDmUser || g.isVisible !== false)
                 .filter((g) =>
                   g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   g.region.toLowerCase().includes(searchTerm.toLowerCase())
@@ -1738,7 +1868,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                       loc.isVisible === false ? 'border-dashed border-error/50 opacity-70' : 'border-outline-variant'
                     }`}
                   >
-                    {userRole === 'dm' && (
+                    {isDmUser && (
                       <button
                         type="button"
                         title={loc.isVisible !== false ? 'Visível para os jogadores' : 'Oculto dos jogadores'}
@@ -1769,7 +1899,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                         </div>
                       )}
                       <div className="border-b border-outline-variant/40 pb-3 pr-8">
-                        <span className="text-[9px] font-mono text-on-surface-variant/70 uppercase tracking-widest block">
+                        <span className="text-micro font-mono text-on-surface-variant/70 uppercase tracking-widest block">
                           {loc.region}
                         </span>
                         <h4 className="font-serif text-lg text-on-surface font-medium mt-1 group-hover:text-primary transition-colors">
@@ -1781,13 +1911,13 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                         {loc.description}
                       </p>
 
-                      <div className="bg-surface-container p-3 border border-outline-variant/40 space-y-1.5 text-[11px] font-sans">
+                      <div className="bg-surface-container p-3 border border-outline-variant/40 space-y-1.5 text-caption font-sans">
                         <div className="flex justify-between">
-                          <span className="text-on-surface-variant/70 font-bold uppercase text-[10px]">Clima Dominante:</span>
+                          <span className="text-on-surface-variant/70 font-bold uppercase text-micro">Clima Dominante:</span>
                           <span className="text-on-surface">{loc.climate}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-on-surface-variant/70 font-bold uppercase text-[10px]">População Estimada:</span>
+                          <span className="text-on-surface-variant/70 font-bold uppercase text-micro">População Estimada:</span>
                           <span className="text-primary">{loc.population}</span>
                         </div>
                       </div>
@@ -1807,7 +1937,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6"
             >
               {maps
-                .filter((m) => userRole === 'dm' || m.isVisible !== false)
+                .filter((m) => isDmUser || m.isVisible !== false)
                 .filter((m) =>
                   m.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   m.description.toLowerCase().includes(searchTerm.toLowerCase())
@@ -1820,7 +1950,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                       mapItem.isVisible === false ? 'border-dashed border-error/50 opacity-70' : 'border-outline-variant'
                     }`}
                   >
-                    {userRole === 'dm' && (
+                    {isDmUser && (
                       <button
                         type="button"
                         title={mapItem.isVisible !== false ? 'Visível para os jogadores' : 'Oculto dos jogadores'}
@@ -1879,7 +2009,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6"
             >
               {personas
-                .filter((per) => userRole === 'dm' || per.isVisible !== false)
+                .filter((per) => isDmUser || per.isVisible !== false)
                 .filter((per) =>
                   per.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   per.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1893,7 +2023,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                       person.isVisible === false ? 'border-dashed border-error/50 opacity-70' : 'border-outline-variant'
                     }`}
                   >
-                    {userRole === 'dm' && (
+                    {isDmUser && (
                       <button
                         type="button"
                         title={person.isVisible !== false ? 'Visível para os jogadores' : 'Oculto dos jogadores'}
@@ -1931,7 +2061,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                           {person.name}
                         </h4>
                         {person.title && (
-                          <p className="font-sans text-[11px] text-on-surface-variant/70 italic mt-0.5">
+                          <p className="font-sans text-caption text-on-surface-variant/70 italic mt-0.5">
                             {person.title}
                           </p>
                         )}
@@ -1953,7 +2083,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         isOpen={!!selectedGod}
         onClose={() => setSelectedGod(null)}
         title={
-          userRole === 'dm'
+          isDmUser
             ? pantheon.some((g) => g.id === selectedGod?.id)
               ? 'Editar Deidade'
               : 'Nova Deidade'
@@ -1961,9 +2091,9 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         }
         icon={<Shield className="w-5 h-5 text-primary" />}
         maxWidth="max-w-2xl"
-        onSubmit={userRole === 'dm' ? handleSaveGod : undefined}
+        onSubmit={isDmUser ? handleSaveGod : undefined}
         footer={
-          userRole === 'dm' ? (
+          isDmUser ? (
             <div className={`flex items-center w-full ${pantheon.some((g) => g.id === selectedGod?.id) ? 'justify-between' : 'justify-end'}`}>
               {pantheon.some((g) => g.id === selectedGod?.id) && (
                 <DeleteButton
@@ -1981,8 +2111,19 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
           ) : null
         }
       >
-        {selectedGod && userRole !== 'dm' && (
+        {selectedGod && !isDmUser && (
           <div className="space-y-4 text-xs font-sans">
+            {selectedGod.image && selectedGod.image.trim() !== '' && (
+              <div className="w-full bg-black/95 flex items-center justify-center p-2 overflow-hidden relative rounded-none border border-outline-variant/40 max-h-[44vh]">
+                <ImageWithFallback
+                  src={selectedGod.image}
+                  alt={selectedGod.name}
+                  className="max-w-full max-h-[40vh] object-contain mx-auto select-none"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+            )}
+
             {/* Header info */}
             <div className="bg-surface-container border border-outline-variant/60 p-3.5 space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1999,7 +2140,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
 
             {/* Description */}
             <div>
-              <h5 className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+              <h5 className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                 Descrição
               </h5>
               <p className="font-sans text-xs text-on-surface leading-relaxed bg-surface-container border border-outline-variant/40 p-3.5 rounded-none select-text whitespace-pre-line">
@@ -2010,10 +2151,10 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             {/* Domains, Symbol & Worshippers */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div className="bg-surface-container border border-outline-variant/40 p-3 space-y-1.5">
-                <span className="font-bold text-on-surface uppercase text-[10px] block">Domínios</span>
+                <span className="font-bold text-on-surface uppercase text-micro block">Domínios</span>
                 <div className="flex flex-wrap gap-1 pt-0.5">
                   {selectedGod.domains.map((dom, idx) => (
-                    <span key={idx} className="bg-surface-container border border-outline-variant px-2 py-0.5 text-[10px] font-mono text-primary">
+                    <span key={idx} className="bg-surface-container border border-outline-variant px-2 py-0.5 text-micro font-mono text-primary">
                       {dom}
                     </span>
                   ))}
@@ -2021,22 +2162,33 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               </div>
 
               <div className="bg-surface-container border border-outline-variant/40 p-3 space-y-1">
-                <span className="font-bold text-on-surface uppercase text-[10px] block">Simbologia</span>
+                <span className="font-bold text-on-surface uppercase text-micro block">Simbologia</span>
                 <p className="text-on-surface-variant text-xs">{selectedGod.symbol}</p>
               </div>
 
               <div className="sm:col-span-2 bg-surface-container border border-outline-variant/40 p-3 space-y-1">
-                <span className="font-bold text-on-surface uppercase text-[10px] block">Cultos</span>
+                <span className="font-bold text-on-surface uppercase text-micro block">Cultos</span>
                 <p className="text-on-surface-variant text-xs">{selectedGod.worshippers}</p>
               </div>
             </div>
           </div>
         )}
 
-        {selectedGod && userRole === 'dm' && (
+        {selectedGod && isDmUser && (
           <div className="space-y-4 text-xs font-sans">
+            {(editGodImage?.trim() || selectedGod.image?.trim()) ? (
+              <div className="w-full bg-black/95 flex items-center justify-center p-2 overflow-hidden relative rounded-none border border-outline-variant/40 max-h-[36vh]">
+                <ImageWithFallback
+                  src={editGodImage.trim() || selectedGod.image}
+                  alt={editGodName || 'Prévia da Deidade'}
+                  className="max-w-full max-h-[32vh] object-contain mx-auto select-none"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+            ) : null}
+
             <div>
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                 Nome
               </label>
               <div className="w-full">
@@ -2050,7 +2202,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                   className="w-full bg-surface-container border border-outline-variant text-on-surface text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none"
                 />
               {editGodName.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -2059,7 +2211,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                   Subtítulo
                 </label>
                 <div className="w-full">
@@ -2072,7 +2224,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                     className="`${editGodTitle.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                   />
               {editGodTitle.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -2080,7 +2232,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               </div>
 
               <div>
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                   Alinhamento
                 </label>
                 <div className="w-full">
@@ -2093,7 +2245,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                     className="`${editGodAlignment.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                   />
               {editGodAlignment.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -2101,8 +2253,37 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               </div>
             </div>
 
+            {/* God Image Field */}
             <div>
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+                Imagem da Deidade (URL ou Upload)
+              </label>
+              <div className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  placeholder="https://... ou faça upload"
+                  value={editGodImage.startsWith('data:image') ? '[Imagem carregada via upload]' : editGodImage}
+                  onChange={(e) => setEditGodImage(e.target.value)}
+                  className="w-full bg-surface-container border border-outline-variant text-on-surface text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none"
+                />
+                <label className="px-3 py-2.5 bg-surface-container border border-outline-variant hover:border-primary text-on-surface text-xs font-sans font-bold uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1.5">
+                  <Upload className="w-3.5 h-3.5 text-primary" />
+                  <span>Upload</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleGenericFileUpload(file, setEditGodImage);
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                 Descrição
               </label>
               <div className="w-full">
@@ -2115,7 +2296,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                   className="`${editGodDescription.length >= 300 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none resize-none custom-scrollbar`"
                 />
               {editGodDescription.length >= 300 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (300)
                 </div>
               )}
@@ -2124,10 +2305,10 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
 
             <div>
               <div className="flex justify-between items-center mb-1">
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest block">
                   Domínios
                 </label>
-                <span className="text-[10px] font-mono text-on-surface-variant/70">
+                <span className="text-micro font-mono text-on-surface-variant/70">
                   Separe por vírgula (Ex: Luz, Ordem, Justiça)
                 </span>
               </div>
@@ -2141,7 +2322,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                   className="`${editGodDomains.length >= 300 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                 />
               {editGodDomains.length >= 300 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (300)
                 </div>
               )}
@@ -2153,7 +2334,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                     .map((d) => d.trim())
                     .filter(Boolean)
                     .map((dom, idx) => (
-                      <span key={idx} className="bg-surface-container border border-outline-variant px-2 py-0.5 text-[10px] font-mono text-primary">
+                      <span key={idx} className="bg-surface-container border border-outline-variant px-2 py-0.5 text-micro font-mono text-primary">
                         {dom}
                       </span>
                     ))}
@@ -2162,7 +2343,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             </div>
 
             <div>
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                 Simbologia
               </label>
               <div className="w-full">
@@ -2175,7 +2356,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                   className="`${editGodSymbol.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                 />
               {editGodSymbol.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -2183,7 +2364,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             </div>
 
             <div>
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                 Cultos
               </label>
               <div className="w-full">
@@ -2196,7 +2377,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                   className="`${editGodWorshippers.length >= 300 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                 />
               {editGodWorshippers.length >= 300 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (300)
                 </div>
               )}
@@ -2225,7 +2406,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         isOpen={!!selectedFaction}
         onClose={() => setSelectedFaction(null)}
         title={
-          userRole === 'dm'
+          isDmUser
             ? factions.some((f) => f.id === selectedFaction?.id)
               ? 'Editar Facção'
               : 'Nova Facção'
@@ -2233,9 +2414,9 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         }
         icon={<Users className="w-5 h-5 text-primary" />}
         maxWidth="max-w-2xl"
-        onSubmit={userRole === 'dm' ? handleSaveFaction : undefined}
+        onSubmit={isDmUser ? handleSaveFaction : undefined}
         footer={
-          userRole === 'dm' ? (
+          isDmUser ? (
             <div className={`flex items-center w-full ${factions.some((f) => f.id === selectedFaction?.id) ? 'justify-between' : 'justify-end'}`}>
               {factions.some((f) => f.id === selectedFaction?.id) && (
                 <DeleteButton
@@ -2253,10 +2434,21 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
           ) : null
         }
       >
-        {selectedFaction && userRole !== 'dm' && (
+        {selectedFaction && !isDmUser && (
           <div className="space-y-4 text-xs font-sans">
+            {selectedFaction.image?.trim() && (
+              <div className="w-full bg-black/95 flex items-center justify-center p-2 overflow-hidden relative rounded-none border border-outline-variant/40 max-h-[44vh]">
+                <ImageWithFallback
+                  src={selectedFaction.image}
+                  alt={selectedFaction.name}
+                  className="max-w-full max-h-[40vh] object-contain mx-auto select-none"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+            )}
+
             <div>
-              <h5 className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+              <h5 className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                 Descrição
               </h5>
               <p className="font-sans text-xs text-on-surface leading-relaxed bg-surface-container border border-outline-variant/40 p-3.5 rounded-none select-text whitespace-pre-line">
@@ -2266,19 +2458,19 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div className="bg-surface-container border border-outline-variant/40 p-3 space-y-1">
-                <span className="font-bold text-on-surface uppercase text-[10px] block">Líder Supremo</span>
+                <span className="font-bold text-on-surface uppercase text-micro block">Líder Supremo</span>
                 <p className="text-primary font-bold text-xs">{selectedFaction.leader || 'Não informado'}</p>
               </div>
 
               <div className="bg-surface-container border border-outline-variant/40 p-3 space-y-1">
-                <span className="font-bold text-on-surface uppercase text-[10px] block">Sede / Quartel</span>
+                <span className="font-bold text-on-surface uppercase text-micro block">Sede / Quartel</span>
                 <p className="text-on-surface-variant text-xs">{selectedFaction.headquarters || 'Não informado'}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div className="bg-surface-container border border-outline-variant/40 p-3 space-y-1.5">
-                <span className="font-bold text-primary uppercase text-[10px] block">Aliados</span>
+                <span className="font-bold text-primary uppercase text-micro block">Aliados</span>
                 {selectedFaction.allies && selectedFaction.allies.length > 0 ? (
                   <ul className="list-disc list-inside text-on-surface-variant space-y-0.5 text-xs">
                     {selectedFaction.allies.map((a, i) => (
@@ -2291,7 +2483,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               </div>
 
               <div className="bg-surface-container border border-outline-variant/40 p-3 space-y-1.5">
-                <span className="font-bold text-error uppercase text-[10px] block">Inimigos</span>
+                <span className="font-bold text-error uppercase text-micro block">Inimigos</span>
                 {selectedFaction.enemies && selectedFaction.enemies.length > 0 ? (
                   <ul className="list-disc list-inside text-on-surface-variant space-y-0.5 text-xs">
                     {selectedFaction.enemies.map((e, i) => (
@@ -2306,10 +2498,21 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
           </div>
         )}
 
-        {selectedFaction && userRole === 'dm' && (
+        {selectedFaction && isDmUser && (
           <div className="space-y-4 text-xs font-sans">
+            {(editFactionImage?.trim() || selectedFaction.image?.trim()) ? (
+              <div className="w-full bg-black/95 flex items-center justify-center p-2 overflow-hidden relative rounded-none border border-outline-variant/40 max-h-[36vh]">
+                <ImageWithFallback
+                  src={editFactionImage.trim() || selectedFaction.image}
+                  alt={editFactionName || 'Prévia da Facção'}
+                  className="max-w-full max-h-[32vh] object-contain mx-auto select-none"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+            ) : null}
+
             <div>
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                 Nome da Facção
               </label>
               <div className="w-full">
@@ -2320,19 +2523,48 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                   value={editFactionName}
                   onChange={(e) => setEditFactionName(e.target.value)}
                   placeholder="Nome da facção"
-                  className="`${editFactionName.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
+                  className={`${editFactionName.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`}
                 />
               {editFactionName.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
             </div>
             </div>
 
+            {/* Faction Image Field */}
+            <div>
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+                Brasão / Imagem da Facção (URL ou Upload)
+              </label>
+              <div className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  placeholder="https://... ou faça upload"
+                  value={editFactionImage.startsWith('data:image') ? '[Imagem carregada via upload]' : editFactionImage}
+                  onChange={(e) => setEditFactionImage(e.target.value)}
+                  className="w-full bg-surface-container border border-outline-variant text-on-surface text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none"
+                />
+                <label className="px-3 py-2.5 bg-surface-container border border-outline-variant hover:border-primary text-on-surface text-xs font-sans font-bold uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1.5">
+                  <Upload className="w-3.5 h-3.5 text-primary" />
+                  <span>Upload</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleGenericFileUpload(file, setEditFactionImage);
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                   Líder Supremo
                 </label>
                 <div className="w-full">
@@ -2345,7 +2577,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                     className="`${editFactionLeader.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                   />
               {editFactionLeader.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -2353,7 +2585,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               </div>
 
               <div>
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                   Sede / Quartel
                 </label>
                 <div className="w-full">
@@ -2366,7 +2598,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                     className="`${editFactionHeadquarters.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                   />
               {editFactionHeadquarters.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -2375,7 +2607,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             </div>
 
             <div>
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                 Descrição
               </label>
               <div className="w-full">
@@ -2388,7 +2620,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                   className="`${editFactionDescription.length >= 300 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none resize-none custom-scrollbar`"
                 />
               {editFactionDescription.length >= 300 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (300)
                 </div>
               )}
@@ -2398,10 +2630,10 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block">
+                  <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest block">
                     Aliados
                   </label>
-                  <span className="text-[10px] font-mono text-on-surface-variant/70">
+                  <span className="text-micro font-mono text-on-surface-variant/70">
                     Separe por vírgula
                   </span>
                 </div>
@@ -2415,7 +2647,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                     className="`${editFactionAllies.length >= 300 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                   />
               {editFactionAllies.length >= 300 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (300)
                 </div>
               )}
@@ -2424,10 +2656,10 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
 
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block">
+                  <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest block">
                     Inimigos
                   </label>
-                  <span className="text-[10px] font-mono text-on-surface-variant/70">
+                  <span className="text-micro font-mono text-on-surface-variant/70">
                     Separe por vírgula
                   </span>
                 </div>
@@ -2441,7 +2673,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                     className="`${editFactionEnemies.length >= 300 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                   />
               {editFactionEnemies.length >= 300 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (300)
                 </div>
               )}
@@ -2471,7 +2703,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         isOpen={!!selectedGeo}
         onClose={() => setSelectedGeo(null)}
         title={
-          userRole === 'dm'
+          isDmUser
             ? geo.some((g) => g.id === selectedGeo?.id)
               ? 'Editar Local'
               : 'Novo Local'
@@ -2479,9 +2711,9 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         }
         icon={<Globe className="w-5 h-5 text-primary" />}
         maxWidth="max-w-2xl"
-        onSubmit={userRole === 'dm' ? handleSaveGeo : undefined}
+        onSubmit={isDmUser ? handleSaveGeo : undefined}
         footer={
-          userRole === 'dm' ? (
+          isDmUser ? (
             <div className={`flex items-center w-full ${geo.some((g) => g.id === selectedGeo?.id) ? 'justify-between' : 'justify-end'}`}>
               {geo.some((g) => g.id === selectedGeo?.id) && (
                 <DeleteButton
@@ -2499,16 +2731,27 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
           ) : null
         }
       >
-        {selectedGeo && userRole !== 'dm' && (
+        {selectedGeo && !isDmUser && (
           <div className="space-y-4 text-xs font-sans">
+            {selectedGeo.image?.trim() && (
+              <div className="w-full bg-black/95 flex items-center justify-center p-2 overflow-hidden relative rounded-none border border-outline-variant/40 max-h-[44vh]">
+                <ImageWithFallback
+                  src={selectedGeo.image}
+                  alt={selectedGeo.name}
+                  className="max-w-full max-h-[40vh] object-contain mx-auto select-none"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+            )}
+
             {selectedGeo.region && (
-              <span className="text-[10px] font-mono text-primary uppercase tracking-widest block font-bold">
+              <span className="text-micro font-mono text-primary uppercase tracking-widest block font-bold">
                 Região: {selectedGeo.region}
               </span>
             )}
 
             <div>
-              <h5 className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+              <h5 className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                 Descrição
               </h5>
               <p className="font-sans text-xs text-on-surface leading-relaxed bg-surface-container border border-outline-variant/40 p-3.5 rounded-none select-text whitespace-pre-line">
@@ -2518,23 +2761,34 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div className="bg-surface-container border border-outline-variant/40 p-3 space-y-1">
-                <span className="font-bold text-on-surface uppercase text-[10px] block">Clima Dominante</span>
+                <span className="font-bold text-on-surface uppercase text-micro block">Clima Dominante</span>
                 <p className="text-on-surface-variant text-xs">{selectedGeo.climate || 'Não informado'}</p>
               </div>
 
               <div className="bg-surface-container border border-outline-variant/40 p-3 space-y-1">
-                <span className="font-bold text-on-surface uppercase text-[10px] block">População Estimada</span>
+                <span className="font-bold text-on-surface uppercase text-micro block">População Estimada</span>
                 <p className="text-primary font-bold text-xs">{selectedGeo.population || 'Não informada'}</p>
               </div>
             </div>
           </div>
         )}
 
-        {selectedGeo && userRole === 'dm' && (
+        {selectedGeo && isDmUser && (
           <div className="space-y-4 text-xs font-sans">
+            {(editGeoImage?.trim() || selectedGeo.image?.trim()) ? (
+              <div className="w-full bg-black/95 flex items-center justify-center p-2 overflow-hidden relative rounded-none border border-outline-variant/40 max-h-[36vh]">
+                <ImageWithFallback
+                  src={editGeoImage.trim() || selectedGeo.image}
+                  alt={editGeoName || 'Prévia do Local'}
+                  className="max-w-full max-h-[32vh] object-contain mx-auto select-none"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+            ) : null}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                   Nome do Local
                 </label>
                 <div className="w-full">
@@ -2545,10 +2799,10 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                     value={editGeoName}
                     onChange={(e) => setEditGeoName(e.target.value)}
                     placeholder="Ex: Vale dos Sussurros"
-                    className="`${editGeoName.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
+                    className={`${editGeoName.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`}
                   />
               {editGeoName.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -2556,7 +2810,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               </div>
 
               <div>
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                   Região / Continente
                 </label>
                 <div className="w-full">
@@ -2566,10 +2820,10 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                     value={editGeoRegion}
                     onChange={(e) => setEditGeoRegion(e.target.value)}
                     placeholder="Ex: Fronteira Leste"
-                    className="`${editGeoRegion.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
+                    className={`${editGeoRegion.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`}
                   />
               {editGeoRegion.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -2577,8 +2831,37 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               </div>
             </div>
 
+            {/* Geo Image Field */}
             <div>
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+                Ilustração / Foto do Local (URL ou Upload)
+              </label>
+              <div className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  placeholder="https://... ou faça upload"
+                  value={editGeoImage.startsWith('data:image') ? '[Imagem carregada via upload]' : editGeoImage}
+                  onChange={(e) => setEditGeoImage(e.target.value)}
+                  className="w-full bg-surface-container border border-outline-variant text-on-surface text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none"
+                />
+                <label className="px-3 py-2.5 bg-surface-container border border-outline-variant hover:border-primary text-on-surface text-xs font-sans font-bold uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1.5">
+                  <Upload className="w-3.5 h-3.5 text-primary" />
+                  <span>Upload</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleGenericFileUpload(file, setEditGeoImage);
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                 Descrição
               </label>
               <div className="w-full">
@@ -2591,7 +2874,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                   className="`${editGeoDescription.length >= 300 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none resize-none custom-scrollbar`"
                 />
               {editGeoDescription.length >= 300 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (300)
                 </div>
               )}
@@ -2600,7 +2883,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                   Clima Dominante
                 </label>
                 <div className="w-full">
@@ -2613,7 +2896,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                     className="`${editGeoClimate.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                   />
               {editGeoClimate.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -2621,7 +2904,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               </div>
 
               <div>
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                   População Estimada
                 </label>
                 <div className="w-full">
@@ -2634,7 +2917,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                     className="`${editGeoPopulation.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                   />
               {editGeoPopulation.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -2663,26 +2946,26 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
       <Modal
         isOpen={!!selectedMap}
         onClose={() => setSelectedMap(null)}
-        hideHeader={userRole !== 'dm'}
+        hideHeader={!isDmUser}
         title={
-          userRole === 'dm'
+          isDmUser
             ? maps.some((m) => m.id === selectedMap?.id)
               ? 'Editar Mapa'
               : 'Novo Mapa'
             : selectedMap?.title || 'Visualizar Mapa'
         }
-        icon={userRole === 'dm' ? <MapIcon className="w-5 h-5 text-primary" /> : undefined}
+        icon={isDmUser ? <MapIcon className="w-5 h-5 text-primary" /> : undefined}
         maxWidth="max-w-4xl"
         zIndex="z-[1050]"
         bodyClassName={
-          userRole === 'player'
+          !isDmUser
             ? 'overflow-hidden p-0 flex items-center justify-center min-h-[50vh] max-h-[75vh] relative group'
             : 'space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-1 sm:pr-2'
         }
-        onSubmit={userRole === 'dm' ? handleSaveMap : undefined}
+        onSubmit={isDmUser ? handleSaveMap : undefined}
         footer={
           selectedMap ? (
-            userRole === 'player' ? (
+            !isDmUser ? (
               (selectedMap.title || selectedMap.description) ? (
                 <div className="w-full space-y-1 text-left">
                   {selectedMap.title && (
@@ -2716,7 +2999,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
           ) : undefined
         }
       >
-        {selectedMap && userRole === 'player' && (
+        {selectedMap && !isDmUser && (
           <div className="w-full h-full bg-black/95 flex items-center justify-center p-2 sm:p-4 overflow-hidden relative">
             <ImageWithFallback
               src={selectedMap.url}
@@ -2727,7 +3010,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
           </div>
         )}
 
-        {selectedMap && userRole === 'dm' && (
+        {selectedMap && isDmUser && (
           <div className="space-y-4 text-xs font-sans">
             <div className="w-full bg-black/95 flex items-center justify-center p-2 overflow-hidden relative rounded-none border border-outline-variant/40 max-h-[44vh]">
               <ImageWithFallback
@@ -2740,7 +3023,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               <div>
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                   Título do Mapa
                 </label>
                 <div className="w-full">
@@ -2751,44 +3034,40 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                     value={editMapTitle}
                     onChange={(e) => setEditMapTitle(e.target.value)}
                     placeholder="Ex: Mapa do Vale Prateado"
-                    className="`${editMapTitle.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
+                    className={`w-full bg-surface-container border border-outline-variant text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none ${editMapTitle.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'}`}
                   />
-              {editMapTitle.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
-                  Limite atingido (50)
+                  {editMapTitle.length >= 50 && (
+                    <div className="text-right mt-1 text-micro font-medium text-red-500/80">
+                      Limite atingido (50)
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
               </div>
 
+              {/* Map Image Field */}
               <div>
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
-                  Imagem (URL ou Upload)
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+                  Imagem do Mapa (URL ou Upload)
                 </label>
                 <div className="flex gap-2 items-center">
-                  <div className="w-full">
-              <input
-                      type="text"
-                      maxLength={500}
-                      value={editMapUrl}
-                      onChange={(e) => setEditMapUrl(e.target.value)}
-                      placeholder="https://..."
-                      className="`${editMapUrl.length >= 500 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
-                    />
-              {editMapUrl.length >= 500 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
-                  Limite atingido (500)
-                </div>
-              )}
-            </div>
+                  <input
+                    type="text"
+                    placeholder="https://... ou faça upload"
+                    value={editMapUrl.startsWith('data:image') ? '[Imagem carregada via upload]' : editMapUrl}
+                    onChange={(e) => setEditMapUrl(e.target.value)}
+                    className="w-full bg-surface-container border border-outline-variant text-on-surface text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none"
+                  />
                   <label className="px-3 py-2.5 bg-surface-container border border-outline-variant hover:border-primary text-on-surface text-xs font-sans font-bold uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1.5">
                     <Upload className="w-3.5 h-3.5 text-primary" />
                     <span>Upload</span>
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleMapFileUpload}
-                      className="`${editMapDescription.length >= 300 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} hidden`"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleGenericFileUpload(file, setEditMapUrl);
+                      }}
+                      className="hidden"
                     />
                   </label>
                 </div>
@@ -2796,7 +3075,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             </div>
 
             <div>
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                 Descrição do Mapa
               </label>
               <div className="w-full">
@@ -2810,7 +3089,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                   className="w-full bg-surface-container border border-outline-variant text-on-surface text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none resize-none custom-scrollbar min-h-[38px] max-h-[80px] overflow-y-auto"
                 />
               {editMapDescription.length >= 300 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (300)
                 </div>
               )}
@@ -2844,11 +3123,23 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         bodyClassName="overflow-hidden p-0 flex items-center justify-center min-h-[50vh] max-h-[75vh] relative group"
         footer={
           selectedPhoto && (selectedPhoto.title || selectedPhoto.description) ? (
-            <div className="w-full space-y-1 text-left">
-              {selectedPhoto.title && (
-                <h4 className="font-serif text-lg text-on-surface font-medium">
-                  {selectedPhoto.title}
-                </h4>
+            <div className="w-full space-y-1.5 text-left">
+              <div className="flex flex-wrap items-center gap-2">
+                {selectedPhoto.title && (
+                  <h4 className="font-serif text-lg text-on-surface font-medium">
+                    {selectedPhoto.title}
+                  </h4>
+                )}
+                {selectedPhoto.category && (
+                  <span className="text-micro font-mono font-bold uppercase tracking-wider px-2 py-0.5 border border-primary/40 text-primary bg-primary/10">
+                    {selectedPhoto.category}
+                  </span>
+                )}
+              </div>
+              {selectedPhoto.date && (
+                <span className="text-micro font-mono text-on-surface-variant/60 block">
+                  {selectedPhoto.date}
+                </span>
               )}
               {selectedPhoto.description && (
                 <p className="font-sans text-xs text-on-surface-variant leading-relaxed select-text">
@@ -2861,7 +3152,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
       >
         {selectedPhoto && (
           <div className="w-full h-full bg-black/95 flex items-center justify-center p-2 sm:p-4 overflow-hidden relative">
-            {photos.length > 1 && (
+            {activePhotoList.length > 1 && (
               <button
                 type="button"
                 onClick={handlePrevPhoto}
@@ -2879,7 +3170,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               referrerPolicy="no-referrer"
             />
 
-            {photos.length > 1 && (
+            {activePhotoList.length > 1 && (
               <button
                 type="button"
                 onClick={handleNextPhoto}
@@ -2896,12 +3187,15 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
       {/* Full Gallery Modal */}
       <Modal
         isOpen={showFullGalleryModal}
-        onClose={() => setShowFullGalleryModal(false)}
+        onClose={() => {
+          setShowFullGalleryModal(false);
+          setGalleryCategoryFilter('Todas');
+        }}
         title="Galeria Visual da Campanha"
         maxWidth="max-w-5xl"
         bodyClassName="space-y-4 flex-1 overflow-y-auto custom-scrollbar p-1 sm:p-2"
         footer={
-          userRole === 'dm' ? (
+          (isDmUser || !!campaignId) ? (
             <div className="flex justify-end items-center w-full">
               <AddButton
                 onClick={() => {
@@ -2915,37 +3209,84 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
           ) : undefined
         }
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {photos.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => setSelectedPhoto(item)}
-              className="bg-surface-container border border-outline-variant hover:border-primary group relative overflow-hidden aspect-video sm:aspect-4/3 cursor-pointer transition-all"
-            >
-              <ImageWithFallback
-                src={item.url}
-                alt={item.title || 'Foto da Galeria'}
-                className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
-                referrerPolicy="no-referrer"
-                fallbackText={item.title}
-              />
-              {userRole === 'dm' && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPhotoToDelete(item);
-                    setShowDeletePhotoConfirm(true);
-                  }}
-                  className="absolute top-2 right-2 p-2 bg-black/60 hover:bg-error/90 text-on-surface border border-outline-variant hover:border-error opacity-0 group-hover:opacity-100 transition-all cursor-pointer rounded-full"
-                  title="Remover Imagem"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
+        {/* Category Filter Tabs */}
+        {galleryCategories.length > 2 && (
+          <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-2 border-b border-outline-variant/40">
+            {galleryCategories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setGalleryCategoryFilter(cat)}
+                className={`px-3 py-1 font-mono text-caption uppercase tracking-wider font-semibold border transition-all cursor-pointer whitespace-nowrap ${
+                  galleryCategoryFilter === cat
+                    ? 'bg-primary text-on-primary border-primary shadow-sm'
+                    : 'bg-surface-container border-outline-variant text-on-surface-variant hover:text-on-surface hover:border-primary/50'
+                }`}
+              >
+                {cat} {cat !== 'Todas' ? `(${photos.filter(p => p.category === cat).length})` : `(${photos.length})`}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {filteredPhotos.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-12 text-center border border-dashed border-outline-variant bg-surface-container">
+            <ImageIcon className="w-10 h-10 text-outline-variant mb-2" />
+            <p className="font-serif text-base text-on-surface">Nenhuma imagem nesta categoria</p>
+            <p className="font-sans text-xs text-on-surface-variant/70 mt-1">Imagens inseridas em crônicas, deuses, facções, locais ou mapas aparecerão aqui automaticamente.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {filteredPhotos.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => setSelectedPhoto(item)}
+                className="bg-surface-container border border-outline-variant hover:border-primary group relative overflow-hidden aspect-video sm:aspect-4/3 cursor-pointer transition-all"
+              >
+                <ImageWithFallback
+                  src={item.url}
+                  alt={item.title || 'Foto da Galeria'}
+                  className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
+                  referrerPolicy="no-referrer"
+                  fallbackText={item.title}
+                />
+
+                {/* Category Badge */}
+                <div className="absolute top-2 left-2 z-10 pointer-events-none">
+                  <span className="text-micro font-mono font-bold uppercase tracking-wider px-2 py-0.5 bg-black/75 border border-outline-variant/60 text-primary backdrop-blur-sm">
+                    {item.category}
+                  </span>
+                </div>
+
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                  <span className="font-serif text-sm text-white font-medium truncate">
+                    {item.title}
+                  </span>
+                  {item.description && (
+                    <p className="font-sans text-micro text-white/80 line-clamp-1">
+                      {item.description}
+                    </p>
+                  )}
+                </div>
+
+                {isDmUser && item.sourceType === 'photo' && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPhotoToDelete(item);
+                      setShowDeletePhotoConfirm(true);
+                    }}
+                    className="absolute top-2 right-2 p-2 bg-black/60 hover:bg-error/90 text-on-surface border border-outline-variant hover:border-error opacity-0 group-hover:opacity-100 transition-all cursor-pointer rounded-full z-20"
+                    title="Remover Imagem"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </Modal>
 
       {/* Delete Photo Confirm Modal */}
@@ -2979,70 +3320,68 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
           <div className="flex justify-end gap-3 w-full">
             <SaveButton
               type="submit"
-              label="Salvar"
+              label={isUploadingPhoto ? 'Enviando...' : 'Salvar'}
               variant="primary-ghost"
-              disabled={!newPhotoUrl.trim() || newPhotoDesc.length > 150}
+              disabled={isUploadingPhoto || !newPhotoUrl.trim() || newPhotoDesc.length > 300}
             />
           </div>
         }
       >
         <div className="space-y-4 text-xs font-sans">
           <div>
-            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
+            <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
               Imagem (Upload ou Link) *
             </label>
             <div className="flex gap-2">
-              <div className="w-full">
               <input
-                  type="text"
-                  required
-                  maxLength={500}
-                  placeholder="Cole o link da imagem (https://...)"
-                  value={newPhotoUrl}
-                  onChange={(e) => setNewPhotoUrl(e.target.value)}
-                  className="`${newPhotoUrl.length >= 500 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
-                />
-              {newPhotoUrl.length >= 500 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
-                  Limite atingido (500)
-                </div>
-              )}
-            </div>
+                type="text"
+                placeholder="Cole o link da imagem (https://...) ou faça upload"
+                value={newPhotoUrl.startsWith('data:image') ? '[Imagem carregada via upload]' : newPhotoUrl}
+                onChange={(e) => setNewPhotoUrl(e.target.value)}
+                className="w-full bg-surface-container border border-outline-variant text-on-surface text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none"
+              />
               <label className="bg-surface-container border border-outline-variant hover:border-primary text-on-surface-variant hover:text-on-surface px-3.5 py-2.5 flex items-center gap-1.5 cursor-pointer text-xs font-bold uppercase shrink-0">
                 <Upload className="w-4 h-4 text-primary" />
-                <span>Upload</span>
+                <span>{isUploadingPhoto ? 'Enviando...' : 'Upload'}</span>
                 <input
                   type="file"
                   accept="image/*"
+                  disabled={isUploadingPhoto}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      const reader = new FileReader();
-                      reader.onloadend = () => {
-                        if (typeof reader.result === 'string') {
-                          setNewPhotoUrl(reader.result);
-                        }
-                      };
-                      reader.readAsDataURL(file);
+                      setIsUploadingPhoto(true);
+                      handleGenericFileUpload(file, (url) => {
+                        setNewPhotoUrl(url);
+                        setIsUploadingPhoto(false);
+                      });
                     }
                   }}
-                  className="`${newPhotoTitle.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} hidden`"
+                  className="hidden"
                 />
               </label>
             </div>
             {newPhotoUrl && (
-              <div className="mt-2 h-32 w-full bg-black/60 border border-outline-variant/40 overflow-hidden flex items-center justify-center relative p-1">
+              <div className="mt-2 h-44 w-full bg-black/60 border border-outline-variant/40 overflow-hidden flex items-center justify-center relative p-1 group">
                 <ImageWithFallback
                   src={newPhotoUrl}
                   alt="Pré-visualização"
                   className="h-full object-contain"
                 />
+                <button
+                  type="button"
+                  onClick={() => setNewPhotoUrl('')}
+                  className="absolute top-2 right-2 bg-black/80 hover:bg-red-950 text-white/80 hover:text-red-400 p-1.5 rounded-none text-xs border border-white/20 transition-all cursor-pointer"
+                  title="Remover imagem"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
               </div>
             )}
           </div>
 
           <div>
-            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
+            <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
               Título
             </label>
             <div className="w-full">
@@ -3055,7 +3394,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                 className="w-full bg-surface-container border border-outline-variant text-on-surface text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none"
               />
               {newPhotoTitle.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -3064,7 +3403,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
 
           <div>
             <div className="flex justify-between items-center mb-1.5">
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest block">
                 Legenda
               </label>
 
@@ -3079,7 +3418,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                 className="`${newPhotoDesc.length >= 300 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none resize-none custom-scrollbar`"
               />
               {newPhotoDesc.length >= 300 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (300)
                 </div>
               )}
@@ -3100,7 +3439,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         icon={<BookOpen className="w-5 h-5 text-primary" />}
         maxWidth="max-w-5xl"
         footer={
-          userRole === 'dm' ? (
+          isDmUser ? (
             <div className="flex justify-end gap-3 w-full">
               <EditButton
                 onClick={() => setIsEditingStory(!isEditingStory)}
@@ -3119,16 +3458,16 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         }
       >
         <div className="space-y-4 font-sans text-xs">
-          {userRole === 'dm' && isEditingStory ? (
+          {isDmUser && isEditingStory ? (
             <div className="space-y-2">
-              <label className="block font-mono text-[10px] text-primary font-bold uppercase tracking-widest">
+              <label className="block font-mono text-micro text-primary font-bold uppercase tracking-widest">
                 Editar História da Campanha (Visível para todos)
               </label>
               <textarea
                 value={editedStory}
                 onChange={(e) => setEditedStory(e.target.value)}
                 rows={16}
-                className="`${editPersonaName.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant p-4  font-sans text-xs sm:text-sm leading-relaxed focus:outline-none focus:border-primary custom-scrollbar rounded-none`"
+                className="w-full bg-surface-container border border-outline-variant p-4 font-sans text-xs sm:text-sm leading-relaxed focus:outline-none focus:border-primary custom-scrollbar rounded-none text-on-surface"
                 placeholder="Escreva a história completa da campanha aqui..."
               />
             </div>
@@ -3156,7 +3495,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         isOpen={!!selectedPersona}
         onClose={() => setSelectedPersona(null)}
         title={
-          userRole === 'dm'
+          isDmUser
             ? personas.some((p) => p.id === selectedPersona?.id)
               ? 'Editar Persona'
               : 'Nova Persona'
@@ -3166,13 +3505,13 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         maxWidth="max-w-2xl"
         zIndex="z-[1050]"
         bodyClassName={
-          userRole === 'dm'
+          isDmUser
             ? 'space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-1 sm:pr-2'
             : 'space-y-4 text-xs font-sans'
         }
-        onSubmit={userRole === 'dm' ? handleSavePersona : undefined}
+        onSubmit={isDmUser ? handleSavePersona : undefined}
         footer={
-          userRole === 'dm' ? (
+          isDmUser ? (
             <div className={`flex items-center w-full ${personas.some((p) => p.id === selectedPersona?.id) ? 'justify-between' : 'justify-end'}`}>
               {personas.some((p) => p.id === selectedPersona?.id) && (
                 <DeleteButton
@@ -3190,7 +3529,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
           ) : null
         }
       >
-        {selectedPersona && userRole !== 'dm' && (
+        {selectedPersona && !isDmUser && (
           <div className="space-y-4 text-xs font-sans">
             {selectedPersona.image && selectedPersona.image.trim() !== '' && (
               <div className="w-full bg-black/95 flex items-center justify-center p-2 overflow-hidden relative rounded-none border border-outline-variant/40 max-h-[44vh]">
@@ -3212,7 +3551,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             )}
 
             <div>
-              <h5 className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+              <h5 className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                 Descrição
               </h5>
               <p className="font-sans text-xs text-on-surface leading-relaxed bg-surface-container border border-outline-variant/40 p-3.5 rounded-none select-text whitespace-pre-line">
@@ -3222,7 +3561,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
           </div>
         )}
 
-        {selectedPersona && userRole === 'dm' && (
+        {selectedPersona && isDmUser && (
           <div className="space-y-4 text-xs font-sans">
             {(editPersonaImage?.trim() || selectedPersona.image?.trim()) ? (
               <div className="w-full bg-black/95 flex items-center justify-center p-2 overflow-hidden relative rounded-none border border-outline-variant/40 max-h-[36vh]">
@@ -3237,7 +3576,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                   Nome da Persona
                 </label>
                 <div className="w-full">
@@ -3251,7 +3590,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                     className="w-full bg-surface-container border border-outline-variant text-on-surface text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none"
                   />
               {editPersonaName.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -3259,7 +3598,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               </div>
 
               <div>
-                <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+                <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                   Subtítulo / Título
                 </label>
                 <div className="w-full">
@@ -3272,7 +3611,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                     className="`${editPersonaTitle.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
                   />
               {editPersonaTitle.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -3280,41 +3619,37 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               </div>
             </div>
 
+            {/* Persona Image Field */}
             <div>
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
-                Imagem (URL ou Upload)
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+                Imagem da Persona (URL ou Upload)
               </label>
               <div className="flex gap-2 items-center">
-                <div className="w-full">
-              <input
-                    type="text"
-                    maxLength={500}
-                    value={editPersonaImage}
-                    onChange={(e) => setEditPersonaImage(e.target.value)}
-                    placeholder="https://..."
-                    className="`${editPersonaImage.length >= 500 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none`"
-                  />
-              {editPersonaImage.length >= 500 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
-                  Limite atingido (500)
-                </div>
-              )}
-            </div>
+                <input
+                  type="text"
+                  placeholder="https://... ou faça upload"
+                  value={editPersonaImage.startsWith('data:image') ? '[Imagem carregada via upload]' : editPersonaImage}
+                  onChange={(e) => setEditPersonaImage(e.target.value)}
+                  className="w-full bg-surface-container border border-outline-variant text-on-surface text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none"
+                />
                 <label className="px-3 py-2.5 bg-surface-container border border-outline-variant hover:border-primary text-on-surface text-xs font-sans font-bold uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1.5">
                   <Upload className="w-3.5 h-3.5 text-primary" />
                   <span>Upload</span>
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={handlePersonaFileUpload}
-                    className="`${editPersonaDescription.length >= 300 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} hidden`"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleGenericFileUpload(file, setEditPersonaImage);
+                    }}
+                    className="hidden"
                   />
                 </label>
               </div>
             </div>
 
             <div>
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1 block">
                 Descrição
               </label>
               <div className="w-full">
@@ -3327,7 +3662,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                   className="w-full bg-surface-container border border-outline-variant text-on-surface text-xs px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none resize-none custom-scrollbar"
                 />
               {editPersonaDescription.length >= 300 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (300)
                 </div>
               )}
@@ -3369,7 +3704,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             <div className="p-8 text-center bg-surface-container border border-outline-variant/40 space-y-2">
               <Users className="w-8 h-8 text-outline-variant mx-auto opacity-50" />
               <p className="text-on-surface font-medium">Nenhum NPC cadastrado</p>
-              <p className="text-[11px] text-on-surface-variant">
+              <p className="text-caption text-on-surface-variant">
                 Vá até a aba "NPCs / Contatos" no menu principal para registrar novos NPCs.
               </p>
             </div>
@@ -3381,21 +3716,28 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                   className="bg-surface-container border border-outline-variant/60 p-3.5 flex items-center justify-between gap-4 hover:border-primary/60 transition-all"
                 >
                   <div className="flex items-center gap-3.5 flex-1 min-w-0">
-                    {npc.image && npc.image.trim() !== '' && (
+                    {(npc.image || npc.portraitUrl) && (
                       <ImageWithFallback
-                        src={npc.image}
+                        src={npc.image || npc.portraitUrl}
                         alt={npc.name}
                         className="w-12 h-12 object-cover border border-outline-variant/60 shrink-0"
                         referrerPolicy="no-referrer"
                       />
                     )}
                     <div className="min-w-0 flex-1">
-                      <h4 className="font-serif text-sm text-on-surface font-medium truncate">{npc.name}</h4>
-                      <p className="text-[10px] text-primary uppercase font-mono tracking-wider truncate">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-serif text-sm text-on-surface font-medium truncate">{npc.name}</h4>
+                        {npc.isPersona && (
+                          <span className="text-micro font-mono px-1.5 py-0.5 bg-primary/20 text-primary border border-primary/40 uppercase">
+                            Já é Persona
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-micro text-primary uppercase font-mono tracking-wider truncate">
                         {npc.race || 'Sem raça'} • {npc.occupation || 'Sem ocupação'}
                       </p>
                       {npc.description && (
-                        <p className="text-[11px] text-on-surface-variant/70 truncate mt-0.5">
+                        <p className="text-caption text-on-surface-variant/70 truncate mt-0.5">
                           {npc.description}
                         </p>
                       )}
@@ -3404,7 +3746,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
 
                   <AddButton
                     onClick={() => handleImportNpcAsPersona(npc)}
-                    label="Importar"
+                    label={npc.isPersona ? "Reimportar" : "Importar"}
                     hideLabelOnMobile={false}
                   />
                 </div>

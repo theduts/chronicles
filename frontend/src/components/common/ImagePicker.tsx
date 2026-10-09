@@ -142,7 +142,7 @@ export default function ImagePicker({
             <div className="flex flex-col items-center justify-center p-3 text-center">
               <Upload className="w-6 h-6 text-on-surface-variant/40 mb-1 group-hover:text-primary transition-colors" />
               <span className="text-xs font-bold text-on-surface-variant">Sem Imagem</span>
-              <span className="text-[10px] text-on-surface-variant/70 mt-0.5 max-w-[110px] leading-tight">
+              <span className="text-micro text-on-surface-variant/70 mt-0.5 max-w-[110px] leading-tight">
                 Clique para adicionar uma imagem.
               </span>
             </div>
@@ -180,7 +180,7 @@ export default function ImagePicker({
             )}
           </div>
 
-          <span className="text-[11px] text-on-surface-variant/60">
+          <span className="text-caption text-on-surface-variant/60">
             JPG, PNG, WEBP ou SVG (máx. 5MB)
           </span>
 

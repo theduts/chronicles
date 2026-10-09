@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import PageHeader from './common/PageHeader';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, Plus, Calendar, MapPin, Eye, BookOpen, Clock, Heart, Edit3, Trash2, Upload } from 'lucide-react';
@@ -14,7 +15,7 @@ import {
   useDeleteChronicleMutation,
 } from '../hooks/useChroniclesMutations';
 
-const toRoman = (num: number): string => {
+export const toRoman = (num: number): string => {
   const lookup: [string, number][] = [
     ['M', 1000], ['CM', 900], ['D', 500], ['CD', 400],
     ['C', 100], ['XC', 90], ['L', 50], ['XL', 40],
@@ -41,7 +42,7 @@ function toIsoDate(dateStr?: string): string | undefined {
   return undefined;
 }
 
-function formatDisplayDate(dateStr?: string): string {
+export function formatDisplayDate(dateStr?: string): string {
   if (!dateStr) return '';
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
     const [year, month, day] = dateStr.split('-');
@@ -66,107 +67,17 @@ export interface ChronicleSession {
   majorEvent: string;
 }
 
-const INITIAL_CHRONICLES: ChronicleSession[] = [
-  {
-    id: 'chronicle-1',
-    session: 'SESSÃO I',
-    rawSessionNumber: 1,
-    title: 'A Queda de Aethelgard',
-    location: 'REINO EM CHAMAS',
-    date: '20 de Março, 1542',
-    desc: 'Uma crônica de fogo e traição que mudou o curso da história humana no continente de Occultus, guardada sob pergaminhos profanos.',
-    fullText: 'O céu cobriu-se de escuro e brasas quando as catapultas romperam os muros orientais de Aethelgard. Enquanto chamas devoravam os antigos salões, os heróis se depararam com um dilema impossível: as chaves secretas do Grimório Arcano jaziam trancadas nos cofres em chamas, cercadas pela infantaria inimiga, enquanto o povoado gritava por ajuda na ala norte. Decididos, Malphas usou de suas artes de trevas para despistar os guardas, permitindo que o grupo resgatasse dezenas de refugiados, mas o preço foi alto: o rito sob as cinzas rúnicas foi completado pelo inimigo...',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuApaoQQsXhFuJ7cnHYim1KAq_ihU2Sf_xG5CGjFEPgNbhiuPsddO96GWeZbOWMENEh5vNo9hBtlfWmRgQPhRtv5jxPFTbN5uyXeZ4upiymyfffad_QDcNvScGlT_8wY0rCE3FfRShqdcJQVPTHEmOYoVObV49PN2V5LgIncvPaxsJSorBU3jFWhZDeZkimJ5F3OBeN8ZV3Dio3Kby7oJK-Ey4wbx3Y_eayiVvFs8RKdviqwJ42g3eL3IbehJn2PWPa2cpxK4qYGy4E',
-    danger: 'Extremo',
-    majorEvent: 'Invasão e destruição do império oriental de Aethelgard'
-  },
-  {
-    id: 'chronicle-2',
-    session: 'SESSÃO II',
-    rawSessionNumber: 2,
-    title: 'Sussurros da Névoa',
-    location: 'FLORESTA DE OCCULTUS',
-    date: '28 de Março, 1542',
-    desc: 'Adentrando a densa névoa eterna de Occultus, os heróis depararam-se com visões bizarras do passado e precisaram decifrar ritos antigos.',
-    fullText: 'A travessia pela floresta nunca fora tão traiçoeira. Uma névoa densa demais para ser natural cobriu os caminhos, sussurrando segredos enterrados e traumas antigos de cada aventureiro. Quando todos já estavam à beira da loucura devido às alucinações de entes perdidos, um portal rúnico composto de pedras de obsidian se ergueu. Através de um complexo enigma de espelhos de luz rúnica projetada por magia elemental, o grupo desvendou que o verdadeiro perigo não era a névoa, mas a projeção de suas próprias mentes fragmentadas...',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuApHZvY37Hs1hVLXx0XzG8rFUpHmP5wdHVCSCCkr16Rkz56fZNUIdTmgjbdiL8LJbmVM-nzqyfxDiBeEq-Aq-7ztUz4lZFoyfOgRqQFO4URtVRZvdQAe9T9bOPd3j5nPVWjZ58FrCTHu9omekQxSbMiZ2lIiU2Kd2FA9yjC69WUd9WLm4-idR4gIcZWkYBpB5Y73Hb8uzeEInjO55GfBBHyBGY-DNkIatnnsmXy6HoodYkElB1O758CwNr4QDk6EAljAprNw0EhNKU',
-    danger: 'Médio',
-    majorEvent: 'Abertura do Portal de Obsidian elemental'
-  },
-  {
-    id: 'chronicle-3',
-    session: 'SESSÃO III',
-    rawSessionNumber: 3,
-    title: 'O Enigma de Obsidian',
-    location: 'CRIPTA PROFANA',
-    date: '05 de Abril, 1542',
-    desc: 'O resgate desesperado dentro da cripta esquecida e o primeiro encontro direto com o misterioso Pacto da Serpente de Sangue.',
-    fullText: 'Nos confins subterrâneos da cripta profana, onde o ar fedia a enxofre e magia estagnada, os heróis confrontaram os acólitos do Pacto da Serpente. Em meio a lutas desesperadas sobre passarelas estreitas de pedra, o inimigo desencadeou uma armadilha tóxica que selou as saídas. Com astúcia e sacrifício físico, o guerreiro Malphas aguentou o impacto direto de uma lâmina envenenada rúnica, garantindo tempo para que o mago conjurasse uma explosão de dispersão arcana. O grupo conseguiu escapar com o artefato de obsidian, porém a infecção agora corre em suas veias...',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAH02OPokynjplaAoYJ5Dh_mYVv9kxVNgs9GieyHtShVvopAbzKMJG-C8c0yhJgCROG1bkCaS9w-7iasUIrTnJf-DfK2cDZg9b8zP_2IGFOpWJsMHtB2HMKnXtSJr6FZlGrARVDI14wQPtIELkJghHXYacTrlRJCaNWT_KyDyr6cCK4LOGIie2DVGGnFf_w6KO5wCvw0oNAh407zMeCt5yO9NPob94UWsBR3ygCWTnxapKIeLuSQOUwOQE-NFsCdo-SJM4I25nHctk',
-    danger: 'Alto',
-    majorEvent: 'Recuperação do Amuleto Sagrado e envenenamento'
-  },
-  {
-    id: 'chronicle-4',
-    session: 'SESSÃO IV',
-    rawSessionNumber: 4,
-    title: 'O Pacto de Cinzas',
-    location: 'MONTANHA RÚNICA',
-    date: '12 de Abril, 1542',
-    desc: 'Buscando uma cura para a infecção arcana, o bando ascende o Pico das Lamentações em busca do Altar Rúnico Ancestral.',
-    fullText: 'As nevascas cortantes do Pico das Lamentações quase congelaram os corações dos heróis. No topo congelado, o altar cintilava sob a pálida luz luar. Para purificar o sangue infectado de Malphas, Garrick sacrificou suas próprias bênçãos de proteção contra o fogo, tecendo uma ponte espiritual rúnica. Sob a vigília das estátuas que sussurravam escárnios, uma entidade de pura brasa ancestral manifestou-se, exigindo juramentos de sangue. A infecção foi contida, mas as cinzas agora residem em suas almas.',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuApaoQQsXhFuJ7cnHYim1KAq_ihU2Sf_xG5CGjFEPgNbhiuPsddO96GWeZbOWMENEh5vNo9hBtlfWmRgQPhRtv5jxPFTbN5uyXeZ4upiymyfffad_QDcNvScGlT_8wY0rCE3FfRShqdcJQVPTHEmOYoVObV49PN2V5LgIncvPaxsJSorBU3jFWhZDeZkimJ5F3OBeN8ZV3Dio3Kby7oJK-Ey4wbx3Y_eayiVvFs8RKdviqwJ42g3eL3IbehJn2PWPa2cpxK4qYGy4E',
-    danger: 'Alto',
-    majorEvent: 'Purificação em cinzas do sangue corrompido'
-  },
-  {
-    id: 'chronicle-5',
-    session: 'SESSÃO V',
-    rawSessionNumber: 5,
-    title: 'A Praga Silenciosa',
-    location: 'TAVERNA DO VELHO GALDOR',
-    date: '19 de Abril, 1542',
-    desc: 'O retorno à civilização é cortado por uma epidemia sombria na taverna da vila rústica sob a luz carmesim.',
-    fullText: 'A Taverna do Velho Galdor não era mais o porto seguro que lembravam. Seus frequentadores jaziam caídos, com as veias brilhando em luz carmesim. Investigando os fundos, Elaris encontrou o poço d\'água local selado com runas corrompidas do Pacto da Serpente de Sangue. Enquanto o grupo preparava um elixir de ervas puritana rúnica sob ataque constante de camponeses ensandecidos pela febre, a besta bípede imunda do esgoto atacou a estalagem. O dia foi salvo pela contenção do poço, mas a peste alasta-se pelas cercanias.',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuApaoQQsXhFuJ7cnHYim1KAq_ihU2Sf_xG5CGjFEPgNbhiuPsddO96GWeZbOWMENEh5vNo9hBtlfWmRgQPhRtv5jxPFTbN5uyXeZ4upiymyfffad_QDcNvScGlT_8wY0rCE3FfRShqdcJQVPTHEmOYoVObV49PN2V5LgIncvPaxsJSorBU3jFWhZDeZkimJ5F3OBeN8ZV3Dio3Kby7oJK-Ey4wbx3Y_eayiVvFs8RKdviqwJ42g3eL3IbehJn2PWPa2cpxK4qYGy4E',
-    danger: 'Baixo',
-    majorEvent: 'Descoberta do plano de infecção e peste das runas carmesins'
-  },
-  {
-    id: 'chronicle-6',
-    session: 'SESSÃO VI',
-    rawSessionNumber: 6,
-    title: 'O Grimório Libertado',
-    location: 'ESTRADA DA PONTE DE FERRO',
-    date: '26 de Abril, 1542',
-    desc: 'Em perseguição ao livro levitante de feitiços de Necromancia, os aventureiros armam uma emboscada letal à beira do abismo.',
-    fullText: 'O Grimório Fugitivo flutuava como uma ave de couro e dentes, rasgando o próprio ar com sussurros em dialeto Abissal. No arco estreito da Estrada da Ponte de Ferro, o grupo construiu uma teia de correntes e âncoras rúnicas. Quando as sombras goblins de emboscada caíram sobre o bando, a ponte tornou-se um palco de chamas e fúria física. Elaris disparou uma flecha aprisionadora infundida com essência alquímica, capturando o livro instantes antes dele desaparecer em um abismo de desfiladeiro. O livro agora urge em murmúrios aprisionado no baú de Garrick.',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAH02OPokynjplaAoYJ5Dh_mYVv9kxVNgs9GieyHtShVvopAbzKMJG-C8c0yhJgCROG1bkCaS9w-7iasUIrTnJf-DfK2cDZg9b8zP_2IGFOpWJsMHtB2HMKnXtSJr6FZlGrARVDI14wQPtIELkJghHXYacTrlRJCaNWT_KyDyr6cCK4LOGIie2DVGGnFf_w6KO5wCvw0oNAh407zMeCt5yO9NPob94UWsBR3ygCWTnxapKIeLuSQOUwOQE-NFsCdo-SJM4I25nHctk',
-    danger: 'Alto',
-    majorEvent: 'Aprisionamento do Grimório de Necromancia Proibido'
-  },
-  {
-    id: 'chronicle-7',
-    session: 'SESSÃO VII',
-    rawSessionNumber: 7,
-    title: 'O Banquete dos Condenados',
-    location: 'CORTE DE FERRO',
-    date: '03 de Maio, 1542',
-    desc: 'Infiltremos a corte imperial de máscaras na colina rúnica para desvencilhar quem é o traidor corruptor de Aethelgard.',
-    fullText: 'Vestidos com veludo de farsa e máscaras de bronze rúnico, os aventureiros entraram no solar de inverno de Lorde Sterling. No grande salão rúnico iluminado por lareiras imponentes, a nobreza dançava fingindo ignorar o declínio do mundo. Através de sussurros, roubos silenciosos de cartas secretas e pura perícia de intriga de Elaris, a farsa foi desfeita: Lorde Sterling era a cabeça do Pacto da Serpente na província, usando o sangue dos refugiados de Aethelgard para comprar sua própria longevidade. O desfecho violento que se seguiu deixou a corte em cinzas e o grupo como fugitivos da lei imperial.',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuApHZvY37Hs1hVLXx0XzG8rFUpHmP5wdHVCSCCkr16Rkz56fZNUIdTmgjbdiL8LJbmVM-nzqyfxDiBeEq-Aq-7ztUz4lZFoyfOgRqQFO4URtVRZvdQAe9T9bOPd3j5nPVWjZ58FrCTHu9omekQxSbMiZ2lIiU2Kd2FA9yjC69WUd9WLm4-idR4gIcZWkYBpB5Y73Hb8uzeEInjO55GfBBHyBGY-DNkIatnnsmXy6HoodYkElB1O758CwNr4QDk6EAljAprNw0EhNKU',
-    danger: 'Extremo',
-    majorEvent: 'Queda do Lorde Sterling e fuga como renegados do Império'
-  }
-];
+const INITIAL_CHRONICLES: ChronicleSession[] = [];
 
 interface ChroniclesViewProps {
   userRole?: 'player' | 'dm';
   onNavigateToHistory?: () => void;
+  onNavigateToCampaigns?: () => void;
   campaignId?: string;
+  activeCampaign?: any;
 }
 
-export default function ChroniclesView({ userRole = 'player', onNavigateToHistory, campaignId }: ChroniclesViewProps) {
+export default function ChroniclesView({ userRole = 'player', onNavigateToHistory, onNavigateToCampaigns, campaignId, activeCampaign }: ChroniclesViewProps) {
   // Server-state queries & mutations (React Query)
   const { data: dbChronicles = [], isLoading } = useChroniclesQuery(campaignId);
   const createMutation = useCreateChronicleMutation(campaignId);
@@ -179,7 +90,9 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
       const saved = localStorage.getItem('daemon_chronicles_list');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) {
+          return parsed.filter((c: any) => c && c.id && !c.id.startsWith('chronicle-'));
+        }
       }
       return INITIAL_CHRONICLES;
     } catch (e) {
@@ -380,6 +293,10 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
 
   const handleCreateChronicle = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!campaignId) {
+      toast.error('Crie uma campanha antes para vincular esta crônica!');
+      return;
+    }
     if (!newTitle || !newLocation || !newDate || !newFullText) {
       toast.error('Por favor, preencha todos os campos obrigatórios.');
       return;
@@ -445,37 +362,51 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
   const reversedChronicles = [...filteredChronicles].reverse();
 
   return (
-    <div className="space-y-8 pb-24 max-w-7xl mx-auto px-1 animate-fadeIn text-on-surface">
+    <div className="space-y-8 pb-24 max-w-7xl mx-auto px-1 animate-fadeIn text-on-surface relative font-sans">
       {/* Visual background overlays */}
       <div className="absolute right-10 top-20 w-80 h-80 bg-primary-container/5 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
-      {/* Header section with styling integrated */}
-      <div className="flex flex-col gap-4 border-b border-outline-variant pb-6 shrink-0 relative z-10">
-        <div>
-          <h3 className="font-serif text-3xl md:text-4xl text-on-surface font-medium">
-            Crônicas
-          </h3>
-          <p className="font-sans text-xs text-on-surface-variant/70 mt-1 max-w-lg">
-            Os registros de sua mesa de jogo, acompanhando a evolução dos atos, combates e perigos que forjaram o destino de sua party.
-          </p>
-        </div>
-
-        {userRole === 'dm' && (
-          <div className="hidden md:flex justify-end shrink-0">
-            <AddButton
-              onClick={() => setShowCreateModal(true)}
-              label="Registrar Crônica"
-            />
-          </div>
-        )}
-      </div>
+      <PageHeader
+        title="Crônicas"
+        subtitle={
+          activeCampaign?.name ? (
+            <>Crônicas registradas para a campanha ativa: <strong className="text-primary">{activeCampaign.name}</strong></>
+          ) : (
+            'Os registros de sua mesa de jogo, acompanhando a evolução dos atos, combates e perigos que forjaram o destino de sua party.'
+          )
+        }
+        actions={
+          userRole === 'dm' && (
+            <div className="hidden md:block">
+              <AddButton
+                onClick={() => {
+                  if (!campaignId) {
+                    toast.error('Crie uma campanha antes para vincular esta crônica!');
+                    return;
+                  }
+                  setShowCreateModal(true);
+                }}
+                label="Registrar Crônica"
+              />
+            </div>
+          )
+        }
+      />
 
       {/* Floating Add Button for Mobile */}
       {userRole === 'dm' && (
         <button
-          onClick={() => setShowCreateModal(true)}
-          className="md:hidden fixed bottom-[-8px] right-6 w-14 h-14 bg-primary text-on-primary rounded-full hover:bg-primary-container hover:text-on-primary-container transition-all flex items-center justify-center shadow-2xl border border-primary/50 z-40 cursor-pointer"
+          type="button"
+          onClick={() => {
+            if (!campaignId) {
+              toast.error('Crie uma campanha antes para vincular esta crônica!');
+              return;
+            }
+            setShowCreateModal(true);
+          }}
+          className="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary text-on-primary rounded-full hover:bg-primary-container hover:text-on-primary-container transition-all flex items-center justify-center shadow-2xl border border-primary/50 z-40 cursor-pointer"
           title="Registrar Crônica"
+          aria-label="Registrar Crônica"
         >
           <span className="material-symbols-outlined text-2xl">add</span>
         </button>
@@ -491,43 +422,45 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
             setShowLoreModal(true);
           }
         }}
-        className="relative w-full bg-surface-container border border-outline-variant parchment-texture shadow-2xl overflow-hidden flex flex-col md:flex-row group transition-all duration-300 hover:border-primary/60 hover:bg-surface-container relative z-10 min-h-[180px] sm:min-h-[200px] cursor-pointer"
+        className="relative w-full bg-surface-container border border-outline-variant parchment-texture shadow-2xl overflow-hidden flex flex-col md:flex-row group transition-all duration-300 hover:border-primary/60 hover:bg-surface-container relative z-10 min-h-[180px] sm:min-h-[200px] md:min-h-[220px] cursor-pointer items-stretch"
       >
         {/* Lore Cover Illustration banner */}
-        <div className="w-full md:w-1/3 h-40 sm:h-48 md:h-auto relative overflow-hidden shrink-0">
+        <div className="w-full md:w-1/3 min-h-[160px] sm:min-h-[190px] md:min-h-[220px] relative overflow-hidden shrink-0">
           <ImageWithFallback
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuApaoQQsXhFuJ7cnHYim1KAq_ihU2Sf_xG5CGjFEPgNbhiuPsddO96GWeZbOWMENEh5vNo9hBtlfWmRgQPhRtv5jxPFTbN5uyXeZ4upiymyfffad_QDcNvScGlT_8wY0rCE3FfRShqdcJQVPTHEmOYoVObV49PN2V5LgIncvPaxsJSorBU3jFWhZDeZkimJ5F3OBeN8ZV3Dio3Kby7oJK-Ey4wbx3Y_eayiVvFs8RKdviqwJ42g3eL3IbehJn2PWPa2cpxK4qYGy4E"
-            alt="Lore de Occultus"
+            src={activeCampaign?.ilustracao || activeCampaign?.illustrationUrl || activeCampaign?.ilustration_url || "/images/history.webp"}
+            alt={activeCampaign?.name || "Lore da Campanha"}
             className="w-full h-full object-cover dark:brightness-75 transition-transform duration-700 group-hover:scale-105"
             referrerPolicy="no-referrer"
           />
         </div>
 
         {/* Lore Text Content */}
-        <div className="p-4 sm:p-6 md:p-8 flex-1 flex flex-col justify-center space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <BookOpen className="w-5 h-5 text-primary animate-pulse shrink-0" />
-              <h4 className="font-serif text-lg sm:text-xl md:text-2xl text-on-surface font-medium tracking-wide group-hover:text-primary transition-colors truncate">
-                História: O Crepúsculo de Occultus
-              </h4>
+        <div className="p-4 sm:p-6 md:p-8 flex-1 flex flex-col justify-between space-y-3">
+          <div>
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <BookOpen className="w-5 h-5 text-primary animate-pulse shrink-0" />
+                <h4 className="font-serif text-lg sm:text-xl md:text-2xl text-on-surface font-medium tracking-wider group-hover:text-primary transition-colors truncate">
+                  {activeCampaign?.name || 'História da Campanha'}
+                </h4>
+              </div>
+              
+              <div className="flex items-center gap-1.5 text-primary opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 text-micro font-mono font-bold tracking-widest shrink-0">
+                <span>LER MAIS</span>
+                <span className="material-symbols-outlined text-micro animate-bounce-horizontal">arrow_forward</span>
+              </div>
             </div>
-            
-            <div className="flex items-center gap-1.5 text-primary opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 text-[10px] font-mono font-bold tracking-widest shrink-0">
-              <span>LER MAIS</span>
-              <span className="material-symbols-outlined text-[10px] animate-bounce-horizontal">arrow_forward</span>
-            </div>
+            <p className="font-sans text-xs text-on-surface-variant leading-relaxed text-justify line-clamp-3 md:line-clamp-6">
+              {activeCampaign?.lore || activeCampaign?.subtitulo || activeCampaign?.description || 'Explore e documente os contos, segredos e a narrativa ancestral que forjam esta jornada.'}
+            </p>
           </div>
-          <p className="font-sans text-xs text-on-surface-variant leading-relaxed text-justify">
-            O continente de <strong>Occultus</strong> amarga sob a sombra do <strong>Pacto da Serpente de Sangue</strong> desde a queda de <em>Aethelgard</em>. Forças profanas rastejam livremente através de florestas eternas de névoa e criptas antigas. No limiar da loucura, heróis enfrentam não apenas criaturas abomináveis, mas o declínio de sua própria sanidade sob a pálida lua rúnica. <em>Clique para desvendar o relato ancestral completo da campanha.</em>
-          </p>
-          <div className="flex flex-wrap items-center gap-2 sm:gap-4 pt-1 text-[10px] font-mono text-on-surface-variant/60">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 pt-1 text-micro font-mono text-on-surface-variant/60">
             <span className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>
-              Cenário: Fantasia Sombria / Terror Daemon
+              Cenário: {activeCampaign?.universo || activeCampaign?.system || 'Daemon'}
             </span>
             <span className="hidden sm:inline">•</span>
-            <span>Atos I a III Ativos</span>
+            <span>Campanha Ativa</span>
           </div>
         </div>
       </div>
@@ -545,7 +478,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
             onChange={(e) => setSearch(e.target.value)}
             className="bg-transparent border-none outline-none text-xs w-full text-on-surface placeholder:text-on-surface-variant/40 font-sans min-w-0 pr-12"
           />
-          <div className={`absolute right-8 text-[9px] font-mono ${search.length >= 50 ? 'text-red-500' : 'text-on-surface-variant/50'}`}>
+          <div className={`absolute right-8 text-micro font-mono ${search.length >= 50 ? 'text-red-500' : 'text-on-surface-variant/50'}`}>
             {search.length}/50
           </div>
           {search && (
@@ -562,14 +495,31 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
       {/* Grid containing Cards layout matching the design patterns */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 relative z-10">
         {reversedChronicles.length === 0 ? (
-          <div className="col-span-full text-center py-16 sm:py-24 bg-surface-container-low border border-dashed border-outline-variant parchment-texture flex flex-col items-center justify-center p-4">
+          <div className="col-span-full text-center py-16 sm:py-24 bg-surface-container-low border border-dashed border-outline-variant parchment-texture flex flex-col items-center justify-center p-6">
             <span className="material-symbols-outlined text-5xl sm:text-6xl text-on-surface-variant opacity-30 mb-4 animate-pulse">
               auto_stories
             </span>
-            <h4 className="font-serif text-lg sm:text-xl text-on-surface">Nenhum Registro Encontrado</h4>
-            <p className="font-sans text-xs text-on-surface-variant max-w-sm mt-2 leading-relaxed">
-              Não existem registros de crônicas rúnicas que correspondam aos filtros de pesquisa selecionados no momento.
-            </p>
+            {!campaignId ? (
+              <>
+                <h4 className="font-serif text-xl sm:text-2xl text-on-surface font-semibold">Não há campanha pra criar crônicas!</h4>
+                <p className="font-sans text-xs text-on-surface-variant max-w-md mt-2 leading-relaxed">
+                  Selecione ou crie uma campanha ativa para poder registrar e visualizar as crônicas de sessão.
+                </p>
+                <button
+                  onClick={() => onNavigateToCampaigns?.()}
+                  className="mt-6 px-6 py-3 bg-primary text-on-primary font-sans text-xs font-bold uppercase tracking-wider transition-all hover:bg-primary/90 active:scale-95 duration-150 cursor-pointer shadow-md"
+                >
+                  IR PARA CAMPANHAS
+                </button>
+              </>
+            ) : (
+              <>
+                <h4 className="font-serif text-lg sm:text-xl text-on-surface">Nenhum Registro Encontrado</h4>
+                <p className="font-sans text-xs text-on-surface-variant max-w-sm mt-2 leading-relaxed">
+                  Esta campanha ainda não possui crônicas de sessão registradas.
+                </p>
+              </>
+            )}
           </div>
         ) : (
           reversedChronicles.map((chronicle) => {
@@ -591,7 +541,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                   
                   {/* Absolute Badge Session Overlays */}
                   <div className="absolute top-3 left-3 bg-black/70 border border-[#dd9281]/40 px-2 py-1">
-                    <span className="font-mono text-[9px] font-bold text-[#dd9281] tracking-widest">{chronicle.session}</span>
+                    <span className="font-mono text-micro font-bold text-[#dd9281] tracking-widest">{chronicle.session}</span>
                   </div>
 
                   {/* Hover book read symbol indicator */}
@@ -604,12 +554,12 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                 <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
                   <div>
                     {/* Location line header */}
-                    <div className="flex items-center gap-1.5 text-on-surface-variant/60 text-[9px] font-bold tracking-widest uppercase mb-1.5">
+                    <div className="flex items-center gap-1.5 text-on-surface-variant/60 text-micro font-bold tracking-widest uppercase mb-1.5">
                       <MapPin className="w-3 h-3 text-primary shrink-0" />
                       <span className="truncate">{chronicle.location}</span>
                     </div>
 
-                    <h4 className="font-serif text-base sm:text-lg text-on-surface font-bold tracking-wide group-hover:text-primary transition-colors line-clamp-1 mb-2">
+                    <h4 className="font-serif text-base sm:text-lg text-on-surface font-bold tracking-wider group-hover:text-primary transition-colors line-clamp-1 mb-2">
                       {chronicle.title}
                     </h4>
 
@@ -622,19 +572,19 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                   {/* Highlights section inside card */}
                   <div className="border-t border-outline-variant/30 pt-3 mt-auto space-y-2">
                     <div className="flex items-start gap-1.5 justify-start text-left">
-                      <span className="font-sans text-[9px] font-bold text-primary tracking-widest uppercase shrink-0 mt-0.5">Missão:</span>
-                      <span className="font-sans text-[10px] text-on-surface-variant/80 italic line-clamp-1">{chronicle.majorEvent}</span>
+                      <span className="font-sans text-micro font-bold text-primary tracking-widest uppercase shrink-0 mt-0.5">Missão:</span>
+                      <span className="font-sans text-micro text-on-surface-variant/80 italic line-clamp-1">{chronicle.majorEvent}</span>
                     </div>
 
                     {/* Footer specs of card list */}
-                    <div className="flex justify-between items-center text-[10px] font-mono text-on-surface-variant/50 pt-1">
+                    <div className="flex justify-between items-center text-micro font-mono text-on-surface-variant/50 pt-1">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3 text-primary/70 shrink-0" />
                         <span>{chronicle.date}</span>
                       </div>
 
                       <div className="flex items-center gap-1 text-primary opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-                        <span className="font-sans text-[9px] font-bold tracking-widest uppercase">LER MAIS</span>
+                        <span className="font-sans text-micro font-bold tracking-widest uppercase">LER MAIS</span>
                         <BookOpen className="w-3 h-3 shrink-0" />
                       </div>
                     </div>
@@ -676,7 +626,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                     <Edit3 className="w-5 h-5 text-primary" />
                     <div>
                       <h4 className="font-serif text-lg text-on-surface font-bold">Editar Crônica</h4>
-                      <p className="font-sans text-[10px] text-on-surface-variant/70">Visualização ao vivo à direita</p>
+                      <p className="font-sans text-micro text-on-surface-variant/70">Visualização ao vivo à direita</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -704,7 +654,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
 
                 {/* Session Number (Read-only) */}
                 <div>
-                  <label className="text-[10px] font-mono text-on-surface-variant font-bold uppercase tracking-wider block mb-1">
+                  <label className="text-micro font-mono text-on-surface-variant font-bold uppercase tracking-wider block mb-1">
                     Sessão
                   </label>
                   <input
@@ -719,10 +669,10 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                 {/* Title */}
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <label className="text-[10px] font-mono text-on-surface-variant font-bold uppercase tracking-wider">
+                    <label className="text-micro font-mono text-on-surface-variant font-bold uppercase tracking-wider">
                       Título da Sessão *
                     </label>
-                    <span className={`text-[9px] font-mono ${String(editingData.title ?? displayChronicle.title ?? '').length >= 50 ? 'text-red-500' : 'text-on-surface-variant/60'}`}>
+                    <span className={`text-micro font-mono ${String(editingData.title ?? displayChronicle.title ?? '').length >= 50 ? 'text-red-500' : 'text-on-surface-variant/60'}`}>
                       {String(editingData.title ?? displayChronicle.title ?? '').length}/50
                     </span>
                   </div>
@@ -740,10 +690,10 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <div className="flex justify-between items-center mb-1">
-                      <label className="text-[10px] font-mono text-on-surface-variant font-bold uppercase tracking-wider">
+                      <label className="text-micro font-mono text-on-surface-variant font-bold uppercase tracking-wider">
                         Localização
                       </label>
-                      <span className={`text-[9px] font-mono ${String(editingData.location ?? displayChronicle.location ?? '').length >= 50 ? 'text-red-500' : 'text-on-surface-variant/60'}`}>
+                      <span className={`text-micro font-mono ${String(editingData.location ?? displayChronicle.location ?? '').length >= 50 ? 'text-red-500' : 'text-on-surface-variant/60'}`}>
                         {String(editingData.location ?? displayChronicle.location ?? '').length}/50
                       </span>
                     </div>
@@ -759,10 +709,10 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
 
                   <div>
                     <div className="flex justify-between items-center mb-1">
-                      <label className="text-[10px] font-mono text-on-surface-variant font-bold uppercase tracking-wider">
+                      <label className="text-micro font-mono text-on-surface-variant font-bold uppercase tracking-wider">
                         Data
                       </label>
-                      <span className={`text-[9px] font-mono ${String(editingData.date ?? displayChronicle.date ?? '').length >= 50 ? 'text-red-500' : 'text-on-surface-variant/60'}`}>
+                      <span className={`text-micro font-mono ${String(editingData.date ?? displayChronicle.date ?? '').length >= 50 ? 'text-red-500' : 'text-on-surface-variant/60'}`}>
                         {String(editingData.date ?? displayChronicle.date ?? '').length}/50
                       </span>
                     </div>
@@ -780,10 +730,10 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                 {/* Major Event / Mission */}
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <label className="text-[10px] font-mono text-on-surface-variant font-bold uppercase tracking-wider">
+                    <label className="text-micro font-mono text-on-surface-variant font-bold uppercase tracking-wider">
                       Missão / Evento Principal
                     </label>
-                    <span className={`text-[9px] font-mono ${String(editingData.majorEvent ?? displayChronicle.majorEvent ?? '').length >= 50 ? 'text-red-500' : 'text-on-surface-variant/60'}`}>
+                    <span className={`text-micro font-mono ${String(editingData.majorEvent ?? displayChronicle.majorEvent ?? '').length >= 50 ? 'text-red-500' : 'text-on-surface-variant/60'}`}>
                       {String(editingData.majorEvent ?? displayChronicle.majorEvent ?? '').length}/50
                     </span>
                   </div>
@@ -799,7 +749,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
 
                 {/* Cover Image Upload / URL */}
                 <div>
-                  <label className="text-[10px] font-mono text-on-surface-variant font-bold uppercase tracking-wider block mb-1">
+                  <label className="text-micro font-mono text-on-surface-variant font-bold uppercase tracking-wider block mb-1">
                     Ilustração da Capa
                   </label>
                   <div className="flex gap-2">
@@ -837,7 +787,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
 
                 {/* Narrative text */}
                 <div className="flex-1 flex flex-col min-h-[220px]">
-                  <label className="text-[10px] font-mono text-on-surface-variant font-bold uppercase tracking-wider block mb-1">
+                  <label className="text-micro font-mono text-on-surface-variant font-bold uppercase tracking-wider block mb-1">
                     Diário de Relato Detalhado *
                   </label>
                   <textarea
@@ -950,7 +900,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                 {/* Mobile Inline Edit: Cover Image Input */}
                 {isEditing && (
                   <div className="md:hidden absolute top-4 left-6 flex items-center gap-2 bg-black/60 border border-outline-variant/30 backdrop-blur-sm px-3 py-1.5 rounded-sm max-w-[calc(100%-80px)]">
-                    <span className="text-[10px] font-bold text-primary uppercase tracking-widest shrink-0">CAPA:</span>
+                    <span className="text-micro font-bold text-primary uppercase tracking-widest shrink-0">CAPA:</span>
                     <label className="text-on-surface-variant hover:text-on-surface flex items-center cursor-pointer transition-colors shrink-0 px-2 border-r border-outline-variant/30" title="Upload Imagem">
                       <Upload className="w-3.5 h-3.5" />
                       <input
@@ -995,9 +945,9 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                             value={editingData.location ?? displayChronicle.location ?? ''}
                             onChange={(e) => setEditingData(prev => ({ ...prev, location: e.target.value }))}
                             placeholder="LOCALIZAÇÃO"
-                            className="font-mono text-[9px] tracking-widest text-on-surface font-bold block uppercase bg-black/40 border border-outline-variant/30 px-2 py-1 w-32"
+                            className="font-mono text-micro tracking-widest text-on-surface font-bold block uppercase bg-black/40 border border-outline-variant/30 px-2 py-1 w-32"
                           />
-                          <span className="font-mono text-[9px] tracking-widest text-on-surface font-bold block uppercase">• {displayChronicle.session}</span>
+                          <span className="font-mono text-micro tracking-widest text-on-surface font-bold block uppercase">• {displayChronicle.session}</span>
                         </div>
                         <input
                           type="text"
@@ -1012,10 +962,10 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                       {/* Desktop Live Preview Title */}
                       <div className="hidden md:block">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-[9px] tracking-widest text-on-surface font-bold block uppercase">
+                          <span className="font-mono text-micro tracking-widest text-on-surface font-bold block uppercase">
                             {displayChronicle.location || 'LOCAL'} • {displayChronicle.session}
                           </span>
-                          <span className="bg-primary/20 text-primary text-[8px] font-mono font-bold px-1.5 py-0.5 border border-primary/30 uppercase tracking-widest">
+                          <span className="bg-primary/20 text-primary text-micro font-mono font-bold px-1.5 py-0.5 border border-primary/30 uppercase tracking-widest">
                             Live Preview
                           </span>
                         </div>
@@ -1026,7 +976,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                     </>
                   ) : (
                     <>
-                      <span className="font-mono text-[9px] tracking-widest text-on-surface font-bold block uppercase">
+                      <span className="font-mono text-micro tracking-widest text-on-surface font-bold block uppercase">
                         {displayChronicle.location} • {displayChronicle.session}
                       </span>
                       <h4 className="font-serif text-2xl md:text-3xl text-on-surface font-bold leading-tight mt-1">
@@ -1066,7 +1016,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                 
                 {/* Visual metadata breakdown stats */}
                 <div className="bg-surface-container px-4 py-3 border border-outline-variant/20 text-left flex flex-col gap-1">
-                  <span className="block font-sans text-[8px] text-on-surface-variant/50 font-bold tracking-widest uppercase">Missão</span>
+                  <span className="block font-sans text-micro text-on-surface-variant/50 font-bold tracking-widest uppercase">Missão</span>
                   {isEditing ? (
                     <>
                       {/* Mobile Inline Mission Input */}
@@ -1155,7 +1105,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                 />
                 <div className="absolute inset-0 dark:bg-gradient-to-t dark:from-surface-container via-transparent to-transparent"></div>
                 <div className="absolute bottom-0 left-0 right-0 p-4 pl-6 bg-[#F5F2EB]/20 dark:bg-transparent backdrop-blur-sm dark:backdrop-blur-none">
-                  <span className="font-mono text-[9px] tracking-widest text-primary font-bold block uppercase">
+                  <span className="font-mono text-micro tracking-widest text-primary font-bold block uppercase">
                     CODEX ANCESTRAL • LORE DA CAMPANHA
                   </span>
                   <h4 className="font-serif text-2xl md:text-3xl text-on-surface font-bold leading-tight mt-1">
@@ -1174,11 +1124,11 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                 {/* Visual metadata breakdown stats */}
                 <div className="grid grid-cols-2 gap-4 bg-surface-container px-4 py-3 border border-outline-variant/20 text-left">
                   <div>
-                    <span className="block font-sans text-[8px] text-on-surface-variant/50 font-bold tracking-widest uppercase">Nome da Campanha</span>
+                    <span className="block font-sans text-micro text-on-surface-variant/50 font-bold tracking-widest uppercase">Nome da Campanha</span>
                     <span className="font-sans text-xs text-on-surface font-bold mt-0.5 block">O Crepúsculo de Occultus</span>
                   </div>
                   <div>
-                    <span className="block font-sans text-[8px] text-on-surface-variant/50 font-bold tracking-widest uppercase">Mestre do Jogo (DM)</span>
+                    <span className="block font-sans text-micro text-on-surface-variant/50 font-bold tracking-widest uppercase">Mestre do Jogo (DM)</span>
                     <span className="font-sans text-xs text-on-surface font-bold mt-0.5 block">Mestre Murilo Dutra</span>
                   </div>
                 </div>
@@ -1228,7 +1178,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Auto-incremental Session field */}
             <div>
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">Sessão</label>
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">Sessão</label>
               <input
                 type="text"
                 readOnly
@@ -1240,7 +1190,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
 
             {/* Title */}
             <div>
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">Título da Sessão *</label>
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">Título da Sessão *</label>
               <div className="w-full">
                 <input
                   type="text"
@@ -1252,7 +1202,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                   className="w-full bg-surface-container border border-outline-variant text-on-surface text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none"
                 />
                 {newTitle.length >= 50 && (
-                  <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                  <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                     Limite atingido (50)
                   </div>
                 )}
@@ -1263,7 +1213,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Location */}
             <div>
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">Localização *</label>
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">Localização *</label>
               <div className="w-full">
                 <input
                   type="text"
@@ -1275,7 +1225,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                   className="w-full bg-surface-container border border-outline-variant text-on-surface text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none"
                 />
                 {newLocation.length >= 50 && (
-                  <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                  <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                     Limite atingido (50)
                   </div>
                 )}
@@ -1284,7 +1234,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
 
             {/* Date */}
             <div>
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">Data de Aventura *</label>
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">Data de Aventura *</label>
               <div className="w-full">
                 <input
                   type="text"
@@ -1296,7 +1246,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                   className="w-full bg-surface-container border border-outline-variant text-on-surface text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none"
                 />
                 {newDate.length >= 50 && (
-                  <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                  <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                     Limite atingido (50)
                   </div>
                 )}
@@ -1306,7 +1256,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
 
           {/* Banner Image URL + Upload */}
           <div>
-            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
+            <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
               Ilustração da Crônica
             </label>
             <div className="space-y-2">
@@ -1321,7 +1271,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                     className="w-full bg-surface-container border border-outline-variant text-on-surface text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary rounded-none"
                   />
                   {newImage.length >= 500 && (
-                    <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                    <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                       Limite atingido (500)
                     </div>
                   )}
@@ -1355,7 +1305,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                     alt="Pré-visualização da Ilustração"
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute top-2 right-2 bg-black/70 border border-outline-variant px-2 py-0.5 text-[9px] font-mono font-bold text-primary">
+                  <div className="absolute top-2 right-2 bg-black/70 border border-outline-variant px-2 py-0.5 text-micro font-mono font-bold text-primary">
                     Pré-visualização
                   </div>
                 </div>
@@ -1365,7 +1315,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
 
           {/* Full Text area */}
           <div>
-            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">Diário de Relato Detalhado *</label>
+            <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">Diário de Relato Detalhado *</label>
             <textarea
               required
               rows={6}

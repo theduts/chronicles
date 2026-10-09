@@ -7,7 +7,8 @@ import Modal from './Modal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { ActionButton, SaveButton, AddButton, EditButton, DeleteButton } from './ActionButtons';
 import ImageWithFallback from './ImageWithFallback';
-import type { ChronicleSession } from './ChroniclesView';
+import { toRoman, formatDisplayDate, type ChronicleSession } from './ChroniclesView';
+import { useChroniclesQuery } from '../hooks/useChroniclesMutations';
 
 interface DashboardViewProps {
   characters: Character[];
@@ -16,6 +17,8 @@ interface DashboardViewProps {
   setCharacterUnderEditId: (id: string | null) => void;
   userRole?: 'player' | 'dm';
   onApproveCharacter?: (id: string) => void;
+  activeCampaign?: any;
+  campaignId?: string;
 }
 
 const ALL_CONTRACTS = [
@@ -35,35 +38,62 @@ export default function DashboardView({
   userRole = 'player',
   onApproveCharacter,
   activeCampaign,
-}: DashboardViewProps & { activeCampaign?: any }) {
+  campaignId,
+}: DashboardViewProps) {
   const [paraX, setParaX] = useState(0);
   const [paraY, setParaY] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [contractsExpanded, setContractsExpanded] = useState(false);
 
-  const [chronicles, setChronicles] = useState<any[]>([]);
-
-  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
-
-  useEffect(() => {
-    // If we had react-query for chronicles, we'd sync it here.
-    // For now, let's load from localStorage to allow empty state to be tested.
-    try {
-      const saved = localStorage.getItem(`daemon_chronicles_${activeCampaign?.id || 'default'}`);
-      if (saved) {
-        setChronicles(JSON.parse(saved));
-      } else {
-        setChronicles([]);
-      }
-    } catch {
-      setChronicles([]);
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof document !== 'undefined') {
+      return document.documentElement.classList.contains('dark');
     }
-  }, [activeCampaign?.id]);
+    return true;
+  });
+
+  const effectiveCampaignId = activeCampaign?.id || campaignId;
+  const { data: dbChronicles = [] } = useChroniclesQuery(effectiveCampaignId);
+
+  // Local fallback state (used when offline or without active campaignId)
+  const [localChronicles] = useState<ChronicleSession[]>(() => {
+    try {
+      const saved = localStorage.getItem('daemon_chronicles_list');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((c: any) => c && c.id && !c.id.startsWith('chronicle-'));
+        }
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Source of truth: Server state when effectiveCampaignId is present (Rule 9)
+  const chronicles: ChronicleSession[] = React.useMemo(() => {
+    if (!effectiveCampaignId) return localChronicles;
+    return dbChronicles.map((c) => ({
+      id: c.id,
+      session: `SESSÃO ${toRoman(c.sessionNumber)}`,
+      rawSessionNumber: c.sessionNumber,
+      title: c.title,
+      location: c.location || '',
+      date: formatDisplayDate(c.sessionDate),
+      desc: c.narrative && c.narrative.length > 200 ? `${c.narrative.slice(0, 197)}...` : c.narrative,
+      fullText: c.narrative,
+      image: (c as any).illustrationUrl || (c as any).ilustration_url || (c as any).illustration_url || 'https://lh3.googleusercontent.com/aida-public/AB6AXuApaoQQsXhFuJ7cnHYim1KAq_ihU2Sf_xG5CGjFEPgNbhiuPsddO96GWeZbOWMENEh5vNo9hBtlfWmRgQPhRtv5jxPFTbN5uyXeZ4upiymyfffad_QDcNvScGlT_8wY0rCE3FfRShqdcJQVPTHEmOYoVObV49PN2V5LgIncvPaxsJSorBU3jFWhZDeZkimJ5F3OBeN8ZV3Dio3Kby7oJK-Ey4wbx3Y_eayiVvFs8RKdviqwJ42g3eL3IbehJn2PWPa2cpxK4qYGy4E',
+      danger: 'Médio',
+      majorEvent: c.mission || 'Relato de aventura'
+    }));
+  }, [effectiveCampaignId, dbChronicles, localChronicles]);
 
   useEffect(() => {
     const checkDark = () => {
       setIsDark(document.documentElement.classList.contains('dark'));
     };
+    checkDark();
 
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
@@ -284,20 +314,22 @@ export default function DashboardView({
     return 'text-amber-500';
   };
 
+  const latestChronicle = chronicles.length > 0 ? chronicles[chronicles.length - 1] : null;
+
   const slides = [
     {
       welcome: activeCampaign?.universo || "Bem vindo, aventureiro",
       title: activeCampaign?.name || "História",
       subtitle: activeCampaign?.subtitulo || "Os contos incríveis e fantásticos",
       description: activeCampaign?.lore || "Os mares ecoam os bradares dos antigos. A terra clama o sangue daqueles que se acovardam. Levantem vossas espadas e assoprem a poeira de seus grimórios! A aventura esta ao passo de quem busca pelo que vale a pena morrer por.",
-      image: activeCampaign?.ilustracao || "/images/history.webp",
+      image: activeCampaign?.ilustracao || activeCampaign?.illustrationUrl || activeCampaign?.ilustration_url || "/images/history.webp",
     },
     {
-      welcome: "Resumo da Sessão",
-      title: "No último capítulo...",
-      subtitle: "Um relato escrito em tinta e sangue",
-      description: "Acompanhe o que aconteceu na última sessão através dos relatos dos bardos poetas que contarão suas histórias e crônicas de geração em geração que hão de vir.",
-      image: isDark ? "/images/last_session - escuro.webp" : "/images/last_session - claro.webp",
+      welcome: latestChronicle ? latestChronicle.session : "Resumo da Sessão",
+      title: latestChronicle ? latestChronicle.title : "No último capítulo...",
+      subtitle: latestChronicle?.location ? `Em ${latestChronicle.location}` : "Um relato escrito em tinta e sangue",
+      description: latestChronicle ? (latestChronicle.desc || latestChronicle.fullText) : "Acompanhe o que aconteceu na última sessão através dos relatos dos bardos poetas que contarão suas histórias e crônicas de geração em geração que hão de vir.",
+      image: latestChronicle?.image || (isDark ? "/images/last_session - escuro.webp" : "/images/last_session - claro.webp"),
     },
     {
       welcome: "",
@@ -410,11 +442,20 @@ export default function DashboardView({
                   {activeSlide.title}
                 </h1>
                 {activeSlide.subtitle && (
-                  <div className="font-serif text-lg md:text-xl text-amber-200/90 italic mb-4 font-semibold tracking-wide font-medium">
+                  <div className="font-serif text-lg md:text-xl text-amber-200/90 italic mb-4 font-semibold tracking-wider font-medium">
                     {activeSlide.subtitle}
                   </div>
                 )}
-                <p className="font-sans text-sm md:text-base text-white/90 max-w-xl leading-relaxed opacity-90 mx-auto sm:mx-0">
+                <p
+                  className="font-sans text-sm md:text-base text-white/90 max-w-xl leading-relaxed opacity-90 mx-auto sm:mx-0 line-clamp-3"
+                  style={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
                   {activeSlide.description}
                 </p>
               </div>
@@ -430,25 +471,14 @@ export default function DashboardView({
                 )}
                 
                 {currentSlide === 2 ? (
-                  <>
-                    <button
-                      onClick={() => setContractsExpanded(!contractsExpanded)}
-                      className="w-12 h-12 sm:w-auto sm:h-auto p-0 sm:px-6 sm:py-3 bg-black/30 hover:bg-black/50 text-white border border-white/40 font-sans text-xs font-bold uppercase tracking-wider transition-all active:scale-95 duration-150 backdrop-blur-md cursor-pointer flex items-center justify-center sm:gap-2 shadow-md"
-                      title="Vasculhar Contratos"
-                    >
-                      <span className="hidden sm:inline text-white">VASCULHAR CONTRATOS</span>
-                      <span className="material-symbols-outlined text-base sm:text-xs text-white">
-                        {contractsExpanded ? 'keyboard_arrow_up' : 'search'}
-                      </span>
-                    </button>
-                    {userRole === 'dm' && (
-                      <AddButton
-                        label="Contrato"
-                        onClick={() => setShowAddContractModal(true)}
-                        size="lg"
-                      />
-                    )}
-                  </>
+                  <button
+                    onClick={() => setActiveScreen('campaign_history')}
+                    className="px-6 py-3 bg-black/30 hover:bg-black/50 text-white border border-white/40 font-sans text-xs font-bold uppercase tracking-wider transition-all active:scale-95 duration-150 backdrop-blur-md cursor-pointer flex items-center justify-center gap-2 shadow-md"
+                    title="Vasculhar Contratos na História"
+                  >
+                    <span className="text-white">VASCULHAR CONTRATOS</span>
+                    <span className="material-symbols-outlined text-xs text-white">search</span>
+                  </button>
                 ) : (
                   <button
                     onClick={() => setActiveScreen('chronicles')}
@@ -458,49 +488,6 @@ export default function DashboardView({
                   </button>
                 )}
               </div>
-
-              {/* Collapsible side contract list */}
-              {currentSlide === 2 && contractsExpanded && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="mt-8 border-t border-white/10 pt-6 w-full text-left"
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {selectedContracts.map((contract) => {
-                      const rewardColorClass = getRewardColor(contract);
-                      const coinIconColorClass = getCoinIconColor(contract);
-                      return (
-                        <div
-                          key={contract.id}
-                          onClick={() => setViewingContract(contract)}
-                          className="p-4 bg-black/60 border-l-2 border-[#917E6B] border-t border-r border-b border-white/5 transition-all duration-150 flex flex-col justify-between cursor-pointer hover:bg-black/80 hover:border-primary/50 active:scale-[0.98]"
-                        >
-                          <div>
-                            <div className="flex justify-between items-start gap-2 mb-2">
-                              <h4 className="font-serif text-sm text-on-surface font-bold tracking-wide">
-                                {contract.title}
-                              </h4>
-                            </div>
-                            <p className="font-sans text-[11px] text-on-surface-variant leading-relaxed mb-4 line-clamp-3">
-                              {contract.desc}
-                            </p>
-                          </div>
-                          
-                          <div className="flex justify-between items-center mt-auto pt-3 border-t border-white/5">
-                            <div className="flex items-center gap-1.5">
-                              <Coins className={`${coinIconColorClass} w-3.5 h-3.5`} />
-                              <span className={`font-mono text-[10px] ${rewardColorClass} font-semibold`}>{contract.reward}</span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -575,18 +562,18 @@ export default function DashboardView({
 
                   <div className="absolute bottom-0 left-0 p-4 sm:p-5 w-full dark:bg-gradient-to-t dark:from-background dark:via-background/80 dark:to-transparent">
                     <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 mb-1">
-                      <span className="text-[9px] sm:text-[10px] font-mono tracking-widest font-bold text-[#dd9281]">
+                      <span className="text-micro sm:text-micro font-mono tracking-widest font-bold text-[#dd9281]">
                         {chronicle.session}
                       </span>
-                      <span className="text-[9px] sm:text-[10px] text-on-surface-variant/40">•</span>
-                      <span className="text-[9px] sm:text-[10px] font-sans font-bold tracking-widest text-on-surface-variant/80 uppercase">
+                      <span className="text-micro sm:text-micro text-on-surface-variant/40">•</span>
+                      <span className="text-micro sm:text-micro font-sans font-bold tracking-widest text-on-surface-variant/80 uppercase">
                         {chronicle.location}
                       </span>
                     </div>
                     <h4 className="font-serif text-sm sm:text-lg text-on-surface font-semibold group-hover:text-primary transition-colors line-clamp-2 sm:line-clamp-1">
                       {chronicle.title}
                     </h4>
-                    <p className="text-on-surface-variant/80 text-[10px] sm:text-[11px] mt-1 line-clamp-4 sm:line-clamp-2 leading-relaxed font-sans font-medium">
+                    <p className="text-on-surface-variant/80 text-micro sm:text-caption mt-1 line-clamp-4 sm:line-clamp-2 leading-relaxed font-sans font-medium">
                       {chronicle.desc}
                     </p>
                   </div>
@@ -603,10 +590,10 @@ export default function DashboardView({
                     arrow_forward
                   </span>
                 </div>
-                <h4 className="font-serif text-sm sm:text-lg text-on-surface font-bold tracking-wide group-hover:text-primary transition-colors">
+                <h4 className="font-serif text-sm sm:text-lg text-on-surface font-bold tracking-wider group-hover:text-primary transition-colors">
                   Ver todas as Crônicas
                 </h4>
-                <p className="text-on-surface-variant/60 text-[10px] sm:text-[11px] mt-1 max-w-[140px] sm:max-w-[200px] font-sans">
+                <p className="text-on-surface-variant/60 text-micro sm:text-caption mt-1 max-w-[140px] sm:max-w-[200px] font-sans">
                   Acesse as sessões passadas
                 </p>
               </div>
@@ -618,7 +605,7 @@ export default function DashboardView({
       {/* Updates section */}
       <section className="px-0 sm:px-6 md:px-12 max-w-2xl mx-auto w-full animate-fade-in">
         <div className="bg-surface-container border-y sm:border border-outline-variant p-6 flex flex-col parchment-texture">
-          <h5 className="font-sans text-[10px] text-on-surface-variant font-bold tracking-widest mb-6 uppercase text-center sm:text-left">
+          <h5 className="font-sans text-micro text-on-surface-variant font-bold tracking-widest mb-6 uppercase text-center sm:text-left">
             UPDATES MESSAGES
           </h5>
 
@@ -633,10 +620,10 @@ export default function DashboardView({
                 <p className="text-xs font-bold text-on-surface font-serif">
                   Release note
                 </p>
-                <p className="text-[11px] text-on-surface-variant mt-1 font-sans leading-relaxed">
+                <p className="text-caption text-on-surface-variant mt-1 font-sans leading-relaxed">
                   Olá aventureiro! Bem vindo ao Chronicles. Espero que goste do site! Sinta-se a vontade pra dar feedbacks!
                 </p>
-                <span className="text-[9px] text-on-surface-variant/50 font-mono mt-1 block uppercase">
+                <span className="text-micro text-on-surface-variant/50 font-mono mt-1 block uppercase">
                   ONTEM
                 </span>
               </div>
@@ -660,7 +647,7 @@ export default function DashboardView({
                       className="`${feedbackText.length >= 300 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full h-20 bg-background border border-outline-variant p-2 text-xs  focus:outline-none focus:border-primary resize-none font-sans`"
                     />
               {feedbackText.length >= 300 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (300)
                 </div>
               )}
@@ -668,7 +655,7 @@ export default function DashboardView({
                   <div className="flex gap-2 justify-end">
                     <button
                       onClick={() => setShowFeedbackForm(false)}
-                      className="px-3 py-1 border border-outline text-on-surface text-[10px] uppercase font-bold hover:bg-surface-container-high cursor-pointer font-sans"
+                      className="px-3 py-1 border border-outline text-on-surface text-micro uppercase font-bold hover:bg-surface-container-high cursor-pointer font-sans"
                     >
                       Cancelar
                     </button>
@@ -688,7 +675,7 @@ export default function DashboardView({
                           }, 2500);
                         }
                       }}
-                      className="px-3 py-1 bg-primary text-on-primary text-[10px] uppercase font-bold hover:bg-surface-container-highest hover:text-on-surface cursor-pointer font-sans"
+                      className="px-3 py-1 bg-primary text-on-primary text-micro uppercase font-bold hover:bg-surface-container-highest hover:text-on-surface cursor-pointer font-sans"
                     >
                       Enviar
                     </button>
@@ -740,7 +727,7 @@ export default function DashboardView({
                 />
                 <div className="absolute inset-0 dark:bg-gradient-to-t dark:from-surface-container dark:via-transparent dark:to-transparent"></div>
                 <div className="absolute bottom-0 left-0 right-0 p-4 pl-6 bg-[#F5F2EB]/20 dark:bg-transparent backdrop-blur-sm dark:backdrop-blur-none">
-                  <span className="font-mono text-[9px] tracking-widest text-primary font-bold block uppercase">
+                  <span className="font-mono text-micro tracking-widest text-primary font-bold block uppercase">
                     {selectedChronicle.location} • {selectedChronicle.session}
                   </span>
                   <h4 className="font-serif text-2xl md:text-3xl text-on-surface font-bold leading-tight mt-1">
@@ -763,7 +750,7 @@ export default function DashboardView({
                       setSelectedChronicle(null);
                       setActiveScreen('chronicles');
                     }}
-                    className="px-4 py-2 bg-transparent border border-outline-variant text-[10px] uppercase font-sans font-bold text-on-surface hover:text-primary hover:border-primary transition-colors cursor-pointer"
+                    className="px-4 py-2 bg-transparent border border-outline-variant text-micro uppercase font-sans font-bold text-on-surface hover:text-primary hover:border-primary transition-colors cursor-pointer"
                   >
                     Ver todas as Crônicas
                   </button>
@@ -799,7 +786,7 @@ export default function DashboardView({
 
           {/* Nome */}
           <div>
-            <label className="block text-primary font-bold uppercase tracking-widest text-[9px] mb-1.5">Nome do Contrato *</label>
+            <label className="block text-primary font-bold uppercase tracking-widest text-micro mb-1.5">Nome do Contrato *</label>
             <div className="w-full">
               <input
                 type="text"
@@ -811,7 +798,7 @@ export default function DashboardView({
                 className="`${contractName.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant p-2.5  focus:outline-none focus:border-primary font-sans rounded-none`"
               />
               {contractName.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -820,7 +807,7 @@ export default function DashboardView({
 
           {/* Descrição */}
           <div>
-            <label className="block text-primary font-bold uppercase tracking-widest text-[9px] mb-1.5">Descrição *</label>
+            <label className="block text-primary font-bold uppercase tracking-widest text-micro mb-1.5">Descrição *</label>
             <div className="w-full">
               <textarea
                 required
@@ -832,7 +819,7 @@ export default function DashboardView({
                 className="`${contractDesc.length >= 300 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant p-2.5  focus:outline-none focus:border-primary font-sans rounded-none resize-none custom-scrollbar`"
               />
               {contractDesc.length >= 300 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (300)
                 </div>
               )}
@@ -865,7 +852,7 @@ export default function DashboardView({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Quantidade */}
               <div>
-                <label className={`block font-bold uppercase tracking-widest text-[9px] mb-1.5 ${isToNegotiate ? 'text-on-surface-variant/40' : 'text-primary'}`}>
+                <label className={`block font-bold uppercase tracking-widest text-micro mb-1.5 ${isToNegotiate ? 'text-on-surface-variant/40' : 'text-primary'}`}>
                   Quantidade *
                 </label>
                 <input
@@ -885,7 +872,7 @@ export default function DashboardView({
 
               {/* Tipo Moeda */}
               <div>
-                <label className={`block font-bold uppercase tracking-widest text-[9px] mb-1.5 ${isToNegotiate ? 'text-on-surface-variant/40' : 'text-primary'}`}>
+                <label className={`block font-bold uppercase tracking-widest text-micro mb-1.5 ${isToNegotiate ? 'text-on-surface-variant/40' : 'text-primary'}`}>
                   Tipo de Moeda *
                 </label>
                 <CustomSelect
@@ -936,7 +923,7 @@ export default function DashboardView({
                 <button
                   type="button"
                   onClick={() => setViewingContract(null)}
-                  className="px-5 py-2.5 bg-surface-container/10 hover:bg-surface-container/20 text-on-surface text-[11px] font-sans font-bold uppercase tracking-wider transition-colors cursor-pointer rounded-none"
+                  className="px-5 py-2.5 bg-surface-container/10 hover:bg-surface-container/20 text-on-surface text-caption font-sans font-bold uppercase tracking-wider transition-colors cursor-pointer rounded-none"
                 >
                   Fechar
                 </button>
@@ -980,7 +967,7 @@ export default function DashboardView({
 
               {/* Nome */}
               <div>
-                <label className="block text-primary font-bold uppercase tracking-widest text-[9px] mb-1.5">Nome do Contrato *</label>
+                <label className="block text-primary font-bold uppercase tracking-widest text-micro mb-1.5">Nome do Contrato *</label>
                 <div className="w-full">
               <input
                     type="text"
@@ -992,7 +979,7 @@ export default function DashboardView({
                     className="w-full bg-surface-container border border-outline-variant p-2.5 text-on-surface focus:outline-none focus:border-primary font-sans rounded-none"
                   />
               {editName.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -1001,7 +988,7 @@ export default function DashboardView({
 
               {/* Descrição */}
               <div>
-                <label className="block text-primary font-bold uppercase tracking-widest text-[9px] mb-1.5">Descrição *</label>
+                <label className="block text-primary font-bold uppercase tracking-widest text-micro mb-1.5">Descrição *</label>
                 <div className="w-full">
               <textarea
                     required
@@ -1013,7 +1000,7 @@ export default function DashboardView({
                     className="`${editDesc.length >= 300 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant p-2.5  focus:outline-none focus:border-primary font-sans rounded-none resize-none custom-scrollbar`"
                   />
               {editDesc.length >= 300 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (300)
                 </div>
               )}
@@ -1045,7 +1032,7 @@ export default function DashboardView({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Quantidade */}
                   <div>
-                    <label className={`block font-bold uppercase tracking-widest text-[9px] mb-1.5 ${editIsToNegotiate ? 'text-on-surface-variant/40' : 'text-primary'}`}>
+                    <label className={`block font-bold uppercase tracking-widest text-micro mb-1.5 ${editIsToNegotiate ? 'text-on-surface-variant/40' : 'text-primary'}`}>
                       Quantidade *
                     </label>
                     <input
@@ -1065,7 +1052,7 @@ export default function DashboardView({
 
                   {/* Tipo Moeda */}
                   <div>
-                    <label className={`block font-bold uppercase tracking-widest text-[9px] mb-1.5 ${editIsToNegotiate ? 'text-on-surface-variant/40' : 'text-primary'}`}>
+                    <label className={`block font-bold uppercase tracking-widest text-micro mb-1.5 ${editIsToNegotiate ? 'text-on-surface-variant/40' : 'text-primary'}`}>
                       Tipo de Moeda *
                     </label>
                     <CustomSelect

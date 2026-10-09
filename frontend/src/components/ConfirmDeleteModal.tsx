@@ -70,7 +70,7 @@ export default function ConfirmDeleteModal({
                 type="button"
                 onClick={onClose}
                 disabled={isLoading}
-                className="flex-1 py-2.5 border border-primary/30 text-[11px] font-sans font-bold uppercase tracking-wider text-primary hover:text-on-surface hover:border-on-surface transition-colors cursor-pointer disabled:opacity-50"
+                className="flex-1 py-2.5 border border-primary/30 text-caption font-sans font-bold uppercase tracking-wider text-primary hover:text-on-surface hover:border-on-surface transition-colors cursor-pointer disabled:opacity-50"
               >
                 {cancelText}
               </button>
@@ -78,7 +78,7 @@ export default function ConfirmDeleteModal({
                 type="button"
                 onClick={onConfirm}
                 disabled={isLoading}
-                className="flex-1 py-2.5 bg-red-800 hover:bg-red-700 text-on-surface text-[11px] font-sans font-bold uppercase tracking-wider transition-all cursor-pointer border border-red-500/50 disabled:opacity-50 flex justify-center items-center gap-2"
+                className="flex-1 py-2.5 bg-red-800 hover:bg-red-700 text-on-surface text-caption font-sans font-bold uppercase tracking-wider transition-all cursor-pointer border border-red-500/50 disabled:opacity-50 flex justify-center items-center gap-2"
               >
                 {isLoading && <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>}
                 {confirmText}

@@ -255,7 +255,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                       </div>
                       {opt.description && (
                         <span
-                          className={`text-[10px] font-sans mt-0.5 truncate font-medium ${
+                          className={`text-micro font-sans mt-0.5 truncate font-medium ${
                             isSelected
                               ? 'text-primary font-semibold'
                               : 'text-on-surface-variant group-hover:text-on-surface'

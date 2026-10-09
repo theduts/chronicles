@@ -20,6 +20,7 @@ import BestiaryView from './components/BestiaryView';
 import CampaignsView from './components/CampaignsView';
 import ViewRoleToggle from './components/ViewRoleToggle';
 import ToastProvider from './components/ui/ToastProvider';
+import { toast } from 'sonner';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -125,7 +126,8 @@ function MainApp() {
         subtitulo: c.subtitulo,
         universo: c.universo,
         lore: c.lore,
-        ilustracao: c.ilustracao,
+        ilustracao: c.ilustracao || c.illustrationUrl,
+        illustrationUrl: c.illustrationUrl || c.ilustracao,
         inviteCode: c.inviteCode,
         isDm: c.isDm,
       }));
@@ -226,6 +228,13 @@ function MainApp() {
       localStorage.removeItem('daemon_active_campaign_id');
     }
   }, [campaigns, user, activeCampaignId, userRole]);
+
+  useEffect(() => {
+    if (activeScreen === 'campaign_history' && !activeCampaignId) {
+      toast.error('Selecione ou crie uma campanha antes para acessar a História da Campanha!');
+      setActiveScreen('campaigns');
+    }
+  }, [activeScreen, activeCampaignId]);
 
   const createCampaignModalMutation = useMutation({
     mutationFn: async (payload: { name: string; subtitulo?: string; universo?: string }) => {
@@ -538,7 +547,7 @@ function MainApp() {
             </span>
             <button
               onClick={() => setSearchTerm('')}
-              className="font-sans text-[10px] text-primary tracking-widest uppercase font-bold hover:underline"
+              className="font-sans text-micro text-primary tracking-widest uppercase font-bold hover:underline"
             >
               Ver todas as crônicas
             </button>
@@ -558,6 +567,7 @@ function MainApp() {
                 userRole={userRole}
                 onApproveCharacter={handleApproveCharacter}
                 activeCampaign={campaigns.find(c => c.id === activeCampaignId)}
+                campaignId={activeCampaignId}
               />
             )}
 
@@ -608,7 +618,9 @@ function MainApp() {
               <ChroniclesView
                 userRole={userRole}
                 campaignId={activeCampaignId}
+                activeCampaign={campaigns.find(c => c.id === activeCampaignId)}
                 onNavigateToHistory={() => setActiveScreen('campaign_history')}
+                onNavigateToCampaigns={() => setActiveScreen('campaigns')}
               />
             )}
 
@@ -617,6 +629,8 @@ function MainApp() {
                 onBack={() => setActiveScreen('chronicles')}
                 userRole={userRole}
                 campaignId={activeCampaignId}
+                activeCampaign={campaigns.find(c => c.id === activeCampaignId)}
+                onNavigateToCampaigns={() => setActiveScreen('campaigns')}
               />
             )}
 
@@ -642,7 +656,7 @@ function MainApp() {
           
           {/* Global Footer */}
           <footer className="mt-12 pt-8 pb-4 border-t border-outline-variant/30 flex flex-col md:flex-row justify-between items-center gap-4 opacity-50 px-0 sm:px-6 max-w-7xl mx-auto w-full">
-            <p className="font-sans text-[10px] font-bold tracking-widest text-on-surface-variant uppercase text-center md:text-left leading-relaxed w-full">
+            <p className="font-sans text-micro font-bold tracking-widest text-on-surface-variant uppercase text-center md:text-left leading-relaxed w-full">
               <span className="block sm:inline">© {new Date().getFullYear()} CHRONICLES</span>
               <span className="hidden sm:inline"> - </span>
               <span className="block sm:inline">TODOS DIREITOS RESERVADOS</span>
@@ -695,7 +709,7 @@ function MainApp() {
 
             <form onSubmit={handleCreateCampaign} className="space-y-5">
               <div>
-                <label className="block font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">
+                <label className="block font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-2">
                   Nome da Campanha
                 </label>
                 <input
@@ -709,7 +723,7 @@ function MainApp() {
               </div>
 
               <div>
-                <label className="block font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">
+                <label className="block font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-2">
                   Convidar Jogadores (E-mails)
                 </label>
                 <div className="bg-surface-container border border-outline-variant/60 max-h-40 overflow-y-auto p-3 space-y-2.5 custom-scrollbar">
@@ -736,7 +750,7 @@ function MainApp() {
                     );
                   })}
                 </div>
-                <p className="font-sans text-[9px] text-on-surface-variant/60 mt-1.5 uppercase tracking-wider">
+                <p className="font-sans text-micro text-on-surface-variant/60 mt-1.5 uppercase tracking-wider">
                   Jogadores selecionados serão capazes de ver esta campanha.
                 </p>
               </div>

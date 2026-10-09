@@ -56,7 +56,8 @@ public class CampaignLoreService {
 
     @Transactional
     public CampaignLoreDTO createLore(UUID campaignId, CampaignLoreCreateDTO request, User user) {
-        Campaign campaign = validateCampaignAccess(campaignId, user, true);
+        boolean isGallery = "galeria".equalsIgnoreCase(request.getCategory() != null ? request.getCategory().trim() : "");
+        Campaign campaign = validateCampaignAccess(campaignId, user, !isGallery);
 
         CampaignLore lore = CampaignLore.builder()
                 .campaign(campaign)

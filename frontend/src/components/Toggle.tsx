@@ -94,7 +94,7 @@ export default function Toggle({
         </div>
       </button>
       {label && (
-        <span className="text-[11px] font-sans font-bold uppercase tracking-wider text-on-surface-variant">
+        <span className="text-caption font-sans font-bold uppercase tracking-wider text-on-surface-variant">
           {label}
         </span>
       )}

@@ -108,6 +108,20 @@ public class CampaignService {
     }
 
     @Transactional
+    public CampaignResponse updateCampaignLore(UUID id, String lore, User user) {
+        Campaign campaign = campaignRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Campanha não encontrada"));
+
+        if (!campaign.getDm().getId().equals(user.getId()) && user.getRole() != Role.ROLE_ADMIN) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Apenas o Mestre pode alterar a história da campanha");
+        }
+
+        campaign.setLore(lore);
+        Campaign saved = campaignRepository.save(campaign);
+        return toResponse(saved, user);
+    }
+
+    @Transactional
     public void deleteCampaign(UUID id, User user) {
         Campaign campaign = campaignRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Campanha não encontrada"));

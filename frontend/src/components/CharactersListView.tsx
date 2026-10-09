@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageHeader from './common/PageHeader';
 import { Character, ActiveScreen, Campaign } from '../types';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { AddButton } from './ActionButtons';
@@ -18,7 +19,7 @@ function CharacterCardPortrait({ url, name }: { url?: string; name: string }) {
         <div className="w-16 h-16 rounded-full bg-outline-variant/10 border border-outline-variant/30 flex items-center justify-center">
           <span className="material-symbols-outlined text-primary text-4xl">person</span>
         </div>
-        <span className="text-[10px] font-sans font-bold tracking-wider text-outline-variant/60 uppercase">
+        <span className="text-micro font-sans font-bold tracking-wider text-outline-variant/60 uppercase">
           Sem Retrato
         </span>
       </div>
@@ -100,47 +101,51 @@ export default function CharactersListView({
   });
 
   return (
-    <div className="space-y-8 pb-24">
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-outline-variant pb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full md:w-auto">
-          <h2 className="font-serif text-3xl md:text-4xl text-on-surface font-medium whitespace-nowrap">
-            {userRole === 'dm' ? 'Personagens da Campanha' : 'Meus Personagens'}
-          </h2>
+    <div className="space-y-8 pb-24 relative font-sans">
+      <PageHeader
+        title={userRole === 'dm' ? 'Personagens da Campanha' : 'Meus Personagens'}
+        subtitle={
+          userRole === 'dm'
+            ? 'Personagens registrados para as campanhas sob sua regência'
+            : 'Fichas de heróis criadas para suas jornadas no sistema Daemon'
+        }
+        actions={
+          <>
+            {/* DM Campaign Filter */}
+            {userRole === 'dm' && (
+              <div className="flex items-center gap-2 bg-surface-container border border-outline-variant/60 px-3 py-1.5 rounded-sm w-full sm:w-auto min-w-[220px]">
+                <span className="material-symbols-outlined text-primary text-base shrink-0">filter_alt</span>
+                <div className="flex-1 min-w-0">
+                  <CustomSelect
+                    value={selectedCampaignFilter}
+                    onChange={(e) => setSelectedCampaignFilter(e.target.value)}
+                    size="sm"
+                    variant="ghost"
+                    buttonClassName="py-0.5 px-1 text-xs text-on-surface font-sans"
+                    options={[
+                      { value: 'all', label: 'Todas as Campanhas' },
+                      ...campaigns.map((c) => ({
+                        value: c.id,
+                        label: c.name,
+                        description: c.universo
+                      }))
+                    ]}
+                  />
+                </div>
+              </div>
+            )}
 
-          {/* DM Campaign Filter */}
-          {userRole === 'dm' && (
-            <div className="flex items-center gap-2 bg-surface-container border border-outline-variant/60 px-3 py-1.5 rounded-sm w-full sm:w-auto min-w-[220px]">
-              <span className="material-symbols-outlined text-primary text-base shrink-0">filter_alt</span>
-              <div className="flex-1 min-w-0">
-                <CustomSelect
-                  value={selectedCampaignFilter}
-                  onChange={(e) => setSelectedCampaignFilter(e.target.value)}
-                  size="sm"
-                  variant="ghost"
-                  buttonClassName="py-0.5 px-1 text-xs text-on-surface font-sans"
-                  options={[
-                    { value: 'all', label: 'Todas as Campanhas' },
-                    ...campaigns.map((c) => ({
-                      value: c.id,
-                      label: c.name,
-                      description: c.universo
-                    }))
-                  ]}
+            {userRole !== 'dm' && (
+              <div className="hidden md:block">
+                <AddButton
+                  onClick={handleAddNewCharacter}
+                  label="Novo personagem"
                 />
               </div>
-            </div>
-          )}
-        </div>
-        {userRole !== 'dm' && (
-          <div className="hidden sm:block">
-            <AddButton
-              onClick={handleAddNewCharacter}
-              label="Novo personagem"
-            />
-          </div>
-        )}
-      </div>
+            )}
+          </>
+        }
+      />
 
       {/* Grid of Characters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -197,7 +202,7 @@ export default function CharactersListView({
 
               {/* Level Overlaid Badge */}
               <div className="absolute bottom-4 left-4">
-                <span className="bg-[#9e1b1b] text-on-primary text-[10px] font-mono font-bold px-2.5 py-1 uppercase tracking-widest">
+                <span className="bg-[#9e1b1b] text-on-primary text-micro font-mono font-bold px-2.5 py-1 uppercase tracking-widest">
                   Level {char.level}
                 </span>
               </div>
@@ -219,7 +224,7 @@ export default function CharactersListView({
                 <h3 className="font-serif text-lg md:text-xl text-on-surface mb-1 group-hover:text-primary transition-colors flex items-center gap-1.5">
                   {char.name}
                 </h3>
-                <p className="font-sans text-[10px] font-bold text-primary uppercase tracking-widest mt-1">
+                <p className="font-sans text-micro font-bold text-primary uppercase tracking-widest mt-1">
                   {char.race} • {char.classKit}
                 </p>
               </div>
@@ -231,7 +236,7 @@ export default function CharactersListView({
                     type="button"
                     disabled={animatingId !== null}
                     onClick={() => triggerApprove(char.id)}
-                    className="flex-1 py-2 bg-emerald-700 hover:bg-emerald-800 text-white dark:bg-emerald-800 dark:hover:bg-emerald-700 dark:text-white border border-emerald-800/30 text-[10px] font-sans font-bold uppercase tracking-wider transition-all cursor-pointer text-center shadow-sm active:scale-[0.98] disabled:opacity-40"
+                    className="flex-1 py-2 bg-emerald-700 hover:bg-emerald-800 text-white dark:bg-emerald-800 dark:hover:bg-emerald-700 dark:text-white border border-emerald-800/30 text-micro font-sans font-bold uppercase tracking-wider transition-all cursor-pointer text-center shadow-sm active:scale-[0.98] disabled:opacity-40"
                   >
                     Aprovar
                   </button>
@@ -239,7 +244,7 @@ export default function CharactersListView({
                     type="button"
                     disabled={animatingId !== null}
                     onClick={() => triggerReject(char.id)}
-                    className="flex-1 py-2 bg-red-700 hover:bg-red-800 text-white dark:bg-rose-800 dark:hover:bg-rose-700 dark:text-white border border-red-800/30 text-[10px] font-sans font-bold uppercase tracking-wider transition-all cursor-pointer text-center shadow-sm active:scale-[0.98] disabled:opacity-40"
+                    className="flex-1 py-2 bg-red-700 hover:bg-red-800 text-white dark:bg-rose-800 dark:hover:bg-rose-700 dark:text-white border border-red-800/30 text-micro font-sans font-bold uppercase tracking-wider transition-all cursor-pointer text-center shadow-sm active:scale-[0.98] disabled:opacity-40"
                   >
                     Reprovar
                   </button>

@@ -56,3 +56,24 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+export {
+  getCampaignNpcs,
+  createCampaignNpc,
+  updateCampaignNpc,
+  deleteCampaignNpc,
+  promoteCampaignNpc,
+  getSystemNpcTemplates,
+  useCampaignNpcs,
+  useSystemNpcTemplates,
+  useCreateNpcMutation,
+  useUpdateNpcMutation,
+  useDeleteNpcMutation,
+  usePromoteNpcMutation,
+} from '../hooks/useNpcMutations';
+export type {
+  CampaignNpcItem,
+  CampaignNpcInput,
+  NpcCombatData,
+  SystemNpcTemplate,
+} from '../hooks/useNpcMutations';

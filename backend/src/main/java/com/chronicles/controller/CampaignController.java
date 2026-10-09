@@ -69,6 +69,17 @@ public class CampaignController {
         return ResponseEntity.ok(campaignService.updateCampaign(id, request, user));
     }
 
+    @PatchMapping("/{id}/lore")
+    @Operation(summary = "Atualizar história (lore) da campanha", description = "Atualiza o texto da lore da campanha (somente Mestre).")
+    public ResponseEntity<CampaignResponse> updateCampaignLore(
+            @PathVariable UUID id,
+            @RequestBody java.util.Map<String, String> body,
+            @AuthenticationPrincipal User user
+    ) {
+        String lore = body != null ? body.get("lore") : null;
+        return ResponseEntity.ok(campaignService.updateCampaignLore(id, lore, user));
+    }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Excluir campanha", description = "Exclui uma campanha existente (somente Mestre).")
     public ResponseEntity<Void> deleteCampaign(

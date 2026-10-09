@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import PageHeader from './common/PageHeader';
 import { motion, AnimatePresence } from 'motion/react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
@@ -315,45 +316,48 @@ export default function CampaignsView({
     };
   });
 
-  return (
-    <div id="campaigns-container" className="space-y-8 animate-fadeIn">
-      {/* View Title Header */}
-      <div className="flex flex-col gap-4 border-b border-outline-variant pb-6 shrink-0 relative z-10">
-        <div>
-          <h3 className="font-serif text-3xl md:text-4xl text-on-surface font-medium">
-            Campanhas
-          </h3>
-          <p className="font-sans text-xs text-on-surface-variant/70 mt-1 max-w-lg">
-            Crie e gerencie suas campanhas
-          </p>
-        </div>
+  const activeCampaignObj = campaigns.find((c) => c.id === activeCampaignId);
 
-        {user.role === 'dm' ? (
-          <div className="hidden md:flex justify-end shrink-0">
-            <AddButton
-              id="btn-new-campaign"
-              onClick={() => setShowCreateModal(true)}
-              label="Nova Campanha"
-            />
-          </div>
-        ) : (
-          <div className="hidden md:flex justify-end shrink-0">
-            <AddButton
-              id="btn-join-campaign"
-              onClick={() => {
-                setJoinFeedback(null);
-                setJoinCode('');
-                setShowJoinModal(true);
-              }}
-              label="Entrar em Campanha"
-              icon={UserPlus}
-            />
-          </div>
-        )}
-      </div>
+  return (
+    <div id="campaigns-container" className="space-y-8 animate-fadeIn pb-24 relative font-sans">
+      <PageHeader
+        title="Campanhas"
+        subtitle={
+          activeCampaignObj ? (
+            <>Campanha ativa no momento: <strong className="text-primary">{activeCampaignObj.name}</strong></>
+          ) : (
+            'Crie e gerencie suas campanhas'
+          )
+        }
+        actions={
+          user.role === 'dm' ? (
+            <div className="hidden md:block">
+              <AddButton
+                id="btn-new-campaign"
+                onClick={() => setShowCreateModal(true)}
+                label="Nova Campanha"
+              />
+            </div>
+          ) : (
+            <div className="hidden md:block">
+              <AddButton
+                id="btn-join-campaign"
+                onClick={() => {
+                  setJoinFeedback(null);
+                  setJoinCode('');
+                  setShowJoinModal(true);
+                }}
+                label="Entrar em Campanha"
+                icon={UserPlus}
+              />
+            </div>
+          )
+        }
+      />
 
       {/* Floating Add / Join Button for Mobile */}
       <button
+        type="button"
         onClick={() => {
           if (user.role === 'dm') {
             setShowCreateModal(true);
@@ -363,8 +367,9 @@ export default function CampaignsView({
             setShowJoinModal(true);
           }
         }}
-        className="md:hidden fixed bottom-[-8px] right-6 w-14 h-14 bg-primary text-on-primary rounded-full hover:bg-primary-container hover:text-on-primary-container transition-all flex items-center justify-center shadow-2xl border border-primary/50 z-40 cursor-pointer"
+        className="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary text-on-primary rounded-full hover:bg-primary-container hover:text-on-primary-container transition-all flex items-center justify-center shadow-2xl border border-primary/50 z-40 cursor-pointer"
         title={user.role === 'dm' ? "Nova Campanha" : "Entrar em Campanha"}
+        aria-label={user.role === 'dm' ? "Nova Campanha" : "Entrar em Campanha"}
       >
         <span className="material-symbols-outlined text-2xl">{user.role === 'dm' ? 'add' : 'group_add'}</span>
       </button>
@@ -393,7 +398,7 @@ export default function CampaignsView({
                 fallbackIcon={<Map className="w-12 h-12 stroke-[1.5]" />}
               />
               {/* Badge Universe */}
-              <span className="absolute top-3 right-3 bg-black/80 border border-[#fbb1a9]/40 text-[9px] font-sans font-bold uppercase tracking-wider px-2 py-0.5 text-[#fbb1a9]">
+              <span className="absolute top-3 right-3 bg-black/80 border border-[#fbb1a9]/40 text-micro font-sans font-bold uppercase tracking-wider px-2 py-0.5 text-[#fbb1a9]">
                 {camp.universo || 'Medieval'}
               </span>
               <div className="absolute bottom-3 left-3 flex items-center">
@@ -428,7 +433,7 @@ export default function CampaignsView({
             </div>
 
             <div className="border-t border-outline-variant/20 mt-5 pt-4 flex items-center justify-between">
-              <span className="font-sans text-[9px] text-on-surface-variant/50 uppercase tracking-wider">
+              <span className="font-sans text-micro text-on-surface-variant/50 uppercase tracking-wider">
                 Mestre: <strong className="text-on-surface-variant">{camp.dmEmail === user.email ? 'Você' : camp.dmEmail}</strong>
               </span>
               <div className="flex items-center gap-2">
@@ -448,7 +453,7 @@ export default function CampaignsView({
                     <UserPlus className="w-4 h-4" />
                   </button>
                 )}
-                <span className="font-sans text-[10px] text-primary group-hover:underline font-bold uppercase tracking-widest flex items-center gap-1">
+                <span className="font-sans text-micro text-primary group-hover:underline font-bold uppercase tracking-widest flex items-center gap-1">
                   {user.role === 'dm' ? 'Editar' : 'Ver Detalhes'} →
                 </span>
               </div>
@@ -505,7 +510,7 @@ export default function CampaignsView({
       >
         <div className="space-y-4 font-sans text-xs">
           <div>
-            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
+            <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
               Nome da Campanha <span className="text-primary">*</span>
             </label>
             <div className="w-full">
@@ -519,7 +524,7 @@ export default function CampaignsView({
                 className="`${newCampName.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary placeholder-on-surface-variant/40 rounded-none`"
               />
               {newCampName.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -527,7 +532,7 @@ export default function CampaignsView({
           </div>
 
           <div>
-            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
+            <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
               Subtítulo
             </label>
             <div className="w-full">
@@ -540,7 +545,7 @@ export default function CampaignsView({
                 className="`${newCampSubtitle.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary placeholder-on-surface-variant/40 rounded-none`"
               />
               {newCampSubtitle.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -548,7 +553,7 @@ export default function CampaignsView({
           </div>
 
           <div>
-            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
+            <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
               Universo
             </label>
             <CustomSelect
@@ -565,14 +570,14 @@ export default function CampaignsView({
           </div>
 
           <div>
-            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
+            <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
               Ilustração (Imagem de Capa)
             </label>
             <div className="flex gap-4 mb-3">
               <button
                 type="button"
                 onClick={() => setNewCampIlustracaoType('link')}
-                className={`flex-1 py-2 border text-[10px] font-sans font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${newCampIlustracaoType === 'link' ? 'bg-primary/10 border-primary text-primary' : 'border-outline-variant/40 text-on-surface-variant'}`}
+                className={`flex-1 py-2 border text-micro font-sans font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${newCampIlustracaoType === 'link' ? 'bg-primary/10 border-primary text-primary' : 'border-outline-variant/40 text-on-surface-variant'}`}
               >
                 <Link className="w-3 h-3" />
                 Link da Imagem
@@ -580,7 +585,7 @@ export default function CampaignsView({
               <button
                 type="button"
                 onClick={() => setNewCampIlustracaoType('upload')}
-                className={`flex-1 py-2 border text-[10px] font-sans font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${newCampIlustracaoType === 'upload' ? 'bg-primary/10 border-primary text-primary' : 'border-outline-variant/40 text-on-surface-variant'}`}
+                className={`flex-1 py-2 border text-micro font-sans font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${newCampIlustracaoType === 'upload' ? 'bg-primary/10 border-primary text-primary' : 'border-outline-variant/40 text-on-surface-variant'}`}
               >
                 <ImageIcon className="w-3 h-3" />
                 Fazer Upload
@@ -598,7 +603,7 @@ export default function CampaignsView({
                   className="`${newCampIlustracaoLink.length >= 500 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary placeholder-on-surface-variant/40 rounded-none`"
                 />
               {newCampIlustracaoLink.length >= 500 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (500)
                 </div>
               )}
@@ -626,10 +631,10 @@ export default function CampaignsView({
                       alt="Preview"
                       className="w-10 h-10 object-cover border border-outline-variant"
                     />
-                    <span className="text-[10px] text-green-400 font-sans font-bold uppercase">Pronto!</span>
+                    <span className="text-micro text-green-400 font-sans font-bold uppercase">Pronto!</span>
                   </div>
                 ) : (
-                  <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Nenhum arquivo selecionado</span>
+                  <span className="text-micro text-on-surface-variant uppercase font-bold tracking-wider">Nenhum arquivo selecionado</span>
                 )}
               </div>
             )}
@@ -665,7 +670,7 @@ export default function CampaignsView({
       >
         <div className="space-y-4 font-sans text-xs">
           <div>
-            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
+            <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
               Nome da Campanha <span className="text-primary">*</span>
             </label>
             <div className="w-full">
@@ -679,7 +684,7 @@ export default function CampaignsView({
                 className="w-full bg-surface-container border border-outline-variant text-on-surface text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary disabled:opacity-50 rounded-none"
               />
               {editCampName.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -687,7 +692,7 @@ export default function CampaignsView({
           </div>
 
           <div>
-            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
+            <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
               Subtítulo
             </label>
             <div className="w-full">
@@ -700,7 +705,7 @@ export default function CampaignsView({
                 className="`${editCampSubtitle.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary disabled:opacity-50 rounded-none`"
               />
               {editCampSubtitle.length >= 50 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (50)
                 </div>
               )}
@@ -708,7 +713,7 @@ export default function CampaignsView({
           </div>
 
           <div>
-            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
+            <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
               Universo
             </label>
             <CustomSelect
@@ -727,14 +732,14 @@ export default function CampaignsView({
 
           {user.role === 'dm' && (
             <div>
-              <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
+              <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
                 Ilustração (Imagem de Capa)
               </label>
               <div className="flex gap-4 mb-3">
                 <button
                   type="button"
                   onClick={() => setEditCampIlustracaoType('link')}
-                  className={`flex-1 py-2 border text-[10px] font-sans font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${editCampIlustracaoType === 'link' ? 'bg-primary/10 border-primary text-primary' : 'border-outline-variant/40 text-on-surface-variant'}`}
+                  className={`flex-1 py-2 border text-micro font-sans font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${editCampIlustracaoType === 'link' ? 'bg-primary/10 border-primary text-primary' : 'border-outline-variant/40 text-on-surface-variant'}`}
                 >
                   <Link className="w-3 h-3" />
                   Link da Imagem
@@ -742,7 +747,7 @@ export default function CampaignsView({
                 <button
                   type="button"
                   onClick={() => setEditCampIlustracaoType('upload')}
-                  className={`flex-1 py-2 border text-[10px] font-sans font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${editCampIlustracaoType === 'upload' ? 'bg-primary/10 border-primary text-primary' : 'border-outline-variant/40 text-on-surface-variant'}`}
+                  className={`flex-1 py-2 border text-micro font-sans font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${editCampIlustracaoType === 'upload' ? 'bg-primary/10 border-primary text-primary' : 'border-outline-variant/40 text-on-surface-variant'}`}
                 >
                   <ImageIcon className="w-3 h-3" />
                   Fazer Upload
@@ -760,7 +765,7 @@ export default function CampaignsView({
                     className="`${editCampIlustracaoLink.length >= 500 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant  text-sm px-3.5 py-2.5 focus:outline-none focus:border-primary placeholder-on-surface-variant/40 rounded-none`"
                   />
               {editCampIlustracaoLink.length >= 500 && (
-                <div className="text-right mt-1 text-[10px] font-medium text-red-500/80">
+                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
                   Limite atingido (500)
                 </div>
               )}
@@ -788,10 +793,10 @@ export default function CampaignsView({
                         alt="Preview"
                         className="w-10 h-10 object-cover border border-outline-variant"
                       />
-                      <span className="text-[10px] text-green-400 font-sans font-bold uppercase">Pronto!</span>
+                      <span className="text-micro text-green-400 font-sans font-bold uppercase">Pronto!</span>
                     </div>
                   ) : (
-                    <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Nenhum arquivo selecionado</span>
+                    <span className="text-micro text-on-surface-variant uppercase font-bold tracking-wider">Nenhum arquivo selecionado</span>
                   )}
                 </div>
               )}
@@ -836,10 +841,10 @@ export default function CampaignsView({
         <div className="space-y-6 font-sans text-xs">
           {/* 1. Código da Campanha */}
           <div className="bg-surface-container p-4 border border-outline-variant/50 space-y-2">
-            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block">
+            <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest block">
               Código da Campanha
             </label>
-            <p className="text-[11px] text-on-surface-variant/80 leading-relaxed">
+            <p className="text-caption text-on-surface-variant/80 leading-relaxed">
               Compartilhe este código com os jogadores para que eles possam ingressar através do botão <strong>"+ Entrar em campanha"</strong>:
             </p>
             <div className="flex items-center gap-2 mt-2">
@@ -849,7 +854,7 @@ export default function CampaignsView({
               <button
                 type="button"
                 onClick={handleCopyCode}
-                className="px-3.5 py-2 border border-primary/50 bg-primary/10 hover:bg-primary hover:text-on-primary text-primary text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+                className="px-3.5 py-2 border border-primary/50 bg-primary/10 hover:bg-primary hover:text-on-primary text-primary text-micro font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
                 title="Copiar Código"
               >
                 {codeCopied ? (
@@ -869,10 +874,10 @@ export default function CampaignsView({
 
           {/* 2. Email do Jogador */}
           <form onSubmit={handleInvitePlayerSubmit} className="space-y-3">
-            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block">
+            <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest block">
               Email do Jogador
             </label>
-            <p className="text-[11px] text-on-surface-variant/80 leading-relaxed">
+            <p className="text-caption text-on-surface-variant/80 leading-relaxed">
               Ou inclua diretamente um jogador informando o e-mail cadastrado dele:
             </p>
             <div className="flex flex-col sm:flex-row gap-2">
@@ -909,7 +914,7 @@ export default function CampaignsView({
 
           {/* 3. Jogadores Atuais */}
           <div className="border-t border-outline-variant/30 pt-4">
-            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 flex items-center gap-1.5">
+            <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-2 flex items-center gap-1.5">
               <Users className="w-3.5 h-3.5" />
               Jogadores na Campanha ({campaignForInvite?.players?.length || 0})
             </label>
@@ -921,12 +926,12 @@ export default function CampaignsView({
                     className="flex items-center justify-between px-3 py-1.5 bg-surface-container border border-outline-variant/30 text-xs"
                   >
                     <span className="text-on-surface font-medium truncate">{email}</span>
-                    <span className="text-[9px] uppercase font-bold text-on-surface-variant/60 tracking-wider">Jogador</span>
+                    <span className="text-micro uppercase font-bold text-on-surface-variant/60 tracking-wider">Jogador</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-[11px] text-on-surface-variant/60 italic">Nenhum jogador vinculado ainda.</p>
+              <p className="text-caption text-on-surface-variant/60 italic">Nenhum jogador vinculado ainda.</p>
             )}
           </div>
         </div>
@@ -961,7 +966,7 @@ export default function CampaignsView({
           </p>
 
           <div>
-            <label className="font-sans text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
+            <label className="font-sans text-micro font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">
               Código da Campanha <span className="text-primary">*</span>
             </label>
             <input

@@ -8,6 +8,7 @@ frontend/dist/
 frontend/build/
 dist/
 build/
+Z-layout_example/
 
 # Backend builds (Maven / Gradle)
 backend/target/
@@ -45,3 +46,4 @@ milestoneDecisions.md
 #Harness
 .agents/
 .planning/
+decisions/

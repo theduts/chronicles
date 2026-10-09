@@ -49,4 +49,14 @@ class RuleControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", notNullValue()));
     }
+
+    @Test
+    @DisplayName("GET /api/rules/npc_templates: should return official npc templates")
+    void shouldReturnNpcTemplates() throws Exception {
+        mockMvc.perform(get("/api/rules/npc_templates"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", notNullValue()))
+                .andExpect(jsonPath("$[0].nome_template").value("Taverneiro"))
+                .andExpect(jsonPath("$[0].pv").value(13));
+    }
 }

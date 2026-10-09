@@ -117,7 +117,7 @@ export default function CampaignDMReview({
       {/* Feedback banner */}
       {feedbackMessage && (
         <div
-          className={`p-4 text-xs font-sans tracking-wide rounded-none border ${
+          className={`p-4 text-xs font-sans tracking-wider rounded-none border ${
             feedbackMessage.type === 'success'
               ? 'bg-emerald-950/40 border-emerald-500/60 text-emerald-200'
               : 'bg-red-950/40 border-primary text-red-200'
@@ -170,7 +170,7 @@ export default function CampaignDMReview({
                 <div className="space-y-1">
                   <div className="flex items-center gap-3">
                     <h4 className="font-serif text-lg font-bold text-on-surface">{char.name}</h4>
-                    <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-sans font-bold uppercase tracking-wider">
+                    <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 text-micro font-sans font-bold uppercase tracking-wider">
                       Evolução Pendente
                     </span>
                   </div>
@@ -180,7 +180,7 @@ export default function CampaignDMReview({
                   </p>
 
                   {char.pendingChanges && (
-                    <p className="font-sans text-[11px] text-on-surface-variant/80 italic">
+                    <p className="font-sans text-caption text-on-surface-variant/80 italic">
                       Modificações propostas registradas pelo jogador aguardando consolidação.
                     </p>
                   )}

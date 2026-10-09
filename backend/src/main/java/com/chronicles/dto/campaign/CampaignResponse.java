@@ -24,4 +24,14 @@ public class CampaignResponse {
     private String ilustracao;
     private String inviteCode;
     private Boolean isDm;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("illustrationUrl")
+    public String getIllustrationUrl() {
+        return this.ilustracao;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("ilustration_url")
+    public String getIlustrationUrl() {
+        return this.ilustracao;
+    }
 }
