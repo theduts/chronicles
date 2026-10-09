@@ -8,6 +8,9 @@ import com.chronicles.dto.character.CharacterRequest;
 import com.chronicles.dto.character.CharacterResponse;
 import com.chronicles.service.CampaignService;
 import com.chronicles.service.CharacterService;
+import com.chronicles.service.ReviewTicketService;
+import com.chronicles.dto.review.ReviewDecisionRequest;
+import com.chronicles.dto.review.ReviewTicketResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,6 +33,7 @@ public class CampaignController {
 
     private final CampaignService campaignService;
     private final CharacterService characterService;
+    private final ReviewTicketService reviewTicketService;
 
     @GetMapping
     @Operation(summary = "Listar campanhas", description = "Retorna todas as campanhas em que o usuário atua como Mestre ou Jogador, permitindo filtrar por papel ('dm' ou 'player').")
@@ -115,9 +119,10 @@ public class CampaignController {
     public ResponseEntity<CharacterResponse> approveCharacter(
             @PathVariable UUID id,
             @PathVariable UUID characterId,
+            @RequestBody(required = false) @Valid ReviewDecisionRequest request,
             @AuthenticationPrincipal User user
     ) {
-        return ResponseEntity.ok(campaignService.approveCharacter(id, characterId, user));
+        return ResponseEntity.ok(campaignService.approveCharacter(id, characterId, user, request != null ? request.getDmFeedback() : null));
     }
 
     @PostMapping("/{id}/reject-character/{characterId}")
@@ -125,9 +130,19 @@ public class CampaignController {
     public ResponseEntity<CharacterResponse> rejectCharacter(
             @PathVariable UUID id,
             @PathVariable UUID characterId,
+            @RequestBody(required = false) @Valid ReviewDecisionRequest request,
             @AuthenticationPrincipal User user
     ) {
-        return ResponseEntity.ok(campaignService.rejectCharacter(id, characterId, user));
+        return ResponseEntity.ok(campaignService.rejectCharacter(id, characterId, user, request != null ? request.getDmFeedback() : null));
+    }
+
+    @GetMapping("/{id}/review-tickets")
+    @Operation(summary = "Histórico de pedidos de análise da campanha", description = "Retorna todos os tickets de revisão de fichas da campanha. Apenas o Mestre.")
+    public ResponseEntity<List<ReviewTicketResponse>> getReviewTickets(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal User user
+    ) {
+        return ResponseEntity.ok(reviewTicketService.getTicketsForCampaign(id, user));
     }
 
     @PostMapping("/{id}/characters/{characterId}/level-up")

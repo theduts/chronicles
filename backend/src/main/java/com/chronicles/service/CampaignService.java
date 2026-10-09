@@ -30,6 +30,7 @@ public class CampaignService {
     private final CharacterRepository characterRepository;
     private final UserRepository userRepository;
     private final CharacterMapper characterMapper;
+    private final ReviewTicketService reviewTicketService;
 
     @Transactional(readOnly = true)
     public List<CampaignResponse> getCampaignsForUser(User user) {
@@ -209,7 +210,7 @@ public class CampaignService {
     }
 
     @Transactional
-    public CharacterResponse approveCharacter(UUID campaignId, UUID characterId, User user) {
+    public CharacterResponse approveCharacter(UUID campaignId, UUID characterId, User user, String dmFeedback) {
         Campaign campaign = campaignRepository.findById(campaignId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Campanha não encontrada"));
 
@@ -251,13 +252,14 @@ public class CampaignService {
             character.setProposedSheet(null);
         }
         character.setIsPendingReview(false);
+        reviewTicketService.resolvePending(characterId, ReviewTicketStatus.APPROVED, user, dmFeedback);
 
         Character saved = characterRepository.save(character);
         return characterMapper.toResponse(saved);
     }
 
     @Transactional
-    public CharacterResponse rejectCharacter(UUID campaignId, UUID characterId, User user) {
+    public CharacterResponse rejectCharacter(UUID campaignId, UUID characterId, User user, String dmFeedback) {
         Campaign campaign = campaignRepository.findById(campaignId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Campanha não encontrada"));
 
@@ -283,6 +285,7 @@ public class CampaignService {
         // Discard proposed evolution
         character.setProposedSheet(null);
         character.setIsPendingReview(false);
+        reviewTicketService.resolvePending(characterId, ReviewTicketStatus.REJECTED, user, dmFeedback);
 
         Character saved = characterRepository.save(character);
         return characterMapper.toResponse(saved);

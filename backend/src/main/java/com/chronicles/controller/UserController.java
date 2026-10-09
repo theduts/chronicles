@@ -3,7 +3,10 @@ package com.chronicles.controller;
 import com.chronicles.domain.User;
 import com.chronicles.dto.auth.ViewModeRequest;
 import com.chronicles.repository.UserRepository;
+import com.chronicles.service.ReviewTicketService;
 import com.chronicles.service.ViewModeRateLimitService;
+import com.chronicles.dto.review.ReviewTicketResponse;
+import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -22,6 +25,13 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final ViewModeRateLimitService viewModeRateLimitService;
+    private final ReviewTicketService reviewTicketService;
+
+    @GetMapping("/me/review-tickets")
+    @Operation(summary = "Meus pedidos de análise", description = "Retorna o histórico de pedidos de análise de ficha do usuário logado")
+    public ResponseEntity<List<ReviewTicketResponse>> getMyReviewTickets(@AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(reviewTicketService.getTicketsForPlayer(currentUser));
+    }
 
     @PatchMapping("/me/view-mode")
     @Operation(summary = "Atualizar modo de visualização", description = "Atualiza o modo de visualização ativo do usuário logado (PLAYER ou DM)")
