@@ -257,3 +257,25 @@ export interface User {
 }
 
 export type ActiveScreen = 'login' | 'signup' | 'dashboard' | 'characters' | 'character_editor' | 'notes' | 'settings' | 'chronicles' | 'npcs' | 'bestiary' | 'campaigns' | 'campaign_history';
+
+export type ReviewTicketStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+/** Delta de um campo: `{ last, new }`; objetos aninhados contêm outros deltas. */
+export type ReviewTicketChanges = { [key: string]: ReviewTicketChanges | { last: unknown; new: unknown } };
+
+export interface CharacterReviewTicket {
+  id: string;
+  ticketNumber: number;
+  characterId: string;
+  characterName: string;
+  campaignId?: string | null;
+  playerId: string;
+  playerName: string;
+  reviewerId?: string | null;
+  reviewerName?: string | null;
+  status: ReviewTicketStatus;
+  changes: ReviewTicketChanges;
+  dmFeedback?: string | null;
+  createdAt: string;
+  reviewedAt?: string | null;
+}

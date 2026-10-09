@@ -3,6 +3,8 @@ import { toast } from 'sonner';
 import { Character, Note } from '../types';
 import { User, Mail, Lock, Sun, Moon, X, Check, Shield, AlertTriangle, HelpCircle } from 'lucide-react';
 import Toggle from './Toggle';
+import { useMyReviewTickets } from '../hooks/useReviewTickets';
+import { ReviewTicketDiff, ReviewTicketStatusBadge, formatTicketDate } from './ReviewTicketDiff';
 
 interface SettingsViewProps {
   isOpen: boolean;
@@ -43,6 +45,10 @@ export default function SettingsView({
   
   // Confirmation state
   const [isConfirmingChange, setIsConfirmingChange] = useState(false);
+
+  // Histórico real de pedidos de análise (tickets persistidos)
+  const { data: reviewTickets = [], isLoading: isLoadingTickets } = useMyReviewTickets(isOpen);
+  const [expandedTicketId, setExpandedTicketId] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -223,33 +229,39 @@ export default function SettingsView({
                     Histórico de Pedidos de Análise
                   </span>
 
-                  {characters.length === 0 ? (
-                    <p className="text-caption text-on-surface-variant italic">Nenhum personagem sob os selos de análise.</p>
+                  {isLoadingTickets ? (
+                    <p className="text-caption text-on-surface-variant italic">Consultando os selos de análise...</p>
+                  ) : reviewTickets.length === 0 ? (
+                    <p className="text-caption text-on-surface-variant italic">Nenhum pedido de alteração enviado.</p>
                   ) : (
-                    <div className="space-y-2.5 max-h-[180px] overflow-y-auto custom-scrollbar pr-1">
-                      {characters.map((char) => {
-                        const isPending = char.isPendingDMReview;
+                    <div className="space-y-2.5 max-h-[320px] overflow-y-auto custom-scrollbar pr-1">
+                      {reviewTickets.map((ticket) => {
+                        const isOpenTicket = expandedTicketId === ticket.id;
                         return (
-                          <div 
-                            key={char.id} 
-                            className="bg-background/60 border border-outline-variant/20 p-2 flex items-center justify-between gap-3"
-                          >
-                            <div className="min-w-0">
-                              <span className="font-serif text-xs text-on-surface block font-semibold truncate">{char.name}</span>
-                              <span className="font-sans text-micro text-on-surface-variant/70 block uppercase tracking-wider">{char.race} • Nível {char.level}</span>
-                            </div>
-                            <div className="flex items-center shrink-0">
-                              {isPending ? (
-                                <span className="bg-secondary-container text-on-secondary-container text-micro font-bold font-sans uppercase px-2 py-0.5 tracking-wider border border-secondary">
-                                  Pendente
+                          <div key={ticket.id} className="bg-background/60 border border-outline-variant/20 p-2 space-y-2">
+                            <button
+                              type="button"
+                              onClick={() => setExpandedTicketId(isOpenTicket ? null : ticket.id)}
+                              className="w-full flex items-center justify-between gap-3 text-left cursor-pointer"
+                            >
+                              <div className="min-w-0">
+                                <span className="font-serif text-xs text-on-surface block font-semibold truncate">
+                                  #{ticket.ticketNumber} • {ticket.characterName}
                                 </span>
-                              ) : (
-                                <span className="bg-tertiary-container text-on-tertiary-container text-micro font-bold font-sans uppercase px-2 py-0.5 tracking-wider border border-tertiary flex items-center gap-1">
-                                  <Check className="w-2.5 h-2.5 shrink-0" />
-                                  Aprovada
+                                <span className="font-sans text-micro text-on-surface-variant/70 block uppercase tracking-wider">
+                                  {formatTicketDate(ticket.createdAt)}
                                 </span>
-                              )}
-                            </div>
+                              </div>
+                              <div className="flex items-center shrink-0">
+                                <ReviewTicketStatusBadge status={ticket.status} />
+                              </div>
+                            </button>
+                            {ticket.dmFeedback && (
+                              <p className="text-xs text-on-surface-variant border-l-2 border-primary/60 pl-2 italic">
+                                Mestre: “{ticket.dmFeedback}”
+                              </p>
+                            )}
+                            {isOpenTicket && <ReviewTicketDiff changes={ticket.changes} />}
                           </div>
                         );
                       })}

@@ -3,6 +3,8 @@ import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'motion/react';
 import { useQuery } from '@tanstack/react-query';
+import { useCampaignReviewTickets } from '../hooks/useReviewTickets';
+import { ReviewTicketDiff } from './ReviewTicketDiff';
 import { api } from '../services/api';
 import { Trash2, Shirt, PawPrint, TrendingUp, BookOpen, BookMarked, Download, Edit, Unlock, Lock } from 'lucide-react';
 import { Character, CharacterAttributes, AttributeRow, StatPoint, SkillRow, ActiveScreen, Spell, CompanionSkill, CompanionAnimal, MontariaEspecial, Familiar, Campaign } from '../types';
@@ -716,8 +718,8 @@ interface CharacterEditorViewProps {
   setActiveScreen: (screen: ActiveScreen) => void;
   onDelete?: (id: string) => void;
   userRole?: 'player' | 'dm';
-  onApprove?: (id: string) => void;
-  onReject?: (id: string) => void;
+  onApprove?: (id: string, dmFeedback?: string) => void;
+  onReject?: (id: string, dmFeedback?: string) => void;
   campaigns?: Campaign[];
   fieldErrors?: Record<string, string>;
   onClearFieldErrors?: () => void;
@@ -1031,6 +1033,12 @@ export default function CharacterEditorView({
   const [originalChar, setOriginalChar] = useState<Character | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [fichaAnimStatus, setFichaAnimStatus] = useState<'idle' | 'approving' | 'rejecting'>('idle');
+  const [dmFeedback, setDmFeedback] = useState('');
+  const reviewCampaignId = editedChar.campaignId || characters.find((c) => c.id === characterId)?.campaignId;
+  const { data: campaignTickets = [] } = useCampaignReviewTickets(reviewCampaignId, {
+    enabled: userRole === 'dm' && !!characterId,
+  });
+  const pendingTicket = campaignTickets.find((t) => t.characterId === characterId && t.status === 'PENDING');
 
   const lastSilentSavedRef = useRef<string>('');
   const loadedCharacterIdRef = useRef<string | null>(null);
@@ -1152,7 +1160,8 @@ export default function CharacterEditorView({
     if (!onApprove) return;
     setFichaAnimStatus('approving');
     setTimeout(() => {
-      onApprove(characterId || editedChar.id);
+      onApprove(characterId || editedChar.id, dmFeedback.trim() || undefined);
+      setDmFeedback('');
       setFichaAnimStatus('idle');
     }, 1200);
   };
@@ -1161,7 +1170,8 @@ export default function CharacterEditorView({
     if (!onReject) return;
     setFichaAnimStatus('rejecting');
     setTimeout(() => {
-      onReject(characterId || editedChar.id);
+      onReject(characterId || editedChar.id, dmFeedback.trim() || undefined);
+      setDmFeedback('');
       setFichaAnimStatus('idle');
     }, 1200);
   };
@@ -5759,6 +5769,28 @@ export default function CharacterEditorView({
               Aprovar Ficha
             </button>
           </div>
+        </div>
+      )}
+
+      {(editedChar.isPendingDMReview || characters.find((c) => c.id === characterId)?.isPendingDMReview) && userRole === 'dm' && (
+        <div className="bg-surface-container border border-outline-variant/40 p-4 space-y-3 -mt-4">
+          {pendingTicket && (
+            <div className="space-y-2">
+              <h5 className="font-sans text-micro text-primary tracking-widest font-bold uppercase">
+                Pedido #{pendingTicket.ticketNumber} • Alterações propostas
+              </h5>
+              <ReviewTicketDiff changes={pendingTicket.changes} />
+            </div>
+          )}
+          <textarea
+            value={dmFeedback}
+            onChange={(e) => setDmFeedback(e.target.value)}
+            maxLength={2000}
+            rows={2}
+            disabled={fichaAnimStatus !== 'idle'}
+            placeholder="Justificativa para o jogador (opcional) — enviada ao aprovar ou rejeitar"
+            className="w-full bg-background border border-outline-variant/40 focus:border-primary outline-none text-sm text-on-surface p-2 resize-y"
+          />
         </div>
       )}
 
