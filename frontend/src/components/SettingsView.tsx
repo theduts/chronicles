@@ -213,12 +213,6 @@ export default function SettingsView({
                     <span className="text-on-surface-variant">Anotações Escritas:</span>
                     <span className="text-on-surface font-mono font-bold">{notes.length}</span>
                   </div>
-                  <div className="flex justify-between py-1.5 border-b border-outline-variant/15">
-                    <span className="text-on-surface-variant">Último Rito Escrito:</span>
-                    <span className="text-on-surface font-medium max-w-[120px] truncate" title={notes[0]?.meta || "Nenhum"}>
-                      {notes[0]?.meta || "Nenhum"}
-                    </span>
-                  </div>
                   <div className="flex justify-between py-1.5">
                     <span className="text-on-surface-variant">Sistema de Regras:</span>
                     <span className="text-primary font-bold font-sans text-micro tracking-wider uppercase truncate max-w-[140px]">{activeSystem}</span>
