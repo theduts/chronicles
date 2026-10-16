@@ -6,7 +6,8 @@ import ModalOverlay from './common/ModalOverlay';
 import { User, Mail, Lock, Sun, Moon, X, Check, Shield, AlertTriangle, HelpCircle } from 'lucide-react';
 import Toggle from './Toggle';
 import { useMyReviewTickets } from '../hooks/useReviewTickets';
-import { ReviewTicketDiff, ReviewTicketStatusBadge, formatTicketDate } from './ReviewTicketDiff';
+import { ReviewTicketStatusBadge, formatTicketDate } from './ReviewTicketDiff';
+import ReviewTicketModal from './ReviewTicketModal';
 
 interface SettingsViewProps {
   isOpen: boolean;
@@ -50,7 +51,8 @@ export default function SettingsView({
 
   // Histórico real de pedidos de análise (tickets persistidos)
   const { data: reviewTickets = [], isLoading: isLoadingTickets } = useMyReviewTickets(isOpen);
-  const [expandedTicketId, setExpandedTicketId] = useState<string | null>(null);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const selectedTicket = reviewTickets.find((t) => t.id === selectedTicketId) ?? null;
 
   if (!isOpen) return null;
 
@@ -231,36 +233,26 @@ export default function SettingsView({
                     <p className="text-caption text-on-surface-variant italic">Nenhum pedido de alteração enviado.</p>
                   ) : (
                     <div className="space-y-2.5 max-h-[320px] overflow-y-auto custom-scrollbar pr-1">
-                      {reviewTickets.map((ticket) => {
-                        const isOpenTicket = expandedTicketId === ticket.id;
-                        return (
-                          <div key={ticket.id} className="bg-background/60 border border-outline-variant/20 p-2 space-y-2">
-                            <button
-                              type="button"
-                              onClick={() => setExpandedTicketId(isOpenTicket ? null : ticket.id)}
-                              className="w-full flex items-center justify-between gap-3 text-left cursor-pointer"
-                            >
-                              <div className="min-w-0">
-                                <span className="font-serif text-xs text-on-surface block font-semibold truncate">
-                                  #{ticket.ticketNumber} • {ticket.characterName}
-                                </span>
-                                <span className="font-sans text-micro text-on-surface-variant/70 block uppercase tracking-wider">
-                                  {formatTicketDate(ticket.createdAt)}
-                                </span>
-                              </div>
-                              <div className="flex items-center shrink-0">
-                                <ReviewTicketStatusBadge status={ticket.status} />
-                              </div>
-                            </button>
-                            {ticket.dmFeedback && (
-                              <p className="text-xs text-on-surface-variant border-l-2 border-primary/60 pl-2 italic">
-                                Mestre: “{ticket.dmFeedback}”
-                              </p>
-                            )}
-                            {isOpenTicket && <ReviewTicketDiff changes={ticket.changes} />}
+                      {reviewTickets.map((ticket) => (
+                        <button
+                          key={ticket.id}
+                          type="button"
+                          onClick={() => setSelectedTicketId(ticket.id)}
+                          className="w-full bg-background/60 hover:bg-background border border-outline-variant/20 hover:border-primary/50 p-2 flex items-center justify-between gap-3 text-left transition-colors cursor-pointer"
+                        >
+                          <div className="min-w-0">
+                            <span className="font-serif text-xs text-on-surface block font-semibold truncate">
+                              #{ticket.ticketNumber} • {ticket.characterName}
+                            </span>
+                            <span className="font-sans text-micro text-on-surface-variant/70 block uppercase tracking-wider">
+                              {formatTicketDate(ticket.createdAt)}
+                            </span>
                           </div>
-                        );
-                      })}
+                          <div className="flex items-center shrink-0">
+                            <ReviewTicketStatusBadge status={ticket.status} />
+                          </div>
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -401,6 +393,8 @@ export default function SettingsView({
         </ModalOverlay>
       )}
       </AnimatePresence>
+
+      <ReviewTicketModal ticket={selectedTicket} onClose={() => setSelectedTicketId(null)} />
 
     </ModalOverlay>
   );

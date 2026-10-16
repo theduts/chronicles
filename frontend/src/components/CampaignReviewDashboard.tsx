@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { ShieldCheck, ShieldAlert, Check, X, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Check, X, RefreshCw, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
-import { CharacterReviewTicket } from '../types';
+import { CharacterReviewTicket, User } from '../types';
 import { useCampaignReviewTickets } from '../hooks/useReviewTickets';
 import { useCharacterMutations } from '../hooks/useCharacterMutations';
 import { ListRowSkeleton } from './ui/Skeleton';
-import { ReviewTicketDiff, ReviewTicketStatusBadge, formatTicketDate } from './ReviewTicketDiff';
-import { User } from '../types';
+import { ReviewTicketStatusBadge, formatTicketDate } from './ReviewTicketDiff';
+import ReviewTicketModal from './ReviewTicketModal';
 
 interface CampaignReviewDashboardProps {
   campaignId: string;
@@ -21,9 +21,10 @@ export default function CampaignReviewDashboard({ campaignId, user, token }: Cam
   });
   const { approveCharacterMutation, rejectCharacterMutation } = useCharacterMutations(user, token, campaignId, 'dm');
 
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [feedbacks, setFeedbacks] = useState<Record<string, string>>({});
 
+  const selected = tickets.find((t) => t.id === selectedId) ?? null;
   const pending = tickets.filter((t) => t.status === 'PENDING');
   const history = tickets.filter((t) => t.status !== 'PENDING');
   const isBusy = approveCharacterMutation.isPending || rejectCharacterMutation.isPending;
@@ -33,84 +34,38 @@ export default function CampaignReviewDashboard({ campaignId, user, token }: Cam
     mutation.mutate(
       { campaignId, characterId: ticket.characterId, dmFeedback: feedbacks[ticket.id]?.trim() || undefined },
       {
-        onSuccess: () => toast.success(decision === 'approve' ? 'Evolução da ficha aprovada!' : 'Alterações recusadas.'),
+        onSuccess: () => {
+          toast.success(decision === 'approve' ? 'Evolução da ficha aprovada!' : 'Alterações recusadas.');
+          setSelectedId(null);
+        },
         onError: (error: any) =>
           toast.error(error?.response?.data?.detail || error?.response?.data?.message || 'Falha ao processar solicitação.'),
       }
     );
   };
 
-  const renderTicket = (ticket: CharacterReviewTicket) => {
-    const isOpen = expandedId === ticket.id || ticket.status === 'PENDING';
-    return (
-      <div key={ticket.id} className="bg-surface-container-low border border-outline-variant/40 p-4 space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono text-xs text-outline">#{ticket.ticketNumber}</span>
-              <h4 className="font-serif text-base font-bold text-on-surface truncate">{ticket.characterName}</h4>
-              <ReviewTicketStatusBadge status={ticket.status} />
-            </div>
-            <p className="font-sans text-xs text-on-surface-variant">
-              Solicitado por <strong>{ticket.playerName}</strong> em {formatTicketDate(ticket.createdAt)}
-              {ticket.reviewedAt && <> • Resolvido por {ticket.reviewerName || 'Mestre'} em {formatTicketDate(ticket.reviewedAt)}</>}
-            </p>
-          </div>
-          {ticket.status !== 'PENDING' && (
-            <button
-              type="button"
-              onClick={() => setExpandedId(expandedId === ticket.id ? null : ticket.id)}
-              className="flex items-center gap-1 text-xs font-sans font-bold uppercase tracking-wider text-on-surface-variant hover:text-primary cursor-pointer"
-            >
-              {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              Alterações
-            </button>
-          )}
+  const renderRow = (ticket: CharacterReviewTicket) => (
+    <button
+      key={ticket.id}
+      type="button"
+      onClick={() => setSelectedId(ticket.id)}
+      className="w-full bg-surface-container-low hover:bg-surface-container-high border border-outline-variant/40 hover:border-primary/60 p-4 flex items-center justify-between gap-3 text-left transition-colors cursor-pointer"
+    >
+      <div className="min-w-0 space-y-0.5">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-mono text-xs text-outline">#{ticket.ticketNumber}</span>
+          <h4 className="font-serif text-base font-bold text-on-surface truncate">{ticket.characterName}</h4>
+          <ReviewTicketStatusBadge status={ticket.status} />
         </div>
-
-        {isOpen && <ReviewTicketDiff changes={ticket.changes} />}
-
-        {ticket.dmFeedback && (
-          <p className="text-xs font-sans text-on-surface-variant border-l-2 border-primary/60 pl-3 italic">
-            “{ticket.dmFeedback}”
-          </p>
-        )}
-
-        {ticket.status === 'PENDING' && (
-          <div className="space-y-3 pt-1">
-            <textarea
-              value={feedbacks[ticket.id] ?? ''}
-              onChange={(e) => setFeedbacks((prev) => ({ ...prev, [ticket.id]: e.target.value }))}
-              maxLength={2000}
-              rows={2}
-              placeholder="Justificativa para o jogador (opcional)"
-              className="w-full bg-background border border-outline-variant/40 focus:border-primary outline-none text-sm text-on-surface p-2 resize-y"
-            />
-            <div className="flex items-center gap-3 justify-end">
-              <button
-                type="button"
-                disabled={isBusy}
-                onClick={() => resolve(ticket, 'reject')}
-                className="flex items-center gap-2 px-4 py-2 border border-outline-variant text-on-surface-variant hover:text-on-surface hover:border-white transition-all text-xs font-sans font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50"
-              >
-                <X className="w-4 h-4" />
-                Recusar
-              </button>
-              <button
-                type="button"
-                disabled={isBusy}
-                onClick={() => resolve(ticket, 'approve')}
-                className="flex items-center gap-2 px-5 py-2 bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container transition-all text-xs font-sans font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50"
-              >
-                <Check className="w-4 h-4" />
-                Aprovar
-              </button>
-            </div>
-          </div>
-        )}
+        <p className="font-sans text-xs text-on-surface-variant">
+          {ticket.playerName} • {formatTicketDate(ticket.createdAt)}
+        </p>
       </div>
-    );
-  };
+      <ChevronRight className="w-5 h-5 text-on-surface-variant shrink-0" />
+    </button>
+  );
+
+  const isPendingSelected = selected?.status === 'PENDING';
 
   return (
     <section className="bg-surface-container border border-outline-variant/60 p-6 md:p-8 space-y-6">
@@ -159,14 +114,55 @@ export default function CampaignReviewDashboard({ campaignId, user, token }: Cam
         </div>
       )}
 
-      {pending.length > 0 && <div className="space-y-4">{pending.map(renderTicket)}</div>}
+      {pending.length > 0 && <div className="space-y-3">{pending.map(renderRow)}</div>}
 
       {history.length > 0 && (
         <div className="space-y-3">
           <h4 className="font-sans text-micro text-primary tracking-widest font-bold uppercase">Histórico</h4>
-          <div className="space-y-3">{history.map(renderTicket)}</div>
+          <div className="space-y-3">{history.map(renderRow)}</div>
         </div>
       )}
+
+      <ReviewTicketModal
+        ticket={selected}
+        onClose={() => setSelectedId(null)}
+        showPlayer
+        footer={
+          selected && isPendingSelected ? (
+            <>
+              <button
+                type="button"
+                disabled={isBusy}
+                onClick={() => resolve(selected, 'reject')}
+                className="flex items-center gap-2 px-4 py-2 border border-outline-variant text-on-surface-variant hover:text-on-surface hover:border-white transition-all text-xs font-sans font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50"
+              >
+                <X className="w-4 h-4" />
+                Recusar
+              </button>
+              <button
+                type="button"
+                disabled={isBusy}
+                onClick={() => resolve(selected, 'approve')}
+                className="flex items-center gap-2 px-5 py-2 bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container transition-all text-xs font-sans font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50"
+              >
+                <Check className="w-4 h-4" />
+                Aprovar
+              </button>
+            </>
+          ) : undefined
+        }
+      >
+        {selected && isPendingSelected && (
+          <textarea
+            value={feedbacks[selected.id] ?? ''}
+            onChange={(e) => setFeedbacks((prev) => ({ ...prev, [selected.id]: e.target.value }))}
+            maxLength={2000}
+            rows={3}
+            placeholder="Justificativa para o jogador (opcional)"
+            className="w-full bg-background border border-outline-variant/40 focus:border-primary outline-none text-sm text-on-surface p-2 resize-y"
+          />
+        )}
+      </ReviewTicketModal>
     </section>
   );
 }

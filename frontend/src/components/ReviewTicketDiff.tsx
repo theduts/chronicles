@@ -31,7 +31,7 @@ const ATTRIBUTE_LABELS: Record<string, string> = {
 
 // Seções na ordem em que aparecem na ficha; dentro de cada uma, os campos seguem a ordem listada.
 const SECTIONS: { title: string; keys: string[] }[] = [
-  { title: 'Dados base', keys: ['name', 'sex', 'race', 'weight', 'height', 'age', 'classKit', 'alinhamento', 'level', 'xp', 'portraitUrl'] },
+  { title: 'Dados base', keys: ['name', 'sex', 'race', 'weight', 'height', 'age', 'classKit', 'alinhamento', 'level', 'xp'] },
   { title: 'Atributos', keys: ['attributes', 'statusPoints', 'protection'] },
   { title: 'Magia', keys: ['isMagic', 'focusAllocation', 'spells', 'has_pending_magic_enchant'] },
   { title: 'Perícias', keys: ['skills'] },
@@ -42,6 +42,9 @@ const SECTIONS: { title: string; keys: string[] }[] = [
   { title: 'Background', keys: ['background'] },
 ];
 const OTHER_SECTION = 'Outros';
+
+// Campos que não passam por aprovação do Mestre e, portanto, não entram no resumo.
+const HIDDEN_FIELDS = ['portraitUrl'];
 
 const sectionIndexOf = (top: string): number => {
   const i = SECTIONS.findIndex((sec) => sec.keys.includes(top));
@@ -170,6 +173,7 @@ const MOD_STYLES: Record<Modification, { label: string; className: string }> = {
 
 export function ReviewTicketDiff({ changes }: { changes?: ReviewTicketChanges }) {
   const rows = flatten(changes)
+    .filter((row) => !HIDDEN_FIELDS.includes(row.top))
     .map((row, index) => ({ row, index, rank: rankOf(row) }))
     .sort((a, b) => a.rank[0] - b.rank[0] || a.rank[1] - b.rank[1] || a.rank[2] - b.rank[2] || a.index - b.index)
     .map(({ row }) => row);
@@ -178,43 +182,78 @@ export function ReviewTicketDiff({ changes }: { changes?: ReviewTicketChanges })
     return <p className="text-caption text-on-surface-variant italic">Nenhuma alteração registrada neste pedido.</p>;
   }
 
+  const groups = rows.reduce<{ title: string; rows: DiffRow[] }[]>((acc, row) => {
+    const title = sectionTitleOf(row.top);
+    const last = acc[acc.length - 1];
+    if (last && last.title === title) last.rows.push(row);
+    else acc.push({ title, rows: [row] });
+    return acc;
+  }, []);
+
   return (
-    <div className="border border-outline-variant/30 max-h-80 overflow-auto custom-scrollbar">
-      <table className="w-full text-xs text-left border-collapse">
-        <thead className="sticky top-0 bg-surface-container-high">
-          <tr className="font-sans text-micro uppercase tracking-wider text-on-surface-variant">
-            <th className="px-3 py-2 font-bold">Campo</th>
-            <th className="px-3 py-2 font-bold">Mod.</th>
-            <th className="px-3 py-2 font-bold">Original</th>
-            <th className="px-3 py-2 font-bold">Proposto</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-outline-variant/20">
-          {rows.map((row, i) => {
-            const mod = MOD_STYLES[row.mod];
-            const section = sectionTitleOf(row.top);
-            const startsSection = i === 0 || sectionTitleOf(rows[i - 1].top) !== section;
-            return (
-              <React.Fragment key={row.key}>
-                {startsSection && (
-                  <tr className="bg-surface-container-high">
-                    <th colSpan={4} className="px-3 py-1.5 text-left font-serif text-xs uppercase tracking-widest text-primary">
-                      {section}
-                    </th>
-                  </tr>
-                )}
-              <tr className="align-top">
-                <td className="px-3 py-2 font-sans font-bold text-on-surface break-words">{row.field}</td>
-                <td className={`px-3 py-2 font-sans font-bold uppercase tracking-wider whitespace-nowrap ${mod.className}`}>{mod.label}</td>
-                <td className="px-3 py-2 text-on-surface-variant break-words">{row.original}</td>
-                <td className={`px-3 py-2 font-semibold break-words ${row.mod === 'REMOCAO' ? 'text-on-surface-variant' : mod.className}`}>{row.proposed}</td>
+    <>
+      {/* md+: tabela */}
+      <div className="hidden md:block border border-outline-variant/30">
+        <table className="w-full text-sm text-left border-collapse">
+          <thead>
+            <tr className="font-sans text-micro uppercase tracking-wider text-on-surface-variant bg-surface-container-high">
+              <th className="px-3 py-2 font-bold">Campo</th>
+              <th className="px-3 py-2 font-bold">Mod.</th>
+              <th className="px-3 py-2 font-bold">Original</th>
+              <th className="px-3 py-2 font-bold">Proposto</th>
+            </tr>
+          </thead>
+          {groups.map((group) => (
+            <tbody key={group.title} className="divide-y divide-outline-variant/20">
+              <tr className="bg-surface-container-high">
+                <th colSpan={4} className="px-3 py-1.5 text-left font-serif text-xs uppercase tracking-widest text-primary">
+                  {group.title}
+                </th>
               </tr>
-              </React.Fragment>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+              {group.rows.map((row) => {
+                const mod = MOD_STYLES[row.mod];
+                return (
+                  <tr key={row.key} className="align-top">
+                    <td className="px-3 py-2 font-sans font-bold text-on-surface break-words">{row.field}</td>
+                    <td className={`px-3 py-2 font-sans font-bold uppercase tracking-wider whitespace-nowrap ${mod.className}`}>{mod.label}</td>
+                    <td className="px-3 py-2 text-on-surface-variant break-words">{row.original}</td>
+                    <td className={`px-3 py-2 font-semibold break-words ${row.mod === 'REMOCAO' ? 'text-on-surface-variant' : mod.className}`}>{row.proposed}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          ))}
+        </table>
+      </div>
+
+      {/* < md: cartões empilhados */}
+      <div className="md:hidden space-y-4">
+        {groups.map((group) => (
+          <div key={group.title} className="space-y-2">
+            <h5 className="font-serif text-xs uppercase tracking-widest text-primary border-b border-outline-variant/40 pb-1">
+              {group.title}
+            </h5>
+            {group.rows.map((row) => {
+              const mod = MOD_STYLES[row.mod];
+              return (
+                <div key={row.key} className="border border-outline-variant/30 bg-surface-container-low p-3 space-y-1.5 text-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="font-sans font-bold text-on-surface break-words min-w-0">{row.field}</span>
+                    <span className={`font-sans text-micro font-bold uppercase tracking-wider whitespace-nowrap ${mod.className}`}>{mod.label}</span>
+                  </div>
+                  <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+                    <span className="font-sans text-micro uppercase tracking-wider text-on-surface-variant">Original</span>
+                    <span className="text-on-surface-variant break-words">{row.original}</span>
+                    <span className="font-sans text-micro uppercase tracking-wider text-on-surface-variant">Proposto</span>
+                    <span className={`font-semibold break-words ${row.mod === 'REMOCAO' ? 'text-on-surface-variant' : mod.className}`}>{row.proposed}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
 
