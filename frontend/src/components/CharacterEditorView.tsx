@@ -12,6 +12,7 @@ import CustomSelect from './CustomSelect';
 import Modal from './Modal';
 import ModalOverlay from './common/ModalOverlay';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
+import DiffBadge from './DiffBadge';
 import { ActionButton, SaveButton, AddButton, EditButton, DeleteButton } from './ActionButtons';
 
 interface AprimoramentoNivel {
@@ -6180,10 +6181,10 @@ export default function CharacterEditorView({
               <label className="font-sans text-micro font-bold text-outline mr-3 shrink-0 uppercase tracking-widest">ALTURA</label>
               <input
                 type="text"
-                inputMode="numeric"
+                inputMode="decimal"
                 disabled={isCoreLocked}
                 value={editedChar.height || ''}
-                onChange={(e) => handleDemographicChange('height', e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => handleDemographicChange('height', e.target.value.replace(/[^\d.,]/g, '').replace(/^([^.,]*[.,])(.*)$/, (_, head, tail) => head + tail.replace(/[.,]/g, '')))}
                 placeholder=""
                 className="w-full bg-transparent border-none p-0 text-on-surface font-mono text-sm focus:ring-0 outline-none"
               />
@@ -7500,18 +7501,12 @@ export default function CharacterEditorView({
                                     {info.name}
                                   </span>
                                   {isReviewMode && isAdded ? (
-                                    <span className="text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                                      Novo
-                                    </span>
+                                    <DiffBadge status="added" tone="review" />
                                   ) : isAdded ? (
-                                    <span className="text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                                      Novo
-                                    </span>
+                                    <DiffBadge status="added" />
                                   ) : null}
                                   {isRemoved && (
-                                    <span className="text-micro bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
-                                      Removido
-                                    </span>
+                                    <DiffBadge status="removed" />
                                   )}
                                 </div>
                                 {info.level && (
@@ -7616,18 +7611,12 @@ export default function CharacterEditorView({
                                   {info.name}
                                 </span>
                                 {isReviewMode && isAdded ? (
-                                  <span className="text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                                    Novo
-                                  </span>
+                                  <DiffBadge status="added" tone="review" />
                                 ) : isAdded ? (
-                                  <span className="text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                                    Novo
-                                  </span>
+                                  <DiffBadge status="added" />
                                 ) : null}
                                 {isRemoved && (
-                                  <span className="text-micro bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
-                                    Removido
-                                  </span>
+                                  <DiffBadge status="removed" />
                                 )}
                               </div>
                               {info.level && (
@@ -7727,14 +7716,10 @@ export default function CharacterEditorView({
 
                       {/* Status Badges */}
                       {isCompAnimalAdded && (
-                        <span className="absolute top-2 right-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                          Adicionado
-                        </span>
+                        <DiffBadge status="added" />
                       )}
                       {isCompAnimalModified && (
-                        <span className="absolute top-2 right-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                          Modificado
-                        </span>
+                        <DiffBadge status="modified" />
                       )}
 
                       <div className="w-full">
@@ -7797,14 +7782,10 @@ export default function CharacterEditorView({
 
                       {/* Status Badges */}
                       {isMontariaAdded && (
-                        <span className="absolute top-2 right-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                          Adicionado
-                        </span>
+                        <DiffBadge status="added" />
                       )}
                       {isMontariaModified && (
-                        <span className="absolute top-2 right-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                          Modificado
-                        </span>
+                        <DiffBadge status="modified" />
                       )}
 
                       <div className="w-full">
@@ -7867,14 +7848,10 @@ export default function CharacterEditorView({
 
                       {/* Status Badges */}
                       {isFamiliarAdded && (
-                        <span className="absolute top-2 right-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                          Adicionado
-                        </span>
+                        <DiffBadge status="added" />
                       )}
                       {isFamiliarModified && (
-                        <span className="absolute top-2 right-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                          Modificado
-                        </span>
+                        <DiffBadge status="modified" />
                       )}
 
                       <div className="w-full">
@@ -8055,14 +8032,10 @@ export default function CharacterEditorView({
                             <td className={`p-2 sm:p-3 px-2 sm:px-3 text-left font-sans text-caption sm:text-xs font-bold whitespace-normal break-words ${isRemoved ? 'text-red-400/80' : 'text-on-surface'}`}>
                                {displayName}
                               {isAdded && (
-                                <span className="ml-1.5 text-micro bg-emerald-500/20 text-emerald-400 font-sans font-bold border border-emerald-500/30 px-1 py-0.5 uppercase tracking-widest rounded-sm">
-                                  Novo
-                                </span>
+                                <DiffBadge status="added" />
                               )}
                               {isModified && (
-                                <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary font-sans font-bold border border-amber-500/30 px-1 py-0.5 uppercase tracking-widest rounded-sm">
-                                  Editado
-                                </span>
+                                <DiffBadge status="modified" />
                               )}
                               {obraPrimaSkillBonus > 0 && (
                                 <span className="ml-1.5 text-micro text-green-400 font-sans font-normal">
@@ -8219,14 +8192,10 @@ export default function CharacterEditorView({
 
                   {/* Status Badges */}
                   {isCompAnimalAdded && (
-                    <span className="absolute top-2 right-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                      Adicionado
-                    </span>
+                    <DiffBadge status="added" />
                   )}
                   {isCompAnimalModified && (
-                    <span className="absolute top-2 right-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                      Modificado
-                    </span>
+                    <DiffBadge status="modified" />
                   )}
 
                   <div className="w-full">
@@ -8289,14 +8258,10 @@ export default function CharacterEditorView({
 
                   {/* Status Badges */}
                   {isMontariaAdded && (
-                    <span className="absolute top-2 right-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                      Adicionado
-                    </span>
+                    <DiffBadge status="added" />
                   )}
                   {isMontariaModified && (
-                    <span className="absolute top-2 right-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                      Modificado
-                    </span>
+                    <DiffBadge status="modified" />
                   )}
 
                   <div className="w-full">
@@ -8359,14 +8324,10 @@ export default function CharacterEditorView({
 
                   {/* Status Badges */}
                   {isFamiliarAdded && (
-                    <span className="absolute top-2 right-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                      Adicionado
-                    </span>
+                    <DiffBadge status="added" />
                   )}
                   {isFamiliarModified && (
-                    <span className="absolute top-2 right-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                      Modificado
-                    </span>
+                    <DiffBadge status="modified" />
                   )}
 
                   <div className="w-full">
@@ -8527,18 +8488,12 @@ export default function CharacterEditorView({
                             }`}>
                               {item.item}
                               {isReviewMode && (isAdded || isWeaponMoved) ? (
-                                <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
-                                  {isAdded ? "Novo" : "Movido"}
-                                </span>
+                                <DiffBadge status={isAdded ? 'added' : 'moved'} tone="review" />
                               ) : isAdded ? (
-                                <span className="ml-1.5 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                                  Novo
-                                </span>
+                                <DiffBadge status="added" />
                               ) : null}
                               {isRemoved && (
-                                <span className="ml-1.5 text-micro bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
-                                  Removido
-                                </span>
+                                <DiffBadge status="removed" />
                               )}
                             </span>
                             <div className="flex items-center gap-2 shrink-0">
@@ -8578,13 +8533,9 @@ export default function CharacterEditorView({
                             }`}>
                               {item.item}
                               {isReviewMode && (isAdded || isWeaponMoved) ? (
-                                <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
-                                  {isAdded ? "Novo" : "Movido"}
-                                </span>
+                                <DiffBadge status={isAdded ? 'added' : 'moved'} tone="review" />
                               ) : isAdded ? (
-                                <span className="ml-1.5 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                                  Novo
-                                </span>
+                                <DiffBadge status="added" />
                               ) : null}
                             </span>
                             <div className="flex items-center gap-1 shrink-0">
@@ -9050,13 +9001,9 @@ export default function CharacterEditorView({
                                   }`}>
                                     {armor.nome}
                                     {isReviewMode && (isAdded || isMoved) ? (
-                                      <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
-                                        {isAdded ? "Novo" : "Movido"}
-                                      </span>
+                                      <DiffBadge status={isAdded ? 'added' : 'moved'} tone="review" />
                                     ) : isAdded ? (
-                                      <span className="ml-1.5 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                                        Novo
-                                      </span>
+                                      <DiffBadge status="added" />
                                     ) : null}
                                     {isMoved && !isReviewMode && (
                                       <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
@@ -9064,9 +9011,7 @@ export default function CharacterEditorView({
                                       </span>
                                     )}
                                     {isRemoved && (
-                                      <span className="ml-1.5 text-micro bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
-                                        Removido
-                                      </span>
+                                      <DiffBadge status="removed" />
                                     )}
                                   </span>
                                   <div className="flex items-center gap-1.5 shrink-0">
@@ -9147,13 +9092,9 @@ export default function CharacterEditorView({
                                     <span className={`text-sm font-bold ${armor.isEquipped ? 'text-green-400' : (isReviewMode && (isAdded || isMoved)) ? 'text-secondary' : 'text-on-surface'}`}>
                                       {armor.nome}
                                       {isReviewMode && (isAdded || isMoved) ? (
-                                        <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
-                                          {isAdded ? "Novo" : "Movido"}
-                                        </span>
+                                        <DiffBadge status={isAdded ? 'added' : 'moved'} tone="review" />
                                       ) : isAdded ? (
-                                        <span className="ml-1.5 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                                          Novo
-                                        </span>
+                                        <DiffBadge status="added" />
                                       ) : null}
                                       {isMoved && !isReviewMode && (
                                         <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
@@ -9161,9 +9102,7 @@ export default function CharacterEditorView({
                                         </span>
                                       )}
                                       {isRemoved && (
-                                        <span className="ml-1.5 text-micro bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
-                                          Removido
-                                        </span>
+                                        <DiffBadge status="removed" />
                                       )}
                                     </span>
                                     {/* Modificador Select Dropdown inline on desktop */}
@@ -9264,18 +9203,12 @@ export default function CharacterEditorView({
                               <p className={`text-sm font-bold font-sans ${isRemoved ? 'text-red-400 line-through' : (isReviewMode && isAdded) ? 'text-secondary' : isAdded ? 'text-emerald-400' : 'text-on-surface'}`}>
                                 {item.item}
                                 {isReviewMode && isAdded ? (
-                                  <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
-                                    Novo
-                                  </span>
+                                  <DiffBadge status="added" tone="review" />
                                 ) : isAdded ? (
-                                  <span className="ml-1.5 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                                    Novo
-                                  </span>
+                                  <DiffBadge status="added" />
                                 ) : null}
                                 {isRemoved && (
-                                  <span className="ml-1.5 text-micro bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
-                                    Removido
-                                  </span>
+                                  <DiffBadge status="removed" />
                                 )}
                               </p>
                               {item.descricao && (
@@ -9366,14 +9299,10 @@ export default function CharacterEditorView({
                                 }`}>
                                   {name}
                                   {isAdded && (
-                                    <span className="ml-1.5 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                                      Novo
-                                    </span>
+                                    <DiffBadge status="added" />
                                   )}
                                   {isRemoved && (
-                                    <span className="ml-1.5 text-micro bg-surface-container/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans no-underline inline-block">
-                                      Removido
-                                    </span>
+                                    <DiffBadge status="removed" />
                                   )}
                                 </p>
                                 {category && (
@@ -10390,9 +10319,7 @@ export default function CharacterEditorView({
 
                                   {/* Badges for added / edited paths */}
                                   {isAdded && (
-                                    <span className="absolute top-2 right-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                                      Adicionado
-                                    </span>
+                                    <DiffBadge status="added" />
                                   )}
                                   {isEdited && (
                                     <span className="absolute top-2 right-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
@@ -14420,20 +14347,20 @@ export default function CharacterEditorView({
                         if (skill.diffStatus === 'added') {
                           rowBg = 'bg-emerald-500/10 border-emerald-500/20';
                           textClass = 'text-emerald-300';
-                          badge = <span className="ml-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded font-sans uppercase">Novo</span>;
+                          badge = <DiffBadge status="added" />;
                         } else if (skill.diffStatus === 'modified') {
                           rowBg = 'bg-amber-500/10 border-amber-500/20';
                           textClass = 'text-secondary';
-                          badge = <span className="ml-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded font-sans uppercase">Editado</span>;
+                          badge = <DiffBadge status="modified" />;
                         } else if (skill.diffStatus === 'removed') {
                           rowBg = 'bg-red-500/5 border-red-500/10 opacity-60';
                           textClass = 'text-red-400 line-through';
-                          badge = <span className="ml-2 text-micro bg-red-500/20 text-red-400 border border-red-500/30 px-1 py-0.5 rounded font-sans uppercase">Removido</span>;
+                          badge = <DiffBadge status="removed" />;
                         }
 
                         return (
                           <tr key={skill.id || sIdx} className={`hover:bg-surface-container-high/40 transition-colors border-b border-outline-variant/20 ${rowBg} ${textClass}`}>
-                            <td className="border-r border-outline-variant/20 p-2 text-left font-sans font-bold flex items-center">
+                            <td className="border-r border-outline-variant/20 p-2 text-left font-sans font-bold flex flex-wrap items-center">
                               <span>{skill.nome}</span>
                               {badge}
                             </td>
@@ -14859,20 +14786,20 @@ export default function CharacterEditorView({
                         if (p.diffStatus === 'added') {
                           rowBg = 'bg-emerald-500/10 border-emerald-500/20';
                           textClass = 'text-emerald-300';
-                          badge = <span className="ml-2 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded font-sans uppercase">Novo</span>;
+                          badge = <DiffBadge status="added" />;
                         } else if (p.diffStatus === 'modified') {
                           rowBg = 'bg-amber-500/10 border-amber-500/20';
                           textClass = 'text-secondary';
-                          badge = <span className="ml-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded font-sans uppercase">Editado</span>;
+                          badge = <DiffBadge status="modified" />;
                         } else if (p.diffStatus === 'removed') {
                           rowBg = 'bg-red-500/5 border-red-500/10 opacity-60';
                           textClass = 'text-red-400 line-through';
-                          badge = <span className="ml-2 text-micro bg-red-500/20 text-red-400 border border-red-500/30 px-1 py-0.5 rounded font-sans uppercase">Removido</span>;
+                          badge = <DiffBadge status="removed" />;
                         }
 
                         return (
                           <tr key={pIdx} className={`hover:bg-surface-container-high/40 transition-colors border-b border-outline-variant/20 ${rowBg} ${textClass}`}>
-                            <td className="border border-outline-variant p-2 bg-surface-container-lowest text-left text-primary font-bold font-serif text-xs flex items-center">
+                            <td className="border border-outline-variant p-2 bg-surface-container-lowest text-left text-primary font-bold font-serif text-xs flex flex-wrap items-center">
                               <span>{p.pericia}</span>
                               {badge}
                             </td>
@@ -14916,19 +14843,19 @@ export default function CharacterEditorView({
 
                     if (h.diffStatus === 'added') {
                       containerClass = 'p-2.5 bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 flex justify-between items-start gap-4 text-left';
-                      badge = <span className="ml-1.5 text-micro bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">Adicionado</span>;
+                      badge = <DiffBadge status="added" />;
                     } else if (h.diffStatus === 'modified') {
                       containerClass = 'p-2.5 bg-amber-500/10 border border-amber-500/40 text-secondary flex justify-between items-start gap-4 text-left';
-                      badge = <span className="ml-1.5 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">Modificado</span>;
+                      badge = <DiffBadge status="modified" />;
                     } else if (h.diffStatus === 'removed') {
                       containerClass = 'p-2.5 bg-red-500/5 border border-red-500/10 opacity-50 text-red-400 line-through flex justify-between items-start gap-4 text-left';
-                      badge = <span className="ml-1.5 text-micro bg-red-500/20 text-red-400 border border-red-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">Removido</span>;
+                      badge = <DiffBadge status="removed" />;
                     }
 
                     return (
                       <div key={hIdx} className={containerClass}>
                         <div className="space-y-1">
-                          <span className="text-xs font-bold text-secondary block flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-secondary block flex flex-wrap items-center gap-x-1.5">
                             <span>{h.habilidade}</span>
                             {badge}
                           </span>
