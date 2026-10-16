@@ -1,43 +1,26 @@
 import React, { useState } from 'react';
-import { ShieldCheck, ShieldAlert, Check, X, RefreshCw, ChevronRight } from 'lucide-react';
-import { CharacterReviewTicket, User } from '../types';
+import { ShieldCheck, ShieldAlert, RefreshCw, ChevronRight } from 'lucide-react';
+import { CharacterReviewTicket } from '../types';
 import { useCampaignReviewTickets } from '../hooks/useReviewTickets';
-import { useCharacterMutations } from '../hooks/useCharacterMutations';
 import { ListRowSkeleton } from './ui/Skeleton';
 import { ReviewTicketStatusBadge, formatTicketDate } from './ReviewTicketDiff';
 import ReviewTicketModal from './ReviewTicketModal';
 
 interface CampaignReviewDashboardProps {
   campaignId: string;
-  user: User | null;
-  token: string | null;
 }
 
 /** Central de Solicitações: moderação (PENDING) e auditoria (histórico) dos pedidos de análise da campanha. */
-export default function CampaignReviewDashboard({ campaignId, user, token }: CampaignReviewDashboardProps) {
+export default function CampaignReviewDashboard({ campaignId }: CampaignReviewDashboardProps) {
   const { data: tickets = [], isLoading, isRefetching, refetch } = useCampaignReviewTickets(campaignId, {
     refetchInterval: 10000,
   });
-  const { approveCharacterMutation, rejectCharacterMutation } = useCharacterMutations(user, token, campaignId, 'dm');
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [feedbacks, setFeedbacks] = useState<Record<string, string>>({});
 
   const selected = tickets.find((t) => t.id === selectedId) ?? null;
   const pending = tickets.filter((t) => t.status === 'PENDING');
   const history = tickets.filter((t) => t.status !== 'PENDING');
-  const isBusy = approveCharacterMutation.isPending || rejectCharacterMutation.isPending;
-
-  const resolve = (ticket: CharacterReviewTicket, decision: 'approve' | 'reject') => {
-    const mutation = decision === 'approve' ? approveCharacterMutation : rejectCharacterMutation;
-    mutation.mutate(
-      { campaignId, characterId: ticket.characterId, dmFeedback: feedbacks[ticket.id]?.trim() || undefined },
-      {
-        // Os toasts de sucesso/erro vêm do hook (useCharacterMutations).
-        onSuccess: () => setSelectedId(null),
-      }
-    );
-  };
 
   const renderRow = (ticket: CharacterReviewTicket) => (
     <button
@@ -60,8 +43,6 @@ export default function CampaignReviewDashboard({ campaignId, user, token }: Cam
     </button>
   );
 
-  const isPendingSelected = selected?.status === 'PENDING';
-
   return (
     <section className="bg-surface-container border border-outline-variant/60 p-6 md:p-8 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-outline-variant/40">
@@ -72,7 +53,7 @@ export default function CampaignReviewDashboard({ campaignId, user, token }: Cam
           <div>
             <h3 className="font-serif text-xl font-bold uppercase tracking-wider text-on-surface">Central de Solicitações</h3>
             <p className="font-sans text-xs text-on-surface-variant">
-              Revise, aprove ou recuse as alterações de ficha enviadas pelos jogadores desta campanha.
+              Acompanhe as alterações de ficha enviadas pelos jogadores desta campanha. A aprovação é feita na própria ficha.
             </p>
           </div>
         </div>
@@ -118,46 +99,7 @@ export default function CampaignReviewDashboard({ campaignId, user, token }: Cam
         </div>
       )}
 
-      <ReviewTicketModal
-        ticket={selected}
-        onClose={() => setSelectedId(null)}
-        showPlayer
-        footer={
-          selected && isPendingSelected ? (
-            <>
-              <button
-                type="button"
-                disabled={isBusy}
-                onClick={() => resolve(selected, 'reject')}
-                className="flex items-center gap-2 px-4 py-2 border border-outline-variant text-on-surface-variant hover:text-on-surface hover:border-white transition-all text-xs font-sans font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50"
-              >
-                <X className="w-4 h-4" />
-                Recusar
-              </button>
-              <button
-                type="button"
-                disabled={isBusy}
-                onClick={() => resolve(selected, 'approve')}
-                className="flex items-center gap-2 px-5 py-2 bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container transition-all text-xs font-sans font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50"
-              >
-                <Check className="w-4 h-4" />
-                Aprovar
-              </button>
-            </>
-          ) : undefined
-        }
-      >
-        {selected && isPendingSelected && (
-          <textarea
-            value={feedbacks[selected.id] ?? ''}
-            onChange={(e) => setFeedbacks((prev) => ({ ...prev, [selected.id]: e.target.value }))}
-            maxLength={2000}
-            rows={3}
-            placeholder="Justificativa para o jogador (opcional)"
-            className="w-full bg-background border border-outline-variant/40 focus:border-primary outline-none text-sm text-on-surface p-2 resize-y"
-          />
-        )}
-      </ReviewTicketModal>
+      <ReviewTicketModal ticket={selected} onClose={() => setSelectedId(null)} showPlayer />
     </section>
   );
 }
