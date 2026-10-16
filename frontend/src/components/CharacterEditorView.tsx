@@ -7501,7 +7501,7 @@ export default function CharacterEditorView({
                                     {info.name}
                                   </span>
                                   {isReviewMode && isAdded ? (
-                                    <DiffBadge status="added" tone="review" />
+                                    <DiffBadge status="added" />
                                   ) : isAdded ? (
                                     <DiffBadge status="added" />
                                   ) : null}
@@ -7611,7 +7611,7 @@ export default function CharacterEditorView({
                                   {info.name}
                                 </span>
                                 {isReviewMode && isAdded ? (
-                                  <DiffBadge status="added" tone="review" />
+                                  <DiffBadge status="added" />
                                 ) : isAdded ? (
                                   <DiffBadge status="added" />
                                 ) : null}
@@ -7716,10 +7716,10 @@ export default function CharacterEditorView({
 
                       {/* Status Badges */}
                       {isCompAnimalAdded && (
-                        <DiffBadge status="added" />
+                        <DiffBadge status="added" floating />
                       )}
                       {isCompAnimalModified && (
-                        <DiffBadge status="modified" />
+                        <DiffBadge status="modified" floating />
                       )}
 
                       <div className="w-full">
@@ -7782,10 +7782,10 @@ export default function CharacterEditorView({
 
                       {/* Status Badges */}
                       {isMontariaAdded && (
-                        <DiffBadge status="added" />
+                        <DiffBadge status="added" floating />
                       )}
                       {isMontariaModified && (
-                        <DiffBadge status="modified" />
+                        <DiffBadge status="modified" floating />
                       )}
 
                       <div className="w-full">
@@ -7848,10 +7848,10 @@ export default function CharacterEditorView({
 
                       {/* Status Badges */}
                       {isFamiliarAdded && (
-                        <DiffBadge status="added" />
+                        <DiffBadge status="added" floating />
                       )}
                       {isFamiliarModified && (
-                        <DiffBadge status="modified" />
+                        <DiffBadge status="modified" floating />
                       )}
 
                       <div className="w-full">
@@ -8192,10 +8192,10 @@ export default function CharacterEditorView({
 
                   {/* Status Badges */}
                   {isCompAnimalAdded && (
-                    <DiffBadge status="added" />
+                    <DiffBadge status="added" floating />
                   )}
                   {isCompAnimalModified && (
-                    <DiffBadge status="modified" />
+                    <DiffBadge status="modified" floating />
                   )}
 
                   <div className="w-full">
@@ -8258,10 +8258,10 @@ export default function CharacterEditorView({
 
                   {/* Status Badges */}
                   {isMontariaAdded && (
-                    <DiffBadge status="added" />
+                    <DiffBadge status="added" floating />
                   )}
                   {isMontariaModified && (
-                    <DiffBadge status="modified" />
+                    <DiffBadge status="modified" floating />
                   )}
 
                   <div className="w-full">
@@ -8324,10 +8324,10 @@ export default function CharacterEditorView({
 
                   {/* Status Badges */}
                   {isFamiliarAdded && (
-                    <DiffBadge status="added" />
+                    <DiffBadge status="added" floating />
                   )}
                   {isFamiliarModified && (
-                    <DiffBadge status="modified" />
+                    <DiffBadge status="modified" floating />
                   )}
 
                   <div className="w-full">
@@ -8488,7 +8488,7 @@ export default function CharacterEditorView({
                             }`}>
                               {item.item}
                               {isReviewMode && (isAdded || isWeaponMoved) ? (
-                                <DiffBadge status={isAdded ? 'added' : 'moved'} tone="review" />
+                                <DiffBadge status={isAdded ? 'added' : 'moved'} />
                               ) : isAdded ? (
                                 <DiffBadge status="added" />
                               ) : null}
@@ -8533,7 +8533,7 @@ export default function CharacterEditorView({
                             }`}>
                               {item.item}
                               {isReviewMode && (isAdded || isWeaponMoved) ? (
-                                <DiffBadge status={isAdded ? 'added' : 'moved'} tone="review" />
+                                <DiffBadge status={isAdded ? 'added' : 'moved'} />
                               ) : isAdded ? (
                                 <DiffBadge status="added" />
                               ) : null}
@@ -9001,7 +9001,7 @@ export default function CharacterEditorView({
                                   }`}>
                                     {armor.nome}
                                     {isReviewMode && (isAdded || isMoved) ? (
-                                      <DiffBadge status={isAdded ? 'added' : 'moved'} tone="review" />
+                                      <DiffBadge status={isAdded ? 'added' : 'moved'} />
                                     ) : isAdded ? (
                                       <DiffBadge status="added" />
                                     ) : null}
@@ -9092,7 +9092,7 @@ export default function CharacterEditorView({
                                     <span className={`text-sm font-bold ${armor.isEquipped ? 'text-green-400' : (isReviewMode && (isAdded || isMoved)) ? 'text-secondary' : 'text-on-surface'}`}>
                                       {armor.nome}
                                       {isReviewMode && (isAdded || isMoved) ? (
-                                        <DiffBadge status={isAdded ? 'added' : 'moved'} tone="review" />
+                                        <DiffBadge status={isAdded ? 'added' : 'moved'} />
                                       ) : isAdded ? (
                                         <DiffBadge status="added" />
                                       ) : null}
@@ -9203,7 +9203,7 @@ export default function CharacterEditorView({
                               <p className={`text-sm font-bold font-sans ${isRemoved ? 'text-red-400 line-through' : (isReviewMode && isAdded) ? 'text-secondary' : isAdded ? 'text-emerald-400' : 'text-on-surface'}`}>
                                 {item.item}
                                 {isReviewMode && isAdded ? (
-                                  <DiffBadge status="added" tone="review" />
+                                  <DiffBadge status="added" />
                                 ) : isAdded ? (
                                   <DiffBadge status="added" />
                                 ) : null}
@@ -10319,12 +10319,10 @@ export default function CharacterEditorView({
 
                                   {/* Badges for added / edited paths */}
                                   {isAdded && (
-                                    <DiffBadge status="added" />
+                                    <DiffBadge status="added" floating />
                                   )}
                                   {isEdited && (
-                                    <span className="absolute top-2 right-2 text-micro bg-amber-500/20 text-secondary border border-amber-500/30 px-1 py-0.5 rounded uppercase font-bold tracking-wider font-sans">
-                                      Alterado
-                                    </span>
+                                    <DiffBadge status="modified" floating />
                                   )}
 
                                   <div className="flex flex-col gap-2">
