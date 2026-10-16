@@ -8,6 +8,7 @@ import { Trash2, Shirt, PawPrint, TrendingUp, BookOpen, BookMarked, Download, Ed
 import { Character, CharacterAttributes, AttributeRow, StatPoint, SkillRow, ActiveScreen, Spell, CompanionSkill, CompanionAnimal, MontariaEspecial, Familiar, Campaign } from '../types';
 import CustomSelect from './CustomSelect';
 import Modal from './Modal';
+import ModalOverlay from './common/ModalOverlay';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { ActionButton, SaveButton, AddButton, EditButton, DeleteButton } from './ActionButtons';
 
@@ -724,13 +725,6 @@ interface CharacterEditorViewProps {
   onLevelUp?: (id: string, updatedChar?: Character, onComplete?: () => void) => void;
   isLevelingUp?: boolean;
 }
-
-const PORTRAIT_PRESETS = [
-  { name: 'Sacerdote Profano', url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAlYw1vX4_5AranMXYvv7IFTlcCjHcECTgJxpa9dyfq4cr7BsXA1dp1E4Go7TucknUb7ELs7BwfJSTngw7CTVwu6n2lmYsoB5jav5E1zuD8Rh2qRmaea3IpiGZDwNcc1yz65aTQG-yX1nA3BRJo6HTD1nSeNpWqDjRsbgrnMlCFO9ktuJPkMlJEM0KzpPIffLZzWP232Q3nUic4GYpN_BX6QMql8UcQWDvspI8rsN4nMqf7Wb4lDh7naq_MQMEBK9JewB6eM9kALHA' },
-  { name: 'Elfa Sombria', url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB7DeFgyUOnHxRZvvGfR-Y0nQkf7ElC6FCctdcWEXPd8tC20rmQcj24Y72XAT1FQW5QCQ1LRgUtpBDily2Ws3a_UZsLjXcETQfl3gzBZVQ9hzH3eUZZW1lLuw2-GERrI0iq31Thnog0iYbWIN8ANPtmviW0mXHNekdjgjxoPYuxFVkIEX8IbaWGiOc430htDKp0NFcJUMctA6faboHLViGqI3Ma6bCSa9CYQdmjVIPbBJgXyfqhHYlZ4Qb_eWlKu6L2GpurpHf1X3w' },
-  { name: 'Guerreiro de Ferro', url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDzHV8keJSuX5E-2PZm45MdsrjIk2ywxdx55MMVbUdClYWXSr_2teV6fM1dkbMrnLisY2XJ3vsFzdHL3xoYRfe5xr9sWjzFAU9Jk-hpTWtZN7W_DaciuW0QTHe83RmVUdfI18S1cNjwgC0Y4kQCPhOxhjd9lLrnM58RNJsww5yjHEg7TepyrTSEQP3VEjOYVj7HcbOHYP0gUD3_b7Vk_oDI7m0zv4kHpP2oN-rvnzJ06leXb4JQC0zGFztIYn9Ps7UJvTbALi1ScFI' },
-  { name: 'Ocultista do Vazio', url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDyBE-ItarA2hvl2Qjn2dNuip1dhsPXFl5v6v6k6ZU5JGixPQ3vsM8xDTAEwufHoLiy9FyHk2uJWueXaR5AzI30Gw_3U8iHpcKohjr_7jwAjl5tlSo6IXJabBuybntirharCoV8BP5QIp7kO8-yanP2crysFD1tKBsuTXxgOf-ri0ItymKUbamPg20yqBRqLOwDz4jMQUhqLC2j7G_U_PCRHmuWiO3WHUosKCn0rDRYzV-oxBcgfHwTHCpVPvreiki6lyhdy7Bk_48' },
-];
 
 const DEFAULT_NEW_CHARACTER = (): Character => ({
   id: '',
@@ -6050,12 +6044,12 @@ export default function CharacterEditorView({
               {!isCoreLocked && (editedChar.sex === 'Outro' || (editedChar.sex && !['Masculino', 'Feminino'].includes(editedChar.sex))) && (
                 <>
                 <>
-<input maxLength={50}
+                  <input maxLength={50}
                   type="text"
                   value={editedChar.sex === 'Outro' ? '' : editedChar.sex}
                   onChange={(e) => handleDemographicChange('sex', e.target.value)}
                   placeholder="Especifique o sexo..."
-                  className={`w-full bg-transparent border-none p-0 text-amber-100 font-sans text-xs focus:ring-0 outline-none mt-1 border-b border-outline-variant/40 ${editedChar.sex?.length >= 50 ? '!text-red-500 !font-bold' : ''} ${editedChar.sex?.length >= 50 ? '!text-red-500' : ''}`}
+                  className={`w-full bg-transparent border-none p-0 text-on-surface dark:text-amber-100 placeholder:text-on-surface-variant/70 dark:placeholder:text-amber-100/60 font-sans text-xs focus:ring-0 outline-none mt-1 border-b border-outline-variant/40 ${editedChar.sex?.length >= 50 ? '!text-red-500 !font-bold' : ''}`}
                 />
 {editedChar.sex?.length >= 50 && (
       <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
@@ -6113,7 +6107,7 @@ export default function CharacterEditorView({
                   value={editedChar.race === 'Outro' ? '' : (editedChar.race ?? '')}
                   onChange={(e) => handleDemographicChange('race', e.target.value)}
                   placeholder="Especifique a raça..."
-                  className={`${(editedChar.race || '').length >= 50 ? '!text-red-500 !font-bold' : ''} w-full bg-transparent border-none p-0 text-amber-100 font-sans text-xs focus:ring-0 outline-none mt-1 border-b border-outline-variant/40 ${(editedChar.race || '').length >= 50 ? '!text-red-500' : ''}`}
+                  className={`${(editedChar.race || '').length >= 50 ? '!text-red-500 !font-bold' : ''} w-full bg-transparent border-none p-0 text-on-surface dark:text-amber-100 placeholder:text-on-surface-variant/70 dark:placeholder:text-amber-100/60 font-sans text-xs focus:ring-0 outline-none mt-1 border-b border-outline-variant/40`}
                 />
 {(editedChar.race || '').length >= 50 && (
       <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
@@ -6222,7 +6216,7 @@ export default function CharacterEditorView({
                   value={editedChar.classKit === 'Outro' ? '' : (editedChar.classKit ?? '')}
                   onChange={(e) => handleDemographicChange('classKit', e.target.value)}
                   placeholder="Especifique a classe..."
-                  className={`w-full bg-transparent border-outline-variant/40 p-0 text-amber-100 font-sans text-xs focus:ring-0 outline-none mt-1 border-b ${(editedChar.classKit || '').length >= 50 ? '!text-red-500 !font-bold' : ''}`}
+                  className={`w-full bg-transparent border-outline-variant/40 p-0 text-on-surface dark:text-amber-100 placeholder:text-on-surface-variant/70 dark:placeholder:text-amber-100/60 font-sans text-xs focus:ring-0 outline-none mt-1 border-b ${(editedChar.classKit || '').length >= 50 ? '!text-red-500 !font-bold' : ''}`}
                 />
 {(editedChar.classKit || '').length >= 50 && (
       <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
@@ -6355,7 +6349,7 @@ export default function CharacterEditorView({
 
             {!isLocked && (
               <div className="bg-surface-container border border-outline-variant/40 p-3.5 flex flex-col items-center justify-center gap-1.5 text-center max-w-sm mx-auto transition-all duration-300">
-                <span className="text-micro uppercase tracking-widest text-outline-variant font-bold">
+                <span className="text-micro uppercase tracking-widest text-on-surface-variant dark:text-outline-variant font-bold">
                   Distribuição de Atributos
                 </span>
                 <div className={`text-xl font-mono font-black tracking-wider transition-colors duration-300 ${remainingAttributePoints < 0 ? 'text-red-500 animate-pulse' : remainingAttributePoints === 0 ? 'text-green-400 font-bold' : 'text-secondary'}`}>
@@ -6366,7 +6360,7 @@ export default function CharacterEditorView({
                     Você não possui mais pontos pra somar
                   </p>
                 ) : remainingAttributePoints > 0 ? (
-                  <p className="text-micro text-outline-variant/80 font-sans">
+                  <p className="text-micro text-on-surface-variant/90 dark:text-outline-variant/80 font-sans">
                     Você deve distribuir exatamente {allowedAttributePoints} pontos. Restam {remainingAttributePoints} pts.
                   </p>
                 ) : (
@@ -6374,7 +6368,7 @@ export default function CharacterEditorView({
                     Pronto! Todos os {allowedAttributePoints} pontos foram distribuídos.
                   </p>
                 )}
-                <p className="text-micro text-outline-variant/50 font-sans">
+                <p className="text-micro text-on-surface-variant/90 dark:text-outline-variant/50 font-sans">
                   Limite de 18 pontos por atributo.
                 </p>
               </div>
@@ -6978,7 +6972,7 @@ export default function CharacterEditorView({
                       )}
 
                       {(editedChar.armors || []).length === 0 ? (
-                        <p className="text-xs text-outline italic text-center py-4 bg-surface-container-lowest border border-outline-variant/30">
+                        <p className="text-xs text-on-surface-variant/70 dark:text-outline italic text-center py-4 bg-surface-container-lowest border border-outline-variant/30">
                           Nenhuma armadura ou escudo adicionado ainda. Use o catálogo abaixo para adquirir equipamentos.
                         </p>
                       ) : (
@@ -7044,7 +7038,7 @@ export default function CharacterEditorView({
                                         Modificador: <span className="text-secondary/90 font-medium">{item.modificador}</span>
                                       </p>
                                     )}
-                                    {item.obs && <p className="text-micro text-outline-variant italic text-left">Obs: {item.obs}</p>}
+                                    {item.obs && <p className="text-micro text-on-surface-variant/80 dark:text-outline-variant italic text-left">Obs: {item.obs}</p>}
                                   </div>
 
                                   {/* PC AND TABLET READ-ONLY CARD */}
@@ -7091,14 +7085,14 @@ export default function CharacterEditorView({
                                             {item.modificador}
                                           </span>
                                         ) : (
-                                          <span className="text-caption text-outline-variant font-sans italic">
+                                          <span className="text-caption text-on-surface-variant/70 dark:text-outline-variant font-sans italic">
                                             Nenhum Modificador
                                           </span>
                                         )}
                                       </div>
                                     </div>
 
-                                    {item.obs && <p className="text-micro text-outline-variant italic text-left mt-1">Obs: {item.obs}</p>}
+                                    {item.obs && <p className="text-micro text-on-surface-variant/80 dark:text-outline-variant italic text-left mt-1">Obs: {item.obs}</p>}
                                   </div>
                                 </div>
                               );
@@ -7160,7 +7154,7 @@ export default function CharacterEditorView({
                                     <span>AGI: <strong className={finalAgi < 0 ? "text-red-400" : ""}>{finalAgi}</strong> {isObraPrima && <span className="text-green-400 text-micro">(-1)</span>}</span>
                                   </div>
 
-                                  {item.obs && <p className="text-micro text-outline-variant italic text-left">Obs: {item.obs}</p>}
+                                  {item.obs && <p className="text-micro text-on-surface-variant/80 dark:text-outline-variant italic text-left">Obs: {item.obs}</p>}
 
                                   {/* Just modifier select - left aligned/full-width! */}
                                   <div className="flex flex-col gap-1.5 items-start justify-start mt-2 w-full">
@@ -7233,7 +7227,7 @@ export default function CharacterEditorView({
                                     </div>
                                   </div>
 
-                                  {item.obs && <p className="text-micro text-outline-variant italic mb-2">Obs: {item.obs}</p>}
+                                  {item.obs && <p className="text-micro text-on-surface-variant/80 dark:text-outline-variant italic mb-2">Obs: {item.obs}</p>}
                                   
                                   {/* Just modifier select */}
                                   <div className="flex items-center gap-1.5 mt-2 justify-center sm:justify-start">
@@ -7332,7 +7326,7 @@ export default function CharacterEditorView({
                                     <span>DEX: <strong className={item.penalidade_dex < 0 ? "text-red-400" : ""}>{item.penalidade_dex !== null ? item.penalidade_dex : "Esp."}</strong></span>
                                     <span>AGI: <strong className={item.penalidade_agi < 0 ? "text-red-400" : ""}>{item.penalidade_agi !== null ? item.penalidade_agi : "Esp."}</strong></span>
                                   </div>
-                                  {item.obs && <p className="text-micro text-outline-variant italic mt-1 break-words" title={item.obs}>Obs: {item.obs}</p>}
+                                  {item.obs && <p className="text-micro text-on-surface-variant/80 dark:text-outline-variant italic mt-1 break-words" title={item.obs}>Obs: {item.obs}</p>}
                                 </div>
 
                                 {/* DESKTOP ONLY VIEW */}
@@ -7347,7 +7341,7 @@ export default function CharacterEditorView({
                                     <span>DEX: <strong className={item.penalidade_dex < 0 ? "text-red-400" : ""}>{item.penalidade_dex !== null ? item.penalidade_dex : "Esp."}</strong></span>
                                     <span>AGI: <strong className={item.penalidade_agi < 0 ? "text-red-400" : ""}>{item.penalidade_agi !== null ? item.penalidade_agi : "Esp."}</strong></span>
                                   </div>
-                                  {item.obs && <p className="text-micro text-outline-variant italic mt-1 truncate" title={item.obs}>Obs: {item.obs}</p>}
+                                  {item.obs && <p className="text-micro text-on-surface-variant/80 dark:text-outline-variant italic mt-1 truncate" title={item.obs}>Obs: {item.obs}</p>}
                                 </div>
 
                                 <button
@@ -7386,11 +7380,11 @@ export default function CharacterEditorView({
               {/* Simplified Central Points Tracker */}
               {!isLocked && (
                 <div className="bg-surface-container border border-outline-variant/40 p-3 flex flex-col items-center justify-center gap-1.5 text-center max-w-sm mx-auto">
-                  <span className="text-micro uppercase tracking-widest text-outline-variant font-bold">Saldo de Aprimoramentos</span>
+                  <span className="text-micro uppercase tracking-widest text-on-surface-variant dark:text-outline-variant font-bold">Saldo de Aprimoramentos</span>
                   <div className={`text-xl font-mono font-black tracking-wider ${remainingPointsValue < 0 ? 'text-red-500 animate-pulse' : remainingPointsValue === 0 ? 'text-primary' : 'text-green-400'}`}>
                     {remainingPointsValue} pts
                   </div>
-                  <p className="text-micro text-outline-variant/60 font-sans">
+                  <p className="text-micro text-on-surface-variant/90 dark:text-outline-variant/60 font-sans">
                     Começa com {5 + aprimoramentoExtra} pts ({5} base{aprimoramentoExtra > 0 ? ` + ${aprimoramentoExtra} da raça` : ''}) • Desvantagens dão até +3 pts
                   </p>
                 </div>
@@ -7434,7 +7428,7 @@ export default function CharacterEditorView({
                   )}
 
                   {visiblePositives.length === 0 ? (
-                    <p className="text-caption text-outline-variant/40 italic py-2">Nenhum aprimoramento positivo adicionado.</p>
+                    <p className="text-caption text-on-surface-variant/70 dark:text-outline-variant/40 italic py-2">Nenhum aprimoramento positivo adicionado.</p>
                   ) : (
                     <div className="space-y-3">
                       {(() => {
@@ -7483,7 +7477,7 @@ export default function CharacterEditorView({
                                   <span className={`text-micro font-bold ${isRemoved ? 'text-red-500/60 line-through' : 'text-primary'}`}>Nível {info.level}</span>
                                 )}
                                 {info.desc && (
-                                  <span className={`text-micro italic leading-tight mt-0.5 break-words ${isRemoved ? 'text-red-500/40 line-through' : 'text-outline-variant/60'}`}>{info.desc}</span>
+                                  <span className={`text-micro italic leading-tight mt-0.5 break-words ${isRemoved ? 'text-red-500/40 line-through' : 'text-on-surface-variant/90 dark:text-outline-variant/60'}`}>{info.desc}</span>
                                 )}
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
@@ -7555,7 +7549,7 @@ export default function CharacterEditorView({
                   )}
 
                   {visibleNegatives.length === 0 ? (
-                    <p className="text-caption text-outline-variant/40 italic py-2">Nenhum aprimoramento negativo adicionado.</p>
+                    <p className="text-caption text-on-surface-variant/70 dark:text-outline-variant/40 italic py-2">Nenhum aprimoramento negativo adicionado.</p>
                   ) : (
                     <div className="space-y-3">
                       {visibleNegatives.map((entry, idx) => {
@@ -7599,7 +7593,7 @@ export default function CharacterEditorView({
                                 <span className={`text-micro font-bold ${isRemoved ? 'text-red-500/60 line-through' : 'text-primary'}`}>Nível {info.level}</span>
                               )}
                               {info.desc && (
-                                <span className={`text-micro italic leading-tight mt-0.5 break-words ${isRemoved ? 'text-red-500/40 line-through' : 'text-outline-variant/60'}`}>{info.desc}</span>
+                                <span className={`text-micro italic leading-tight mt-0.5 break-words ${isRemoved ? 'text-red-500/40 line-through' : 'text-on-surface-variant/90 dark:text-outline-variant/60'}`}>{info.desc}</span>
                               )}
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
@@ -7642,7 +7636,7 @@ export default function CharacterEditorView({
                   onChange={(e) => handleDemographicChange('descricaoEfeitos', e.target.value)}
                   placeholder="Efeitos..."
                   disabled={isLocked}
-                  className={`w-full h-24 bg-surface-container-lowest border border-outline-variant p-3 font-sans text-xs text-on-surface placeholder:text-outline-variant/40 focus:border-primary focus:ring-0 outline-none disabled:opacity-75 disabled:cursor-not-allowed ${editedChar.descricaoEfeitos?.length >= 300 ? '!text-red-500' : ''}`}
+                  className={`w-full h-24 bg-surface-container-lowest border border-outline-variant p-3 font-sans text-xs text-on-surface placeholder:text-on-surface-variant/70 dark:placeholder:text-outline-variant/40 focus:border-primary focus:ring-0 outline-none disabled:opacity-75 disabled:cursor-not-allowed ${editedChar.descricaoEfeitos?.length >= 300 ? '!text-red-500' : ''}`}
                 />
 {editedChar.descricaoEfeitos?.length >= 300 && (
       <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
@@ -7933,11 +7927,11 @@ export default function CharacterEditorView({
             {/* Caixa com o saldo de pontos das perícias */}
             {!isLocked && (
               <div className="bg-surface-container border border-outline-variant/40 p-3 mb-4 flex flex-col items-center justify-center gap-1.5 text-center max-w-sm mx-auto w-full">
-                <span className="text-micro uppercase tracking-widest text-outline-variant font-bold">Saldo de Perícias</span>
+                <span className="text-micro uppercase tracking-widest text-on-surface-variant dark:text-outline-variant font-bold">Saldo de Perícias</span>
                 <div className={`text-xl font-mono font-black tracking-wider ${remainingSkillsPoints < 0 ? 'text-red-500 animate-pulse' : remainingSkillsPoints === 0 ? 'text-primary' : 'text-green-400'}`}>
                   {remainingSkillsPoints} / {allowedSkillsPoints} pts
                 </div>
-                <p className="text-micro text-outline-variant/60 font-sans leading-snug">
+                <p className="text-micro text-on-surface-variant/90 dark:text-outline-variant/60 font-sans leading-snug">
                   Base Nível 1: (Idade × 10) + (Inteligência × 5){periciaExtra > 0 ? ` + ${periciaExtra} da raça` : ''}
                   {currentL > 1 && ` | +${extraPericias} bônus por nível`}
                 </p>
@@ -7971,7 +7965,7 @@ export default function CharacterEditorView({
                   <tbody className="divide-y divide-outline-variant/30 font-mono">
                     {visibleSkills.length === 0 ? (
                       <tr>
-                        <td colSpan={2} className="p-4 text-center text-outline-variant/50 text-xs italic font-sans animate-fade-in">
+                        <td colSpan={2} className="p-4 text-center text-on-surface-variant/70 dark:text-outline-variant/50 text-xs italic font-sans animate-fade-in">
                           Nenhuma perícia distribuída.
                         </td>
                       </tr>
@@ -8070,7 +8064,7 @@ export default function CharacterEditorView({
                                 // Rule 3: Technical Zero Attribute Skill
                                 <>
                                   <span className={`mr-1.5 sm:mr-2.5 ${isRemoved ? 'text-red-400/60 line-through' : 'text-on-surface/90'}`}>{skill.gasto}</span>
-                                  <span className="text-outline-variant/60 mr-1.5 sm:mr-2.5">+</span>
+                                  <span className="text-on-surface-variant/70 dark:text-outline-variant/60 mr-1.5 sm:mr-2.5">+</span>
                                   <span className={`mr-2 sm:mr-4 font-mono text-micro sm:text-xs uppercase ${isRemoved ? 'text-red-400/50 line-through' : 'text-on-surface/40'}`}>
                                     TÉC(0)
                                   </span>
@@ -8086,7 +8080,7 @@ export default function CharacterEditorView({
                                 // Rule 1: Combat Skill Display
                                 <div className="inline-flex items-center justify-end flex-nowrap">
                                   <span className={isRemoved ? 'text-red-400/60 line-through' : 'text-on-surface/90'}>{skill.atkGasto ?? 0}/{skill.defGasto ?? 0}</span>
-                                  <span className="text-outline-variant/50 mx-1">+</span>
+                                  <span className="text-on-surface-variant/70 dark:text-outline-variant/50 mx-1">+</span>
                                   <span className={`font-mono text-micro sm:text-xs uppercase mr-1 ${isRemoved ? 'text-red-400/50 line-through' : 'text-on-surface'}`}>{resolvedAttrKey}({attrVal})</span>
                                   <span className={`font-bold text-micro sm:text-xs px-1.5 sm:px-2 py-0.5 inline-block text-center rounded-sm ml-1.5 border ${
                                     isRemoved 
@@ -8100,7 +8094,7 @@ export default function CharacterEditorView({
                                 // Standard Skill Row
                                 <>
                                   <span className={`mr-1.5 sm:mr-2.5 ${isRemoved ? 'text-red-400/60 line-through' : 'text-on-surface/90'}`}>{skill.gasto}</span>
-                                  <span className="text-outline-variant/60 mr-1.5 sm:mr-2.5">+</span>
+                                  <span className="text-on-surface-variant/70 dark:text-outline-variant/60 mr-1.5 sm:mr-2.5">+</span>
                                   <span className={`mr-2 sm:mr-4 font-mono text-micro sm:text-xs uppercase ${isRemoved ? 'text-red-400/50 line-through' : 'text-on-surface'}`}>
                                     {resolvedAttrKey}({attrVal})
                                   </span>
@@ -8436,7 +8430,7 @@ export default function CharacterEditorView({
                 
                 <div className="flex-grow space-y-3 max-h-[350px] overflow-y-auto pr-1">
                   {armasFiltered.length === 0 ? (
-                    <p className="text-xs text-outline italic text-center py-6 border border-dashed border-outline-variant/20 bg-surface-container-low/20">
+                    <p className="text-xs text-on-surface-variant/70 dark:text-outline italic text-center py-6 border border-dashed border-outline-variant/20 bg-surface-container-low/20">
                       Nenhuma arma adicionada ainda.
                     </p>
                   ) : (
@@ -8625,7 +8619,7 @@ export default function CharacterEditorView({
                               const hasAcuide = hasAcuideArmaEnhancement(editedChar.aprimoramentosPositivos);
                               
                               if (acLevel === null && magicLevel === null && malditoLevel === null && (!hasAP || item.isCustom) && (!hasAcuide || item.isCustom)) {
-                                return <span className="text-micro text-outline-variant/50 italic">Nenhum efeito ativo</span>;
+                                return <span className="text-micro text-on-surface-variant/70 dark:text-outline-variant/50 italic">Nenhum efeito ativo</span>;
                               }
 
                               const renderAcertoCritico = () => {
@@ -8866,7 +8860,7 @@ export default function CharacterEditorView({
                               const aaNode = renderAcuideArma();
 
                               if (!acNode && !magicNode && !malditoNode && !apNode && !aaNode) {
-                                return <span className="text-micro text-outline-variant/50 italic">Nenhum efeito ativo</span>;
+                                return <span className="text-micro text-on-surface-variant/70 dark:text-outline-variant/50 italic">Nenhum efeito ativo</span>;
                               }
 
                               return (
@@ -8917,7 +8911,7 @@ export default function CharacterEditorView({
                     ...(editedChar.armors || []),
                     ...(originalChar?.armors || []).filter((o: any) => !(editedChar.armors || []).some(c => c.nome === o.nome))
                   ] : (editedChar.armors || [])).length === 0 && armadurasFiltered.length === 0) ? (
-                    <p className="text-xs text-outline italic text-center py-6 border border-dashed border-outline-variant/20 bg-surface-container-low/20">
+                    <p className="text-xs text-on-surface-variant/70 dark:text-outline italic text-center py-6 border border-dashed border-outline-variant/20 bg-surface-container-low/20">
                       Nenhuma armadura ou escudo.
                     </p>
                   ) : (
@@ -9288,7 +9282,7 @@ export default function CharacterEditorView({
 
                 <div className="flex-grow space-y-3 max-h-[350px] overflow-y-auto pr-1">
                   {outrosFiltered.length === 0 ? (
-                    <p className="text-xs text-outline italic text-center py-6 border border-dashed border-outline-variant/20 bg-surface-container-low/20">
+                    <p className="text-xs text-on-surface-variant/70 dark:text-outline italic text-center py-6 border border-dashed border-outline-variant/20 bg-surface-container-low/20">
                       Nenhum item na mochila.
                     </p>
                   ) : (
@@ -9628,8 +9622,8 @@ export default function CharacterEditorView({
                     const val = e.target.value;
                     setEditedChar((prev) => ({ ...prev, background: val }));
                   }}
-                  placeholder="Escreva o história deste personagem..."
-                  className="w-full bg-transparent border-none p-0 text-on-surface font-sans text-sm focus:ring-0 outline-none resize-none overflow-hidden placeholder:text-outline-variant/30 leading-relaxed font-normal"
+                  placeholder="Escreva a história deste personagem..."
+                  className="w-full bg-transparent border-none p-0 text-on-surface font-sans text-sm focus:ring-0 outline-none resize-none overflow-hidden placeholder:text-on-surface-variant/70 dark:placeholder:text-outline-variant/30 leading-relaxed font-normal"
                 />
               
               )}
@@ -9766,8 +9760,9 @@ export default function CharacterEditorView({
       </div>
 
       {/* Little Modal/Popup for 3-Dots Options */}
+    <AnimatePresence>
       {isDotsMenuOpen && (
-        <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4 animate-fadeIn">
+        <ModalOverlay className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4">
           <div className="bg-surface-container border border-outline-variant max-w-xs w-full p-5 space-y-4 shadow-2xl relative flex flex-col rounded-none">
             {/* Modal Header */}
             <div className="flex justify-between items-center border-b border-outline-variant/50 pb-2">
@@ -9905,12 +9900,14 @@ export default function CharacterEditorView({
               )}
             </div>
           </div>
-        </div>
+        </ModalOverlay>
       )}
+      </AnimatePresence>
 
       {/* Como Jogar Modal */}
+    <AnimatePresence>
       {isComoJogarModalOpen && (
-        <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4 animate-fadeIn">
+        <ModalOverlay className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4">
           <div className="bg-surface-container border border-outline-variant max-w-3xl w-full p-6 md:p-8 space-y-4 shadow-2xl relative flex flex-col rounded-none max-h-[90vh]">
             {/* Modal Header */}
             <div className="flex justify-between items-center border-b border-outline-variant/50 pb-3">
@@ -9995,7 +9992,7 @@ export default function CharacterEditorView({
                                   ul: ({node, ...props}) => <ul className="list-disc list-inside space-y-1 my-2 pl-1" {...props} />,
                                   li: ({node, ...props}) => <li className="inline-block w-full list-item" {...props} />,
                                   strong: ({node, ...props}) => <strong className="text-on-surface font-semibold" {...props} />,
-                                  blockquote: ({node, ...props}) => <blockquote className="border-l-2 border-primary pl-3 my-2.5 italic text-outline-variant/80 bg-black/20 py-1 pr-2" {...props} />,
+                                  blockquote: ({node, ...props}) => <blockquote className="border-l-2 border-primary pl-3 my-2.5 italic text-on-surface-variant/90 dark:text-outline-variant/80 bg-black/5 dark:bg-black/20 py-1 pr-2" {...props} />,
                                   hr: ({node, ...props}) => <hr className="border-outline-variant/20 my-3" {...props} />,
                                 }}
                               >
@@ -10011,12 +10008,14 @@ export default function CharacterEditorView({
               </div>
             </div>
           </div>
-        </div>
+        </ModalOverlay>
       )}
+      </AnimatePresence>
 
       {/* Regras de Criação Modal */}
+    <AnimatePresence>
       {isRegrasCriacaoModalOpen && (
-        <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4 animate-fadeIn">
+        <ModalOverlay className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4">
           <div className="bg-surface-container border border-outline-variant max-w-lg w-full p-6 space-y-4 shadow-2xl relative flex flex-col rounded-none max-h-[90vh]">
             {/* Modal Header */}
             <div className="flex justify-between items-center border-b border-outline-variant/50 pb-3">
@@ -10053,12 +10052,14 @@ export default function CharacterEditorView({
               </ReactMarkdown>
             </div>
           </div>
-        </div>
+        </ModalOverlay>
       )}
+      </AnimatePresence>
 
       {/* Grimório Modal */}
+    <AnimatePresence>
       {isGrimorioModalOpen && (
-        <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4 animate-fadeIn">
+        <ModalOverlay className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4">
           <div className="bg-surface-container border border-outline-variant max-w-2xl w-full md:h-[85vh] md:max-h-[85vh] p-6 space-y-4 shadow-2xl relative flex flex-col rounded-none max-h-[90vh]">
             
             {/* Modal Header */}
@@ -10915,7 +10916,7 @@ export default function CharacterEditorView({
                               {/* Magic Details tags */}
                               <div className="flex flex-wrap gap-x-3 gap-y-1 text-micro font-mono text-on-surface-variant/80 mb-3 border-b border-outline-variant/20 pb-2">
                                 {spell.focus && <span>Foco: <strong className="text-on-surface">{spell.focus}</strong></span>}
-                                {spell.cost && <span>Custo: <strong className="text-[#ffe082]">{spell.cost}</strong></span>}
+                                {spell.cost && <span>Custo: <strong className="text-amber-600 dark:text-[#ffe082]">{spell.cost}</strong></span>}
                                 {spell.range && <span>Alcance: <strong className="text-on-surface">{spell.range}</strong></span>}
                                 {spell.duration && <span>Dur: <strong className="text-on-surface">{spell.duration}</strong></span>}
                               </div>
@@ -10935,8 +10936,9 @@ export default function CharacterEditorView({
 
             </div>
           </div>
-        </div>
+        </ModalOverlay>
       )}
+      </AnimatePresence>
 
       {/* Spell Delete Confirmation Modal */}
       <ConfirmDeleteModal
@@ -10956,8 +10958,9 @@ export default function CharacterEditorView({
       />
 
       {/* Portrait Custom Modal */}
+    <AnimatePresence>
       {isPortraitModalOpen && (
-        <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4 animate-fadeIn">
+        <ModalOverlay className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4">
           <div className="bg-surface-container border border-outline-variant max-w-sm w-full p-6 space-y-6 shadow-2xl relative flex flex-col rounded-none">
             {/* Modal Header */}
             <div className="flex justify-between items-center border-b border-outline-variant/50 pb-3">
@@ -10978,7 +10981,7 @@ export default function CharacterEditorView({
               {!modalPortraitUrl ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center p-4 bg-surface-container-low">
                   <span className="material-symbols-outlined text-primary text-3xl">upload</span>
-                  <span className="text-caption font-sans font-bold tracking-wider text-outline uppercase">
+                  <span className="text-caption font-sans font-bold tracking-wider text-on-surface-variant/70 dark:text-outline uppercase">
                     Sem imagem definida
                   </span>
                 </div>
@@ -11044,7 +11047,7 @@ export default function CharacterEditorView({
                     handleDemographicChange('portraitUrl', e.target.value);
                   }}
                   placeholder="Cole a URL da Imagem personalizada..."
-                  className={`w-full bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2.5 placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none ${modalPortraitUrl?.length >= 50 ? '!text-red-500' : ''}`}
+                  className={`w-full bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2.5 placeholder:text-on-surface-variant/70 dark:placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none ${modalPortraitUrl?.length >= 50 ? '!text-red-500' : ''}`}
                 />
 {modalPortraitUrl?.length >= 50 && (
       <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
@@ -11064,12 +11067,14 @@ export default function CharacterEditorView({
               Confirmar Retrato
             </button>
           </div>
-        </div>
+        </ModalOverlay>
       )}
+      </AnimatePresence>
 
       {/* Enhancements Selection Modal */}
+    <AnimatePresence>
       {isEnhancementModalOpen && (
-        <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4 animate-fadeIn">
+        <ModalOverlay className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4">
           <div className="bg-surface-container border border-outline-variant max-w-lg w-full p-6 space-y-4 shadow-2xl relative flex flex-col rounded-none max-h-[90vh]">
             {/* Modal Header */}
             <div className="flex justify-between items-center border-b border-outline-variant/50 pb-3">
@@ -11104,7 +11109,7 @@ export default function CharacterEditorView({
                   setSelectedEnhancement(null);
                 }}
                 placeholder="Ex: Ambidestria, Alergia..."
-                className={`w-full bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2.5 placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none ${enhancementSearchQuery?.length >= 50 ? '!text-red-500' : ''}`}
+                className={`w-full bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2.5 placeholder:text-on-surface-variant/70 dark:placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none ${enhancementSearchQuery?.length >= 50 ? '!text-red-500' : ''}`}
               />
 {enhancementSearchQuery?.length >= 50 && (
       <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
@@ -11127,7 +11132,7 @@ export default function CharacterEditorView({
                     </span>
                     
                     {!selectedEnhancement.tem_niveis && selectedEnhancement.descricao && (
-                      <p className="text-xs text-outline-variant mt-2 leading-relaxed">
+                      <p className="text-xs text-on-surface-variant/90 dark:text-outline-variant mt-2 leading-relaxed">
                         {selectedEnhancement.descricao}
                       </p>
                     )}
@@ -11158,7 +11163,7 @@ export default function CharacterEditorView({
                                 {enhancementModalType === 'POSITIVO' ? '-' : '+'}{lvl.custo} pts
                               </span>
                             </div>
-                            <span className="text-micro text-outline-variant leading-tight">
+                            <span className="text-micro text-on-surface-variant/90 dark:text-outline-variant leading-tight">
                               {lvl.descricao}
                             </span>
                           </button>
@@ -11291,7 +11296,7 @@ export default function CharacterEditorView({
 
                     if (filtered.length === 0) {
                       return (
-                        <div className="text-center py-8 text-xs text-outline-variant/40 italic">
+                        <div className="text-center py-8 text-xs text-on-surface-variant/70 dark:text-outline-variant/40 italic">
                           Nenhum aprimoramento correspondente encontrado.
                         </div>
                       );
@@ -11338,7 +11343,7 @@ export default function CharacterEditorView({
                         >
                           <div className="space-y-1 flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className={`text-xs font-bold block truncate ${isAlreadyChosen ? 'text-outline-variant' : 'text-on-surface group-hover:text-primary transition-colors'}`}>
+                              <span className={`text-xs font-bold block truncate ${isAlreadyChosen ? 'text-on-surface-variant/60 dark:text-outline-variant' : 'text-on-surface group-hover:text-primary transition-colors'}`}>
                                 {item.name}
                               </span>
                               {isAlreadyChosen && (
@@ -11348,12 +11353,12 @@ export default function CharacterEditorView({
                               )}
                             </div>
                             {!item.tem_niveis && item.descricao && (
-                              <p className="text-micro text-outline-variant/80 line-clamp-2 leading-tight">
+                              <p className="text-micro text-on-surface-variant/90 dark:text-outline-variant/80 line-clamp-2 leading-tight">
                                 {item.descricao}
                               </p>
                             )}
                             {item.tem_niveis && (
-                              <span className="text-micro uppercase tracking-wider font-bold text-outline-variant/60 block">
+                              <span className="text-micro uppercase tracking-wider font-bold text-on-surface-variant/90 dark:text-outline-variant/60 block">
                                 Possui {item.niveis?.length} níveis
                               </span>
                             )}
@@ -11369,13 +11374,15 @@ export default function CharacterEditorView({
               )}
             </div>
           </div>
-        </div>
+        </ModalOverlay>
       )}
+      </AnimatePresence>
 
       {/* Perícias Selection & Creation Modal */}
+    <AnimatePresence>
       {isPericiasModalOpen && (
-        <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-surface-container border border-outline-variant max-w-5xl w-full p-4 md:p-8 shadow-2xl relative flex flex-col rounded-none h-[92vh] max-h-[92vh] md:h-auto md:max-h-[92vh]">
+        <ModalOverlay className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4">
+          <div className="bg-surface-container border border-outline-variant max-w-5xl lg:max-w-[1400px] w-full p-4 lg:px-8 lg:pt-8 lg:pb-4 shadow-2xl relative flex flex-col rounded-none h-[92vh] max-h-[92vh] lg:h-[94vh] lg:max-h-[94vh]">
             
             {/* Modal Header - FIRST Element */}
             <div className="flex flex-col gap-3 pb-3 border-b border-outline-variant/50 shrink-0">
@@ -11400,7 +11407,7 @@ export default function CharacterEditorView({
             </div>
 
             {/* Navigation Tabs (Mobile ONLY) - SECOND Element */}
-            <div className="flex md:hidden border border-outline-variant/30 bg-surface-container p-1 rounded-none shrink-0 mb-3 mt-3">
+            <div className="flex lg:hidden border border-outline-variant/30 bg-surface-container p-1 rounded-none shrink-0 mb-3 mt-3">
               <button
                 type="button"
                 onClick={() => setActiveMobileTab('adicionar')}
@@ -11426,11 +11433,11 @@ export default function CharacterEditorView({
             </div>
 
             {/* Dual Column / Responsive Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 overflow-hidden min-h-0 flex-grow py-3">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden min-h-0 flex-grow py-3">
               
               {/* Column 1: Catalog & Creation */}
-              <div className={`md:col-span-5 flex flex-col space-y-4 min-h-0 ${activeMobileTab === 'adicionar' ? 'flex' : 'hidden md:flex'}`}>
-                <h4 className="hidden md:flex text-micro font-sans font-bold text-outline-variant uppercase tracking-widest border-b border-outline-variant/30 pb-1 items-center gap-1.5 shrink-0">
+              <div className={`lg:col-span-5 flex flex-col space-y-4 min-h-0 ${activeMobileTab === 'adicionar' ? 'flex' : 'hidden lg:flex'}`}>
+                <h4 className="hidden lg:flex text-micro font-sans font-bold text-on-surface-variant/90 dark:text-outline-variant uppercase tracking-widest border-b border-outline-variant/30 pb-1 items-center gap-1.5 shrink-0">
                   <span className="material-symbols-outlined text-xs">search</span>
                   1. Buscar ou Criar Perícias
                 </h4>
@@ -11443,7 +11450,7 @@ export default function CharacterEditorView({
                       <button 
                         type="button"
                         onClick={() => setShowCreatePericiaForm(false)}
-                        className="text-micro text-outline-variant hover:text-on-surface underline font-sans min-h-[32px] px-2 flex items-center"
+                        className="text-micro text-on-surface-variant/80 dark:text-outline-variant hover:text-on-surface underline font-sans min-h-[32px] px-2 flex items-center"
                       >
                         Cancelar
                       </button>
@@ -11458,7 +11465,7 @@ export default function CharacterEditorView({
                         value={newPericiaName}
                         onChange={(e) => setNewPericiaName(e.target.value)}
                         placeholder="Ex: Alquimia Proibida..."
-                        className={`w-full bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2 placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none min-h-[44px] ${newPericiaName?.length >= 50 ? '!text-red-500' : ''}`}
+                        className={`w-full bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2 placeholder:text-on-surface-variant/70 dark:placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none min-h-[44px] ${newPericiaName?.length >= 50 ? '!text-red-500' : ''}`}
                       />
 {newPericiaName?.length >= 50 && (
       <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
@@ -11498,7 +11505,7 @@ export default function CharacterEditorView({
                         onChange={(e) => setNewPericiaDesc(e.target.value)}
                         placeholder="Descreva o propósito e regras de uso desta perícia..."
                         rows={3}
-                        className={`w-full flex-grow bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2 placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none resize-none min-h-[60px] ${newPericiaDesc?.length >= 300 ? '!text-red-500' : ''}`}
+                        className={`w-full flex-grow bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2 placeholder:text-on-surface-variant/70 dark:placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none resize-none min-h-[60px] ${newPericiaDesc?.length >= 300 ? '!text-red-500' : ''}`}
                       />
 {newPericiaDesc?.length >= 300 && (
       <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
@@ -11530,7 +11537,7 @@ export default function CharacterEditorView({
                   /* Search & List View */
                   <div className="flex flex-col space-y-3 min-h-0 flex-grow h-full">
                     {/* Filtros (search + tags) - Mobile ONLY collapsible filters */}
-                    <div className="block md:hidden shrink-0">
+                    <div className="block lg:hidden shrink-0">
                       <button
                         type="button"
                         onClick={() => setShowMobileFilters(!showMobileFilters)}
@@ -11565,7 +11572,7 @@ export default function CharacterEditorView({
                               value={periciaSearchQuery}
                               onChange={(e) => setPericiaSearchQuery(e.target.value)}
                               placeholder="Filtrar por nome de perícia..."
-                              className={`w-full bg-surface-container border border-outline-variant text-caption text-on-surface px-2.5 py-1.5 placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none pl-8 min-h-[32px] ${periciaSearchQuery?.length >= 50 ? '!text-red-500' : ''}`}
+                              className={`w-full bg-surface-container border border-outline-variant text-caption text-on-surface px-2.5 py-1.5 placeholder:text-on-surface-variant/70 dark:placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none pl-8 min-h-[32px] ${periciaSearchQuery?.length >= 50 ? '!text-red-500' : ''}`}
                             />
 {periciaSearchQuery?.length >= 50 && (
       <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
@@ -11574,7 +11581,7 @@ export default function CharacterEditorView({
     )}
 </>
               
-                            <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline-variant/50 text-[13px]">
+                            <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant/70 dark:text-outline-variant/50 text-[13px]">
                               search
                             </span>
                           </div>
@@ -11611,14 +11618,15 @@ export default function CharacterEditorView({
                     </div>
 
                     {/* Search Input (Desktop ONLY) */}
-                    <div className="hidden md:block relative shrink-0">
+                    <div className="flex gap-2 shrink-0">
+                    <div className="hidden lg:block relative flex-1 min-w-0">
                       <>
 <input maxLength={50}
                         type="text"
                         value={periciaSearchQuery}
                         onChange={(e) => setPericiaSearchQuery(e.target.value)}
                         placeholder="Filtrar por nome de perícia..."
-                        className={`w-full bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2 placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none pl-9 min-h-[44px] ${periciaSearchQuery?.length >= 50 ? '!text-red-500' : ''}`}
+                        className={`w-full bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2 placeholder:text-on-surface-variant/70 dark:placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none pl-9 min-h-[44px] ${periciaSearchQuery?.length >= 50 ? '!text-red-500' : ''}`}
                       />
 {periciaSearchQuery?.length >= 50 && (
       <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
@@ -11627,23 +11635,24 @@ export default function CharacterEditorView({
     )}
 </>
               
-                      <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline-variant/50 text-base">
+                      <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant/70 dark:text-outline-variant/50 text-base">
                         search
                       </span>
                     </div>
-
                     {/* Action: Toggle Create Custom Skill */}
                     <button
                       type="button"
                       onClick={() => setShowCreatePericiaForm(true)}
-                      className="w-full py-1.5 max-md:py-1 border border-dashed border-primary/30 hover:border-primary/60 bg-surface-container/5 hover:bg-surface-container/10 text-micro font-sans text-primary uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 rounded-none cursor-pointer shrink-0 min-h-[32px] md:min-h-[44px]"
+                      className="w-full lg:w-auto lg:shrink-0 lg:whitespace-nowrap lg:px-4 py-1.5 max-lg:py-1 border border-dashed border-primary/30 hover:border-primary/60 bg-surface-container/5 hover:bg-surface-container/10 text-micro font-sans text-primary uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 rounded-none cursor-pointer shrink-0 min-h-[32px] lg:min-h-[44px]"
                     >
                       <span className="material-symbols-outlined text-xs">add</span>
-                      Criar perícia personalizada
+                      Criar perícia
                     </button>
+                    </div>
+
 
                     {/* Filtros Rápidos (Desktop ONLY) */}
-                    <div className="hidden md:flex flex-wrap gap-1.5 pb-2 shrink-0 border-b border-outline-variant/15">
+                    <div className="hidden lg:flex flex-nowrap gap-1 pb-2 shrink-0 border-b border-outline-variant/15 overflow-x-auto custom-scrollbar">
                       {[
                         { id: 'all', label: 'Todos' },
                         { id: 'combate', label: 'Combate' },
@@ -11657,7 +11666,7 @@ export default function CharacterEditorView({
                           key={pill.id}
                           type="button"
                           onClick={() => setCatalogFilter(pill.id)}
-                          className={`px-3 py-1 text-micro font-sans font-bold uppercase tracking-wider rounded-full transition-all border min-h-[32px] whitespace-nowrap cursor-pointer flex items-center justify-center ${
+                          className={`px-2 py-0.5 text-[10px] font-sans font-bold uppercase tracking-normal rounded-full transition-all border min-h-[26px] whitespace-nowrap shrink-0 cursor-pointer flex items-center justify-center ${
                             catalogFilter === pill.id
                               ? 'bg-primary border-transparent text-on-primary font-black'
                               : 'bg-transparent border-outline-variant/40 text-outline hover:border-outline-variant/80 hover:text-on-surface'
@@ -11669,7 +11678,7 @@ export default function CharacterEditorView({
                     </div>
 
                     {/* Main Scrollable Content Area */}
-                    <div className="flex-grow overflow-y-auto min-h-[250px] max-md:max-h-none max-md:flex-grow max-md:min-h-0 md:max-h-[50vh] pr-1 space-y-2 custom-scrollbar">
+                    <div className="flex-grow overflow-y-auto min-h-[250px] max-lg:max-h-none max-lg:flex-grow max-lg:min-h-0 lg:max-h-none pr-1 space-y-2 custom-scrollbar">
                       {(() => {
                         const filtered = mockPericias.filter((item) => {
                           if (periciaSearchQuery.trim() && !item.nome.toLowerCase().includes(periciaSearchQuery.toLowerCase())) {
@@ -11685,7 +11694,7 @@ export default function CharacterEditorView({
 
                         if (filtered.length === 0) {
                           return (
-                            <div className="text-center py-10 text-xs text-outline-variant/40 italic">
+                            <div className="text-center py-10 text-xs text-on-surface-variant/70 dark:text-outline-variant/40 italic">
                               Nenhuma perícia encontrada para os filtros aplicados.
                             </div>
                           );
@@ -11724,23 +11733,23 @@ export default function CharacterEditorView({
                                   if (isAlreadyChosen) return;
                                   setExpandedCatalogSkill(isExpanded ? null : item.nome);
                                 }}
-                                className={`flex items-center justify-between p-2.5 md:p-3 select-none min-h-[38px] md:min-h-[44px] ${
+                                className={`flex items-center justify-between p-2.5 lg:p-3 select-none min-h-[38px] lg:min-h-[44px] ${
                                   !isAlreadyChosen ? 'cursor-pointer hover:bg-primary/5' : 'cursor-not-allowed'
                                 }`}
                               >
                                 <div className="flex flex-col">
                                   <div className="flex items-center gap-2">
-                                    <span className={`text-xs font-bold ${isAlreadyChosen ? 'text-outline-variant' : 'text-on-surface'}`}>
+                                    <span className={`text-xs font-bold ${isAlreadyChosen ? 'text-on-surface-variant/60 dark:text-outline-variant' : 'text-on-surface'}`}>
                                       {item.nome}
                                     </span>
                                     {isAlreadyChosen && (
-                                      <span className="text-micro bg-outline-variant/20 text-outline px-1.5 py-0.5 rounded-sm font-sans font-bold uppercase tracking-wider">
+                                      <span className="text-micro bg-on-surface-variant/10 dark:bg-outline-variant/20 text-on-surface-variant/90 dark:text-outline px-1.5 py-0.5 rounded-sm font-sans font-bold uppercase tracking-wider">
                                         Adicionada
                                       </span>
                                     )}
                                   </div>
                                   {item.atributo_base !== '0' && (
-                                    <span className="text-micro font-mono text-outline-variant uppercase tracking-wider block">
+                                    <span className="text-micro font-mono text-on-surface-variant/90 dark:text-outline-variant uppercase tracking-wider block">
                                       {item.atributo_base}
                                     </span>
                                   )}
@@ -11754,14 +11763,14 @@ export default function CharacterEditorView({
                                         e.stopPropagation();
                                         handleAddSelectedSkill(item.nome, item.atributo_base);
                                       }}
-                                      className="bg-primary hover:bg-surface-container/90 text-on-primary px-2.5 md:px-3 py-1 md:py-1.5 text-micro md:text-micro font-bold uppercase tracking-wider transition-colors rounded-none border border-transparent flex items-center gap-1 min-h-[32px] md:min-h-[44px] min-w-[70px] md:min-w-[80px] justify-center cursor-pointer"
+                                      className="bg-primary hover:bg-surface-container/90 text-on-primary px-2.5 lg:px-3 py-1 lg:py-1.5 text-micro lg:text-micro font-bold uppercase tracking-wider transition-colors rounded-none border border-transparent flex items-center gap-1 min-h-[32px] lg:min-h-[44px] min-w-[70px] lg:min-w-[80px] justify-center cursor-pointer"
                                     >
-                                      <span className="material-symbols-outlined text-micro md:text-caption font-bold">add</span>
+                                      <span className="material-symbols-outlined text-micro lg:text-caption font-bold">add</span>
                                       Adicionar
                                     </button>
                                   )}
                                   {!isAlreadyChosen && (
-                                    <span className="material-symbols-outlined text-outline-variant/60 text-sm transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                                    <span className="material-symbols-outlined text-on-surface-variant/70 dark:text-outline-variant/60 text-sm transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                                       expand_more
                                     </span>
                                   )}
@@ -11771,7 +11780,7 @@ export default function CharacterEditorView({
                               {/* Card Content (Description) */}
                               {isExpanded && !isAlreadyChosen && item.descricao && (
                                 <div className="px-3 pb-3 border-t border-outline-variant/10 pt-2 bg-surface-container/60 animate-fadeIn">
-                                  <p className="text-micro text-outline-variant/80 leading-relaxed font-sans">
+                                  <p className="text-micro text-on-surface-variant/90 dark:text-outline-variant/80 leading-relaxed font-sans">
                                     {item.descricao}
                                   </p>
                                 </div>
@@ -11786,8 +11795,8 @@ export default function CharacterEditorView({
               </div>
 
               {/* Column 2: Points Distribution */}
-              <div className={`md:col-span-7 flex flex-col space-y-4 min-h-0 md:border-l border-outline-variant/30 md:pl-6 ${activeMobileTab === 'minhas' ? 'flex' : 'hidden md:flex'}`}>
-                <h4 className="hidden md:flex text-micro font-sans font-bold text-outline-variant uppercase tracking-widest border-b border-outline-variant/30 pb-1 items-center gap-1.5 shrink-0">
+              <div className={`lg:col-span-7 flex flex-col space-y-4 min-h-0 lg:border-l border-outline-variant/30 lg:pl-6 ${activeMobileTab === 'minhas' ? 'flex' : 'hidden lg:flex'}`}>
+                <h4 className="hidden lg:flex text-micro font-sans font-bold text-on-surface-variant/90 dark:text-outline-variant uppercase tracking-widest border-b border-outline-variant/30 pb-1 items-center gap-1.5 shrink-0">
                   <span className="material-symbols-outlined text-xs">edit_note</span>
                   2. Distribuir Pontos
                 </h4>
@@ -11809,7 +11818,7 @@ export default function CharacterEditorView({
                     <div className="bg-surface-container border border-outline-variant/40 p-2.5 flex justify-between items-center gap-2 text-xs shrink-0 rounded-none">
                       <div className="flex gap-4">
                         <div className="flex flex-col">
-                          <span className="text-micro uppercase tracking-wider text-outline-variant font-bold block">Pontos de perícia</span>
+                          <span className="text-micro uppercase tracking-wider text-on-surface-variant dark:text-outline-variant font-bold block">Pontos de perícia</span>
                           <span className={`text-sm font-mono font-black ${tempRemaining < 0 ? 'text-red-500 animate-pulse' : tempRemaining === 0 ? 'text-primary' : 'text-green-400'}`}>
                             {tempRemaining}  /  {calculatedPointsMax}
                           </span>
@@ -11823,7 +11832,7 @@ export default function CharacterEditorView({
                           </div>
                         )}
                       </div>
-                      <div className="text-right text-micro text-outline-variant/40 font-mono">
+                      <div className="text-right text-micro text-on-surface-variant/70 dark:text-outline-variant/40 font-mono">
                         <span>Fórmula: (Idade × 10) + (INT × 5)</span>
                       </div>
                     </div>
@@ -11831,9 +11840,9 @@ export default function CharacterEditorView({
                 })()}
 
                 {/* Selected Skills Collapsible Cards Container */}
-                <div className="flex-grow overflow-y-auto border border-outline-variant/30 bg-surface-container/40 custom-scrollbar min-h-[250px] max-md:max-h-none max-md:flex-grow max-md:min-h-0 md:max-h-[50vh] p-2 space-y-2">
+                <div className="flex-grow overflow-y-auto border border-outline-variant/30 bg-surface-container/40 custom-scrollbar min-h-[250px] max-lg:max-h-none max-lg:flex-grow max-lg:min-h-0 lg:max-h-none p-2 space-y-2">
                   {tempSkills.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full p-8 text-center text-outline-variant/50 text-xs italic font-sans gap-2 py-12">
+                    <div className="flex flex-col items-center justify-center h-full p-8 text-center text-on-surface-variant/70 dark:text-outline-variant/50 text-xs italic font-sans gap-2 py-12">
                       <span className="material-symbols-outlined text-3xl text-outline-variant/20 animate-pulse">list_alt</span>
                       <span>Selecione perícias na lista de catálogo para distribuir pontos aqui.</span>
                     </div>
@@ -11881,7 +11890,7 @@ export default function CharacterEditorView({
                             onClick={() => {
                               setExpandedMySkill(isMySkillExpanded ? null : skill.group + (skill.chosenSubgroup || ''));
                             }}
-                            className="flex items-center justify-between p-2.5 md:p-3 cursor-pointer select-none min-h-[38px] md:min-h-[44px] hover:bg-white/5"
+                            className="flex items-center justify-between p-2.5 lg:p-3 cursor-pointer select-none min-h-[38px] lg:min-h-[44px] hover:bg-white/5"
                           >
                             <div className="flex flex-col max-w-[50%]">
                               {skill.subgrupos && skill.subgrupos.length > 0 ? (
@@ -11890,7 +11899,7 @@ export default function CharacterEditorView({
                                   <span className="font-bold text-on-surface text-xs whitespace-normal break-words">
                                     {skill.group}
                                   </span>
-                                  <span className="text-outline-variant/50 text-xs">→</span>
+                                  <span className="text-on-surface-variant/70 dark:text-outline-variant/50 text-xs">→</span>
                                   <CustomSelect
                                     value={skill.chosenSubgroup || ''}
                                     onChange={(e) => {
@@ -11946,7 +11955,7 @@ export default function CharacterEditorView({
                               )}
                               
                               {resolvedAttrKey ? (
-                                <span className="text-micro font-mono text-outline-variant uppercase tracking-wider block mt-0.5">
+                                <span className="text-micro font-mono text-on-surface-variant/90 dark:text-outline-variant uppercase tracking-wider block mt-0.5">
                                   {resolvedAttrKey}
                                   {familiarBonus > 0 && ` (+${familiarBonus}% Familiar)`}
                                   {corpoMaleavelBonus > 0 && ` (+10% Corpo Maleável)`}
@@ -11989,13 +11998,13 @@ export default function CharacterEditorView({
                                   e.stopPropagation();
                                   handleRemoveTempSkill(idx);
                                 }}
-                                className="text-outline-variant hover:text-red-400 p-1.5 transition-all cursor-pointer inline-flex items-center justify-center min-h-[34px] md:min-h-[44px] min-w-[34px] md:min-w-[44px] rounded-none"
+                                className="text-outline-variant hover:text-red-400 p-1.5 transition-all cursor-pointer inline-flex items-center justify-center min-h-[34px] lg:min-h-[44px] min-w-[34px] lg:min-w-[44px] rounded-none"
                                 title="Remover Perícia"
                               >
                                 <span className="material-symbols-outlined text-base">delete</span>
                               </button>
 
-                              <span className="material-symbols-outlined text-outline-variant/60 text-sm transition-transform duration-200" style={{ transform: isMySkillExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                              <span className="material-symbols-outlined text-on-surface-variant/90 dark:text-outline-variant/60 text-sm transition-transform duration-200" style={{ transform: isMySkillExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                                 expand_more
                               </span>
                             </div>
@@ -12012,7 +12021,7 @@ export default function CharacterEditorView({
                                     {/* Points distribution */}
                                     {!skill.isCustomBuild ? (
                                       <div className="flex flex-col gap-1.5">
-                                        <span className="text-micro font-sans font-bold text-outline-variant uppercase tracking-wider">Pontos Totais para Distribuir:</span>
+                                        <span className="text-micro font-sans font-bold text-on-surface-variant/90 dark:text-outline-variant uppercase tracking-wider">Pontos Totais para Distribuir:</span>
                                         <div className="flex items-center">
                                           <button
                                             type="button"
@@ -12057,7 +12066,7 @@ export default function CharacterEditorView({
                                       <div className="flex gap-4">
                                         {/* ATK spent input */}
                                         <div className="flex flex-col gap-1 flex-1">
-                                          <span className="text-micro font-sans font-bold text-outline-variant uppercase tracking-wider text-center">ATAQUE (Pontos)</span>
+                                          <span className="text-micro font-sans font-bold text-on-surface-variant/90 dark:text-outline-variant uppercase tracking-wider text-center">ATAQUE (Pontos)</span>
                                           <div className="flex items-center justify-center">
                                             <button
                                               type="button"
@@ -12129,7 +12138,7 @@ export default function CharacterEditorView({
 
                                         {/* DEF spent input */}
                                         <div className="flex flex-col gap-1 flex-1">
-                                          <span className="text-micro font-sans font-bold text-outline-variant uppercase tracking-wider text-center">DEFESA (Pontos)</span>
+                                          <span className="text-micro font-sans font-bold text-on-surface-variant/90 dark:text-outline-variant uppercase tracking-wider text-center">DEFESA (Pontos)</span>
                                           <div className="flex items-center justify-center">
                                             <button
                                               type="button"
@@ -12205,7 +12214,7 @@ export default function CharacterEditorView({
                                   {/* Slider Control (Simple mode only) */}
                                   {!skill.isCustomBuild && (
                                     <div className="space-y-1.5 bg-surface-container p-2.5 border border-outline-variant/10">
-                                      <div className="flex justify-between items-center text-micro font-mono text-outline-variant">
+                                      <div className="flex justify-between items-center text-micro font-mono text-on-surface-variant dark:text-outline-variant">
                                         <span>ATK: {skill.sliderVal ?? 50}%</span>
                                         <span>DEF: {100 - (skill.sliderVal ?? 50)}%</span>
                                       </div>
@@ -12239,7 +12248,7 @@ export default function CharacterEditorView({
 
                                   {/* Checkbox "Custom build" and summary */}
                                   <div className="flex flex-col gap-2 pt-2 border-t border-outline-variant/10">
-                                    <label className="flex items-center gap-2 text-xs text-outline-variant cursor-pointer min-h-[44px]">
+                                    <label className="flex items-center gap-2 text-xs text-on-surface-variant dark:text-outline-variant cursor-pointer min-h-[44px]">
                                       <input
                                         type="checkbox"
                                         checked={!!skill.isCustomBuild}
@@ -12269,11 +12278,11 @@ export default function CharacterEditorView({
                                     </label>
 
                                     {resolvedAttrKey ? (
-                                      <div className="text-micro text-outline-variant/75 font-sans leading-relaxed bg-surface-container/40 p-2 border border-outline-variant/10">
+                                      <div className="text-micro text-on-surface-variant/90 dark:text-outline-variant/75 font-sans leading-relaxed bg-surface-container/40 p-2 border border-outline-variant/10">
                                         Cálculo: Atributo {resolvedAttrKey} ({attrVal}) + Gasto (ATK: {skill.atkGasto ?? 0} / DEF: {skill.defGasto ?? 0}){obraPrimaBonus > 0 ? " + Obra-prima (+10%)" : ""}{magicWeaponAtkDefBonus > 0 ? ` + Mágico (+${magicWeaponAtkDefBonus}%)` : ""}{armaPreferencialBonus > 0 ? ` + Arma Preferencial (+${Math.floor(armaPreferencialBonus / 2)}%)` : ""}{corpoMaleavelBonus > 0 ? " + Corpo Maleável (+10%)" : ""}{tempRacialBonus > 0 ? ` + Raça (+${tempRacialBonus}%)` : ""} = <span className="text-primary font-bold">{totalAtk}% ATK / {totalDef}% DEF</span>
                                       </div>
                                     ) : (
-                                      <div className="text-micro text-outline-variant/75 font-sans leading-relaxed bg-surface-container/40 p-2 border border-outline-variant/10">
+                                      <div className="text-micro text-on-surface-variant/90 dark:text-outline-variant/75 font-sans leading-relaxed bg-surface-container/40 p-2 border border-outline-variant/10">
                                         Cálculo: Perícia Técnica (0) + Gasto (ATK: {skill.atkGasto ?? 0} / DEF: {skill.defGasto ?? 0}){obraPrimaBonus > 0 ? " + Obra-prima (+10%)" : ""}{magicWeaponAtkDefBonus > 0 ? ` + Mágico (+${magicWeaponAtkDefBonus}%)` : ""}{armaPreferencialBonus > 0 ? ` + Arma Preferencial (+${Math.floor(armaPreferencialBonus / 2)}%)` : ""}{corpoMaleavelBonus > 0 ? " + Corpo Maleável (+10%)" : ""}{tempRacialBonus > 0 ? ` + Raça (+${tempRacialBonus}%)` : ""} = <span className="text-primary font-bold">{totalAtk}% ATK / {totalDef}% DEF</span>
                                       </div>
                                     )}
@@ -12283,7 +12292,7 @@ export default function CharacterEditorView({
                                 // Common skill view
                                 <div className="space-y-3">
                                   <div className="flex flex-col gap-1.5">
-                                    <span className="text-micro font-sans font-bold text-outline-variant uppercase tracking-wider">Distribuir Pontos:</span>
+                                    <span className="text-micro font-sans font-bold text-on-surface-variant/90 dark:text-outline-variant uppercase tracking-wider">Distribuir Pontos:</span>
                                     <div className="flex items-center justify-start">
                                       <button
                                         type="button"
@@ -12331,11 +12340,11 @@ export default function CharacterEditorView({
                                   </div>
 
                                   {resolvedAttrKey ? (
-                                    <div className="text-micro text-outline-variant/75 font-sans leading-relaxed pt-2 border-t border-outline-variant/10">
+                                    <div className="text-micro text-on-surface-variant/90 dark:text-outline-variant/75 font-sans leading-relaxed pt-2 border-t border-outline-variant/10">
                                       Cálculo: Atributo {resolvedAttrKey} ({attrVal}) + Pontos Gastos ({Number(skill.gasto) || 0}){obraPrimaBonus > 0 ? " + Obra-prima (+10%)" : ""}{magicWeaponBonus > 0 ? ` + Mágico (+${magicWeaponBonus}%)` : ""}{armaPreferencialBonus > 0 ? ` + Arma Preferencial (+${armaPreferencialBonus}%)` : ""}{corpoMaleavelBonus > 0 ? " + Corpo Maleável (+10%)" : ""}{tempRacialBonus > 0 ? ` + Raça (+${tempRacialBonus}%)` : ""} = <span className="text-primary font-bold">{totalVal}%</span>
                                     </div>
                                   ) : (
-                                    <div className="text-micro text-outline-variant/75 font-sans leading-relaxed pt-2 border-t border-outline-variant/10">
+                                    <div className="text-micro text-on-surface-variant/90 dark:text-outline-variant/75 font-sans leading-relaxed pt-2 border-t border-outline-variant/10">
                                       Cálculo: Perícia Técnica (0) + Pontos Gastos ({Number(skill.gasto) || 0}){obraPrimaBonus > 0 ? " + Obra-prima (+10%)" : ""}{magicWeaponBonus > 0 ? ` + Mágico (+${magicWeaponBonus}%)` : ""}{armaPreferencialBonus > 0 ? ` + Arma Preferencial (+${armaPreferencialBonus}%)` : ""}{corpoMaleavelBonus > 0 ? " + Corpo Maleável (+10%)" : ""}{tempRacialBonus > 0 ? ` + Raça (+${tempRacialBonus}%)` : ""} = <span className="text-primary font-bold">{totalVal}%</span>
                                     </div>
                                   )}
@@ -12373,20 +12382,22 @@ export default function CharacterEditorView({
             </div>
 
             {/* Modal Footer Controls */}
-            <div className="flex justify-end pt-4 border-t border-outline-variant/40 shrink-0">
+            <div className="flex justify-end items-center pt-4 lg:pt-3 border-t border-outline-variant/40 shrink-0">
               <SaveButton
                 onClick={handleSavePericiasModal}
                 label="Salvar Distribuição"
-                className="w-full md:w-auto min-h-[38px] md:min-h-[44px]"
+                className="w-full lg:w-auto min-h-[38px] lg:min-h-[40px]"
               />
             </div>
           </div>
-        </div>
+        </ModalOverlay>
       )}
+      </AnimatePresence>
 
       {/* Save Confirmation Modal */}
+    <AnimatePresence>
       {isSaveConfirmOpen && (
-        <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4 animate-fadeIn">
+        <ModalOverlay className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4">
           <div className="bg-surface-container border border-outline-variant max-w-md w-full p-6 space-y-6 shadow-2xl relative flex flex-col rounded-none">
             <div className="flex justify-between items-center border-b border-outline-variant/30 pb-3">
               <h3 className="font-serif text-sm text-primary uppercase tracking-wider font-semibold">
@@ -12401,7 +12412,7 @@ export default function CharacterEditorView({
               </button>
             </div>
             
-            <p className="text-xs text-outline-variant leading-relaxed text-center">
+            <p className="text-xs text-on-surface-variant dark:text-outline-variant leading-relaxed text-center">
               Essas informações não poderão ser alteradas até que o personagem suba de nível. Deseja salvar?
             </p>
             
@@ -12425,8 +12436,9 @@ export default function CharacterEditorView({
               </button>
             </div>
           </div>
-        </div>
+        </ModalOverlay>
       )}
+      </AnimatePresence>
 
       {/* Delete Confirmation Modal */}
       <ConfirmDeleteModal
@@ -12444,8 +12456,9 @@ export default function CharacterEditorView({
       />
 
       {/* Level-Up Confirmation Modal */}
+    <AnimatePresence>
       {showLevelUpConfirmModal && (
-        <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4 animate-fadeIn">
+        <ModalOverlay className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4">
           <div className="bg-surface-container border border-outline-variant max-w-sm w-full p-6 space-y-6 shadow-2xl relative rounded-none flex flex-col text-left">
             <div className="text-center space-y-3">
               <span className="material-symbols-outlined text-4xl animate-bounce shimmer-icon inline-block">arrow_circle_up</span>
@@ -12503,12 +12516,14 @@ export default function CharacterEditorView({
               </button>
             </div>
           </div>
-        </div>
+        </ModalOverlay>
       )}
+      </AnimatePresence>
 
       {/* Unified Itens Selection Modal */}
+    <AnimatePresence>
       {isItensModalOpen && (
-        <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4 animate-fadeIn">
+        <ModalOverlay className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4">
           <div className="bg-surface-container border border-outline-variant max-w-5xl w-full p-4 md:p-8 shadow-2xl relative flex flex-col rounded-none h-[92vh] max-h-[92vh] md:h-auto md:max-h-[92vh]">
             
             {/* Modal Header - FIRST Element */}
@@ -12543,7 +12558,7 @@ export default function CharacterEditorView({
                   placeholder="Pesquisar item pelo nome..."
                   value={itemSearchQuery}
                   onChange={(e) => setItemSearchQuery(e.target.value)}
-                  className={`w-full bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2 placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none pl-9 min-h-[44px] ${itemSearchQuery?.length >= 50 ? '!text-red-500' : ''}`}
+                  className={`w-full bg-surface-container border border-outline-variant text-xs text-on-surface px-3 py-2 placeholder:text-on-surface-variant/70 dark:placeholder:text-outline-variant/30 focus:ring-1 focus:ring-primary outline-none focus:border-primary rounded-none pl-9 min-h-[44px] ${itemSearchQuery?.length >= 50 ? '!text-red-500' : ''}`}
                 />
 {itemSearchQuery?.length >= 50 && (
       <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
@@ -12636,7 +12651,7 @@ export default function CharacterEditorView({
 
                 if (filteredCatalog.length === 0) {
                   return (
-                    <div className="flex flex-col items-center justify-center h-full p-8 text-center text-outline-variant/50 text-xs italic font-sans gap-2 py-12">
+                    <div className="flex flex-col items-center justify-center h-full p-8 text-center text-on-surface-variant/70 dark:text-outline-variant/50 text-xs italic font-sans gap-2 py-12">
                       <span className="material-symbols-outlined text-3xl text-outline-variant/20 animate-pulse">search_off</span>
                       <span>Nenhum item encontrado com os filtros selecionados.</span>
                     </div>
@@ -12755,12 +12770,14 @@ export default function CharacterEditorView({
               })()}
             </div>
           </div>
-        </div>
+        </ModalOverlay>
       )}
+      </AnimatePresence>
 
       {/* Submodal: Custom Item Form */}
+    <AnimatePresence>
       {isCustomItemModalOpen && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[1000] backdrop-blur-md p-4 animate-fadeIn">
+        <ModalOverlay className="fixed inset-0 bg-black/90 flex items-center justify-center z-[1000] backdrop-blur-md p-4">
           <div className="bg-surface-container-high border border-outline-variant max-w-lg w-full p-6 shadow-2xl relative flex flex-col rounded-none gap-4">
             
             <div className="flex justify-between items-center border-b border-outline-variant/30 pb-3">
@@ -13021,8 +13038,9 @@ export default function CharacterEditorView({
               </button>
             </div>
           </div>
-        </div>
+        </ModalOverlay>
       )}
+      </AnimatePresence>
 
       {/* Submodal: Companion Animal Sheet */}
       <Modal
@@ -13103,7 +13121,7 @@ export default function CharacterEditorView({
                         Você ultrapassou o limite de {maxCompanionAttrs} pontos!
                       </p>
                     ) : (
-                      <p className="text-micro text-outline-variant/60 font-sans">
+                      <p className="text-micro text-on-surface-variant/90 dark:text-outline-variant/60 font-sans">
                         Pontos base: 80 + 5 pontos adicionais por nível além do 1º (Nível do personagem: {companionL})
                       </p>
                     )}
@@ -13216,7 +13234,7 @@ export default function CharacterEditorView({
                     {/* Table of skills - No horizontal scroll on mobile */}
                     <div className="border border-outline-variant/30 flex-grow min-h-0">
                       {tempCompanionSkills.length === 0 ? (
-                        <p className="text-xs text-outline italic text-center py-6 border border-dashed border-outline-variant/20 bg-surface-container-low/20">
+                        <p className="text-xs text-on-surface-variant/70 dark:text-outline italic text-center py-6 border border-dashed border-outline-variant/20 bg-surface-container-low/20">
                           Nenhuma perícia adicionada ainda. Clique no botão [+] para criar.
                         </p>
                       ) : (
@@ -13255,7 +13273,7 @@ export default function CharacterEditorView({
                                       placeholder="Ex: Mordida, Rastrear..."
                                       onChange={(e) => handleUpdateCompanionSkill(skill.id, 'nome', e.target.value)}
                                       rows={1}
-                                      className={`w-full bg-transparent border-none p-1 font-sans text-xs text-on-surface focus:ring-0 outline-none placeholder:text-outline-variant/40 resize-none h-11 sm:h-7 leading-tight block overflow-hidden ${skill.nome?.length >= 300 ? '!text-red-500' : ''}`}
+                                      className={`w-full bg-transparent border-none p-1 font-sans text-xs text-on-surface focus:ring-0 outline-none placeholder:text-on-surface-variant/70 dark:placeholder:text-outline-variant/40 resize-none h-11 sm:h-7 leading-tight block overflow-hidden ${skill.nome?.length >= 300 ? '!text-red-500' : ''}`}
                                     />
 {skill.nome?.length >= 300 && (
       <div className="w-full text-right text-micro text-red-500 font-bold animate-pulse mt-0.5 pr-1">
@@ -13412,21 +13430,21 @@ export default function CharacterEditorView({
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                       <div className="space-y-1">
-                        <div className="flex justify-between text-caption text-outline-variant">
+                        <div className="flex justify-between text-caption text-on-surface-variant/90 dark:text-outline-variant">
                           <span>Bônus de Vida (PV):</span>
                           <span className="font-bold text-green-400">+{pv_bonus} PV</span>
                         </div>
-                        <div className="flex justify-between text-caption text-outline-variant">
+                        <div className="flex justify-between text-caption text-on-surface-variant/90 dark:text-outline-variant">
                           <span>Bônus de IP Natural:</span>
                           <span className="font-bold text-green-400">+{ip_bonus} IP</span>
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <div className="flex justify-between text-caption text-outline-variant">
+                        <div className="flex justify-between text-caption text-on-surface-variant/90 dark:text-outline-variant">
                           <span>Bônus de Força (FR):</span>
                           <span className="font-bold text-green-400">+{fr_bonus} FR</span>
                         </div>
-                        <div className="flex justify-between text-caption text-outline-variant">
+                        <div className="flex justify-between text-caption text-on-surface-variant/90 dark:text-outline-variant">
                           <span>Bônus de Inteligência (INT):</span>
                           <span className="font-bold text-green-400">+{int_bonus} INT</span>
                         </div>
@@ -13557,7 +13575,7 @@ export default function CharacterEditorView({
                         </table>
                       </div>
                     ) : (
-                      <p className="text-xs text-outline-variant/60 italic">Nenhum ataque cadastrado.</p>
+                      <p className="text-xs text-on-surface-variant/70 dark:text-outline-variant/60 italic">Nenhum ataque cadastrado.</p>
                     )}
                   </div>
 
@@ -13593,7 +13611,7 @@ export default function CharacterEditorView({
                       });
 
                       if (combinedSpecs.length === 0) {
-                        return <p className="text-xs text-outline-variant/60 italic">Nenhuma habilidade especial cadastrada.</p>;
+                        return <p className="text-xs text-on-surface-variant/70 dark:text-outline-variant/60 italic">Nenhuma habilidade especial cadastrada.</p>;
                       }
 
                       return (
@@ -13603,7 +13621,7 @@ export default function CharacterEditorView({
                               <span className="font-serif text-secondary font-bold uppercase tracking-wider block mb-1">
                                 {spec.nome}
                               </span>
-                              <p className="text-caption text-on-surface-variant leading-relaxed">
+                              <p className="text-caption text-on-surface-variant/90 dark:text-outline-variant leading-relaxed">
                                 {spec.efeito}
                               </p>
                             </div>
@@ -13778,11 +13796,11 @@ export default function CharacterEditorView({
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                         <div className="space-y-1">
-                          <div className="flex justify-between text-caption text-outline-variant">
+                          <div className="flex justify-between text-caption text-on-surface-variant/90 dark:text-outline-variant">
                             <span>Bônus de Inteligência:</span>
                             <span className="font-bold text-green-400">+{int_bonus} INT (Sobrescreve)</span>
                           </div>
-                          <div className="flex justify-between text-caption text-outline-variant">
+                          <div className="flex justify-between text-caption text-on-surface-variant/90 dark:text-outline-variant">
                             <span>Bônus de IP Natural:</span>
                             <span className="font-bold text-green-400">+{ip_natural_bonus} IP (Sobrescreve)</span>
                           </div>
@@ -14024,7 +14042,7 @@ export default function CharacterEditorView({
                       </table>
                     </div>
                   ) : (
-                    <p className="text-xs text-outline-variant/60 italic">Nenhuma perícia ou ataque cadastrado.</p>
+                    <p className="text-xs text-on-surface-variant/70 dark:text-outline-variant/60 italic">Nenhuma perícia ou ataque cadastrado.</p>
                   )}
 
                   {/* Add Custom Attack Form */}
@@ -14104,7 +14122,7 @@ export default function CharacterEditorView({
                             <span className="text-xs font-bold text-secondary block">
                               {h.habilidade} {isBaseFamiliarAbility(h.habilidade) && <span className="text-micro text-outline font-normal font-sans tracking-wider">(Base)</span>}
                             </span>
-                            <p className="text-micro text-outline-variant leading-relaxed">{h.efeito}</p>
+                            <p className="text-micro text-on-surface-variant/90 dark:text-outline-variant leading-relaxed">{h.efeito}</p>
                           </div>
                           {tempAnimalFamiliarId === 'customizado' && !isBaseFamiliarAbility(h.habilidade) && (
                             <button
@@ -14119,7 +14137,7 @@ export default function CharacterEditorView({
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-outline-variant/60 italic">Nenhuma habilidade especial cadastrada.</p>
+                    <p className="text-xs text-on-surface-variant/70 dark:text-outline-variant/60 italic">Nenhuma habilidade especial cadastrada.</p>
                   )}
 
                   {/* Add Custom Ability Form */}
@@ -14201,6 +14219,7 @@ export default function CharacterEditorView({
       </Modal>
 
       {/* Secondary Diff Modal: Companion Animal Review */}
+      <AnimatePresence>
       {isCompanionDiffModalOpen && (() => {
         const origComp = originalChar?.companionAnimal;
         const currComp = editedChar?.companionAnimal;
@@ -14235,7 +14254,7 @@ export default function CharacterEditorView({
         })();
 
         return (
-          <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4 animate-fadeIn">
+          <ModalOverlay className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4">
             <div className="bg-surface-container border border-amber-500 max-w-3xl w-full p-4 md:p-6 shadow-2xl relative flex flex-col rounded-none h-[90vh] max-h-[90vh] md:h-auto md:max-h-[90vh] overflow-y-auto custom-scrollbar gap-4 text-left">
               
               {/* Modal Header */}
@@ -14422,11 +14441,13 @@ export default function CharacterEditorView({
               </div>
 
             </div>
-          </div>
+          </ModalOverlay>
         );
       })()}
+      </AnimatePresence>
 
       {/* Secondary Diff Modal: Montaria Especial Review */}
+      <AnimatePresence>
       {isMontariaDiffModalOpen && (() => {
         const origMont = originalChar?.montariaEspecial;
         const currMont = editedChar?.montariaEspecial;
@@ -14438,7 +14459,7 @@ export default function CharacterEditorView({
         const oldMontariaData = montariasBase.find(m => m.id === origMont?.animalId);
 
         return (
-          <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4 animate-fadeIn">
+          <ModalOverlay className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4">
             <div className="bg-surface-container border border-amber-500 max-w-3xl w-full p-4 md:p-6 shadow-2xl relative flex flex-col rounded-none h-[90vh] max-h-[90vh] md:h-auto md:max-h-[90vh] overflow-y-auto custom-scrollbar gap-4 text-left">
               
               {/* Modal Header */}
@@ -14581,11 +14602,13 @@ export default function CharacterEditorView({
               </div>
 
             </div>
-          </div>
+          </ModalOverlay>
         );
       })()}
+      </AnimatePresence>
 
       {/* Secondary Diff Modal: Familiar de Conjurador Review */}
+      <AnimatePresence>
       {isFamiliarDiffModalOpen && (() => {
         const origFam = originalChar?.familiar;
         const currFam = editedChar?.familiar;
@@ -14647,7 +14670,7 @@ export default function CharacterEditorView({
         })();
 
         return (
-          <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4 animate-fadeIn">
+          <ModalOverlay className="fixed inset-0 bg-black/85 flex items-center justify-center z-[999] backdrop-blur-sm p-4">
             <div className="bg-surface-container border border-amber-500 max-w-3xl w-full p-4 md:p-6 shadow-2xl relative flex flex-col rounded-none h-[90vh] max-h-[90vh] md:h-auto md:max-h-[90vh] overflow-y-auto custom-scrollbar gap-4 text-left">
               
               {/* Modal Header */}
@@ -14895,9 +14918,10 @@ export default function CharacterEditorView({
               </div>
 
             </div>
-          </div>
+          </ModalOverlay>
         );
       })()}
+      </AnimatePresence>
     </div>
   );
 }

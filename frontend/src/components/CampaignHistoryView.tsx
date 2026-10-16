@@ -27,9 +27,12 @@ import {
   Save,
   Trash2,
   Download,
-  AlertTriangle
+  AlertTriangle,
+  ScrollText
 } from 'lucide-react';
 import Modal from './Modal';
+import ContractsTab from './ContractsTab';
+import { useContractsQuery } from '../hooks/useContractMutations';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { ActionButton, SaveButton, AddButton, EditButton, DeleteButton } from './ActionButtons';
 import { toast } from 'sonner';
@@ -56,7 +59,7 @@ interface CampaignHistoryViewProps {
   onNavigateToCampaigns?: () => void;
 }
 
-type TabType = 'panteao' | 'faccoes' | 'geografia' | 'mapas' | 'personas';
+type TabType = 'panteao' | 'faccoes' | 'geografia' | 'mapas' | 'personas' | 'contratos';
 
 const DEFAULT_STORY_TEXT = '';
 
@@ -149,6 +152,8 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
   const { data: dbLore = [], isLoading: isLoadingLore } = useLoreQuery(campaignId);
   const { data: dbChronicles = [] } = useChroniclesQuery(campaignId);
   const { data: personaNpcs = [] } = useCampaignNpcs(campaignId, { personaOnly: true });
+  const { data: contracts = [] } = useContractsQuery(campaignId);
+  const [isCreatingContract, setIsCreatingContract] = useState(false);
   const createLoreMutation = useCreateLoreMutation(campaignId);
   const updateLoreMutation = useUpdateLoreMutation(campaignId);
   const toggleLoreVisibilityMutation = useToggleLoreVisibilityMutation(campaignId);
@@ -173,6 +178,8 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
   // Story state initialized from activeCampaign?.lore or localStorage fallback
   const [storyText, setStoryText] = useState<string>(() => {
     if (activeCampaign?.lore) return activeCampaign.lore;
+    // Com campanha ativa, não mostrar texto local/padrão enquanto o servidor carrega
+    if (campaignId) return '';
     try {
       const saved = localStorage.getItem('daemon_campaign_story');
       if (saved && (saved.includes('Occultus') || saved.includes('Aethelgard'))) {
@@ -884,7 +891,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
     const newMap: MapItem = {
       id: `map-${Date.now()}`,
       title: '',
-      url: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1200',
+      url: '',
       scale: '1:1000',
       poiCount: 0,
       description: '',
@@ -1385,7 +1392,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-0 sm:px-1 p-0 sm:p-4 md:p-8 bg-transparent sm:bg-surface-container-lowest text-on-surface animate-fadeIn">
+    <div className="space-y-8 max-w-7xl mx-auto px-0 sm:px-1 p-0 sm:p-4 md:p-8 bg-transparent sm:bg-surface-container-lowest text-on-surface">
       {/* Top Header Bar */}
       <div className="border-b border-outline-variant/40 pb-6">
         <h1 className="font-serif text-3xl md:text-4xl text-on-surface font-medium">
@@ -1407,7 +1414,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
           {/* Banner cover */}
           <div className="w-full lg:w-1/3 min-h-[180px] sm:min-h-[220px] lg:min-h-[250px] relative overflow-hidden border border-outline-variant/60 shrink-0">
             <ImageWithFallback
-              src={activeCampaign?.ilustracao || activeCampaign?.illustrationUrl || activeCampaign?.ilustration_url || "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=600"}
+              src={activeCampaign?.ilustracao || activeCampaign?.illustrationUrl || activeCampaign?.ilustration_url || "/images/history.webp"}
               alt={activeCampaign?.name || "Lore Banner"}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               referrerPolicy="no-referrer"
@@ -1436,7 +1443,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                     {getStoryPreview(storyText, 800)}
                   </p>
                 ) : (
-                  <p className="line-clamp-4 italic text-on-surface-variant/60">
+                  <p className="line-clamp-4 italic text-on-surface-variant/70">
                     Nenhuma história registrada ainda para esta campanha. Clique para adicionar a narrativa principal.
                   </p>
                 )}
@@ -1465,7 +1472,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             <ImageIcon className="w-5 h-5 text-primary" />
             <h3 className="font-serif text-xl text-on-surface font-medium">Galeria</h3>
           </div>
-          {(isDmUser || !!campaignId) && (
+          {isDmUser && (
             <AddButton
               onClick={() => {
                 if (!campaignId) {
@@ -1559,7 +1566,8 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             { id: 'faccoes', label: 'Facções', icon: Users, count: factions.length },
             { id: 'geografia', label: 'Geografia', icon: Globe, count: geo.length },
             { id: 'mapas', label: 'Mapas', icon: MapIcon, count: maps.length },
-            { id: 'personas', label: 'Personas', icon: Award, count: personas.length }
+            { id: 'personas', label: 'Personas', icon: Award, count: personas.length },
+            { id: 'contratos', label: 'Contratos', icon: ScrollText, count: contracts.length }
           ].map((tab) => {
             const IconComp = tab.icon;
             const isActive = activeTab === tab.id;
@@ -1595,7 +1603,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
               placeholder={`Filtrar ${activeTab}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="`${editGodName.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} bg-transparent border-none outline-none text-xs w-full  placeholder:-variant/50 font-sans pr-12`"
+              className="`${editGodName.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} bg-transparent border-none outline-none text-xs w-full  placeholder:text-on-surface-variant/70 dark:placeholder:text-on-surface/50 font-sans pr-12`"
             />
             <div className={`absolute right-8 text-micro font-mono ${searchTerm.length >= 50 ? 'text-red-500' : 'text-on-surface-variant/50'}`}>
               {searchTerm.length}/50
@@ -1635,6 +1643,14 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
             <AddButton
               onClick={handleCreateNewMap}
               label="Mapa"
+              hideLabelOnMobile={false}
+            />
+          )}
+
+          {activeTab === 'contratos' && isDmUser && (
+            <AddButton
+              onClick={() => setIsCreatingContract(true)}
+              label="Contrato"
               hideLabelOnMobile={false}
             />
           )}
@@ -2075,6 +2091,24 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                 ))}
             </motion.div>
           )}
+
+          {/* TAB 6: CONTRATOS */}
+          {activeTab === 'contratos' && (
+            <motion.div
+              key="contratos"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+            >
+              <ContractsTab
+                campaignId={campaignId}
+                isDmUser={isDmUser}
+                searchTerm={searchTerm}
+                isCreating={isCreatingContract}
+                onCloseCreate={() => setIsCreatingContract(false)}
+              />
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
 
@@ -2478,7 +2512,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-on-surface-variant/60 text-xs italic">Nenhum registrado</p>
+                  <p className="text-on-surface-variant/70 text-xs italic">Nenhum registrado</p>
                 )}
               </div>
 
@@ -2491,7 +2525,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-on-surface-variant/60 text-xs italic">Nenhum registrado</p>
+                  <p className="text-on-surface-variant/70 text-xs italic">Nenhum registrado</p>
                 )}
               </div>
             </div>
@@ -3012,14 +3046,16 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
 
         {selectedMap && isDmUser && (
           <div className="space-y-4 text-xs font-sans">
-            <div className="w-full bg-black/95 flex items-center justify-center p-2 overflow-hidden relative rounded-none border border-outline-variant/40 max-h-[44vh]">
-              <ImageWithFallback
-                src={editMapUrl || selectedMap.url}
-                alt={editMapTitle || 'Prévia do Mapa'}
-                className="max-w-full max-h-[40vh] object-contain mx-auto select-none"
-                referrerPolicy="no-referrer"
-              />
-            </div>
+            {(editMapUrl.trim() || selectedMap.url?.trim()) && (
+              <div className="w-full bg-black/95 flex items-center justify-center p-2 overflow-hidden relative rounded-none border border-outline-variant/40 max-h-[44vh]">
+                <ImageWithFallback
+                  src={editMapUrl.trim() || selectedMap.url}
+                  alt={editMapTitle || 'Prévia do Mapa'}
+                  className="max-w-full max-h-[40vh] object-contain mx-auto select-none"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               <div>
@@ -3195,7 +3231,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         maxWidth="max-w-5xl"
         bodyClassName="space-y-4 flex-1 overflow-y-auto custom-scrollbar p-1 sm:p-2"
         footer={
-          (isDmUser || !!campaignId) ? (
+          isDmUser ? (
             <div className="flex justify-end items-center w-full">
               <AddButton
                 onClick={() => {
@@ -3438,6 +3474,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         title="A História"
         icon={<BookOpen className="w-5 h-5 text-primary" />}
         maxWidth="max-w-5xl"
+        bodyClassName="flex-1 flex flex-col overflow-hidden px-1 sm:px-2"
         footer={
           isDmUser ? (
             <div className="flex justify-end gap-3 w-full">
@@ -3457,22 +3494,21 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
           ) : undefined
         }
       >
-        <div className="space-y-4 font-sans text-xs">
+        <div className="flex-1 flex flex-col min-h-0 font-sans text-xs">
           {isDmUser && isEditingStory ? (
-            <div className="space-y-2">
-              <label className="block font-mono text-micro text-primary font-bold uppercase tracking-widest">
+            <div className="flex-1 flex flex-col min-h-0 space-y-2">
+              <label className="block font-mono text-micro text-primary font-bold uppercase tracking-widest shrink-0">
                 Editar História da Campanha (Visível para todos)
               </label>
               <textarea
                 value={editedStory}
                 onChange={(e) => setEditedStory(e.target.value)}
-                rows={16}
-                className="w-full bg-surface-container border border-outline-variant p-4 font-sans text-xs sm:text-sm leading-relaxed focus:outline-none focus:border-primary custom-scrollbar rounded-none text-on-surface"
+                className="w-full flex-1 bg-surface-container border border-outline-variant p-4 font-sans text-xs sm:text-sm leading-relaxed focus:outline-none focus:border-primary custom-scrollbar rounded-none text-on-surface resize-none min-h-[300px]"
                 placeholder="Escreva a história completa da campanha aqui..."
               />
             </div>
           ) : (
-            <div className="space-y-4 font-serif text-sm sm:text-base leading-relaxed text-on-surface select-text whitespace-pre-wrap">
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4 font-serif text-sm sm:text-base leading-relaxed text-on-surface select-text whitespace-pre-wrap">
               {storyText.split('\n\n').map((paragraph, idx) => (
                 <p
                   key={idx}

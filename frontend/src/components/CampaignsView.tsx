@@ -20,12 +20,7 @@ interface CampaignsViewProps {
   setActiveCampaignId: (id: string) => void;
 }
 
-const DEFAULT_IMAGES = {
-  Medieval: "https://images.unsplash.com/photo-1518005020951-eccb494ad742?q=80&w=800",
-  Cyberpunk: "https://images.unsplash.com/photo-1515621061946-eff1c2a352bd?q=80&w=800",
-  Cthullu: "https://images.unsplash.com/photo-1509248961158-e54f6934749c?q=80&w=800",
-  Outro: "https://images.unsplash.com/photo-1519074069444-1ba4e6664104?q=80&w=800"
-};
+const DEFAULT_IMAGE = "/images/history.webp";
 
 export default function CampaignsView({
   campaigns,
@@ -101,7 +96,6 @@ export default function CampaignsView({
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       if (data?.id) {
         setActiveCampaignId(data.id);
-        localStorage.setItem('daemon_active_campaign_id', data.id);
       }
     },
   });
@@ -158,7 +152,6 @@ export default function CampaignsView({
           return exists ? prev.map(c => c.id === joinedCamp.id ? joinedCamp : c) : [...prev, joinedCamp];
         });
         setActiveCampaignId(joinedCamp.id);
-        localStorage.setItem('daemon_active_campaign_id', joinedCamp.id);
       }
       setShowJoinModal(false);
       setJoinCode('');
@@ -203,8 +196,8 @@ export default function CampaignsView({
     if (!newCampName.trim()) return;
 
     const ilustracao = newCampIlustracaoType === 'upload' 
-      ? (newCampIlustracaoBase64 || DEFAULT_IMAGES[newCampUniverse]) 
-      : (newCampIlustracaoLink.trim() || DEFAULT_IMAGES[newCampUniverse]);
+      ? newCampIlustracaoBase64 
+      : (newCampIlustracaoLink.trim());
 
     const payload = {
       name: newCampName.trim(),
@@ -219,7 +212,6 @@ export default function CampaignsView({
         if (createdCamp?.id) {
           setCampaigns(prev => [...prev, createdCamp]);
           setActiveCampaignId(createdCamp.id);
-          localStorage.setItem('daemon_active_campaign_id', createdCamp.id);
         }
       }
     });
@@ -256,8 +248,8 @@ export default function CampaignsView({
     if (!selectedCampaign || !editCampName.trim()) return;
 
     const ilustracao = editCampIlustracaoType === 'upload'
-      ? (editCampIlustracaoBase64 || DEFAULT_IMAGES[editCampUniverse])
-      : (editCampIlustracaoLink.trim() || DEFAULT_IMAGES[editCampUniverse]);
+      ? editCampIlustracaoBase64
+      : (editCampIlustracaoLink.trim());
 
     const payload = {
       name: editCampName.trim(),
@@ -296,10 +288,8 @@ export default function CampaignsView({
       const remaining = prev.filter(c => c.id !== id);
       if (remaining.length > 0 && activeCampaignId === id) {
         setActiveCampaignId(remaining[0].id);
-        localStorage.setItem('daemon_active_campaign_id', remaining[0].id);
       } else if (remaining.length === 0 && activeCampaignId === id) {
         setActiveCampaignId('');
-        localStorage.removeItem('daemon_active_campaign_id');
       }
       return remaining;
     });
@@ -311,15 +301,14 @@ export default function CampaignsView({
     const universo = camp.universo || 'Medieval';
     return {
       ...camp,
-      universo,
-      ilustracao: camp.ilustracao || DEFAULT_IMAGES[universo]
+      universo
     };
   });
 
   const activeCampaignObj = campaigns.find((c) => c.id === activeCampaignId);
 
   return (
-    <div id="campaigns-container" className="space-y-8 animate-fadeIn pb-24 relative font-sans">
+    <div id="campaigns-container" className="space-y-8 pb-24 relative font-sans">
       <PageHeader
         title="Campanhas"
         subtitle={
@@ -391,7 +380,7 @@ export default function CampaignsView({
             {/* Background Cover Overlay */}
             <div className="relative h-44 mb-4 overflow-hidden bg-surface-container-lowest border border-outline-variant/20">
               <ImageWithFallback
-                src={camp.ilustracao}
+                src={camp.ilustracao || DEFAULT_IMAGE}
                 alt={camp.name}
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover opacity-60 group-hover:opacity-85 group-hover:scale-105 transition-all duration-500"
@@ -407,7 +396,6 @@ export default function CampaignsView({
                   onChange={(checked) => {
                     if (checked) {
                       setActiveCampaignId(camp.id);
-                      localStorage.setItem('daemon_active_campaign_id', camp.id);
                     }
                   }}
                   title={activeCampaignId === camp.id ? "Campanha Ativa" : "Ativar Campanha"}
@@ -465,27 +453,6 @@ export default function CampaignsView({
           <div className="col-span-full py-16 text-center border border-dashed border-outline-variant/40 bg-surface-container-lowest/20">
             <Map className="w-12 h-12 text-on-surface-variant/30 mx-auto mb-3 stroke-[1.2]" />
             <p className="font-serif text-base text-on-surface-variant font-medium">Nenhuma campanha registrada.</p>
-            <div className="mt-4 flex justify-center">
-              {user.role === 'dm' ? (
-                <AddButton
-                  onClick={() => setShowCreateModal(true)}
-                  label="Criar Nova Campanha"
-                  variant="secondary"
-                />
-              ) : (
-                <AddButton
-                  id="btn-join-campaign-empty"
-                  onClick={() => {
-                    setJoinFeedback(null);
-                    setJoinCode('');
-                    setShowJoinModal(true);
-                  }}
-                  label="Entrar em Campanha"
-                  variant="secondary"
-                  icon={UserPlus}
-                />
-              )}
-            </div>
           </div>
         )}
       </div>
@@ -931,7 +898,7 @@ export default function CampaignsView({
                 ))}
               </div>
             ) : (
-              <p className="text-caption text-on-surface-variant/60 italic">Nenhum jogador vinculado ainda.</p>
+              <p className="text-caption text-on-surface-variant/70 italic">Nenhum jogador vinculado ainda.</p>
             )}
           </div>
         </div>

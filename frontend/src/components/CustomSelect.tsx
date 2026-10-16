@@ -224,7 +224,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
             role="listbox"
           >
             {parsedOptions.length === 0 ? (
-              <div className="px-3 py-2 text-xs text-outline-variant/50 italic text-center">
+              <div className="px-3 py-2 text-xs text-on-surface-variant/70 dark:text-outline-variant/50 italic text-center">
                 Nenhuma opção
               </div>
             ) : (

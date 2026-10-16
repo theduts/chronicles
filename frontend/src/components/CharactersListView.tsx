@@ -19,7 +19,7 @@ function CharacterCardPortrait({ url, name }: { url?: string; name: string }) {
         <div className="w-16 h-16 rounded-full bg-outline-variant/10 border border-outline-variant/30 flex items-center justify-center">
           <span className="material-symbols-outlined text-primary text-4xl">person</span>
         </div>
-        <span className="text-micro font-sans font-bold tracking-wider text-outline-variant/60 uppercase">
+        <span className="text-micro font-sans font-bold tracking-wider text-on-surface-variant/70 dark:text-outline-variant/60 uppercase">
           Sem Retrato
         </span>
       </div>

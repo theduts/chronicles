@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { Character, Note } from '../types';
+import { AnimatePresence } from 'motion/react';
+import ModalOverlay from './common/ModalOverlay';
 import { User, Mail, Lock, Sun, Moon, X, Check, Shield, AlertTriangle, HelpCircle } from 'lucide-react';
 import Toggle from './Toggle';
 
@@ -84,34 +86,34 @@ export default function SettingsView({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm backdrop-blur-md z-[500] flex items-center justify-center p-4 overflow-y-auto animate-fadeIn font-sans">
+    <ModalOverlay className="fixed inset-0 bg-black/60 backdrop-blur-md z-[500] flex items-center justify-center p-4 overflow-y-auto font-sans">
       
 
 
       {/* Main Settings Modal Box */}
       <div 
         id="settings-modal"
-        className="bg-surface-container border border-outline-variant max-w-4xl w-full relative p-6 md:p-8 flex flex-col max-h-[90vh] shadow-2xl overflow-y-auto custom-scrollbar parchment-texture animate-scaleIn"
+        className="bg-surface-container border border-outline-variant max-w-4xl w-full relative p-6 md:p-8 flex flex-col max-h-[90vh] shadow-2xl overflow-hidden parchment-texture"
       >
-        {/* Close Button Top Right */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-on-surface-variant hover:text-primary transition-colors cursor-pointer w-10 h-10 flex items-center justify-center border border-outline-variant/30 hover:border-primary/50 bg-black/40"
-          title="Fechar"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Modal Header */}
-        <div className="border-b border-outline-variant pb-6 mb-8 pr-12">
-          <h2 className="font-serif text-3xl text-on-surface font-medium flex items-center gap-2">
+        {/* Modal Header (fixed) */}
+        <div className="flex justify-between items-center border-b border-outline-variant pb-4 mb-6 shrink-0">
+          <h2 className="font-serif text-2xl md:text-3xl text-on-surface font-medium min-w-0 pr-2 truncate">
             Configurações do Sistema
           </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="shrink-0 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer p-1 -mr-1 rounded hover:bg-white/5"
+            aria-label="Fechar"
+            title="Fechar"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Modal Body Scroll Content */}
-        <div className="space-y-8 flex-1">
-          
+        <div className="space-y-8 flex-1 min-h-0 overflow-y-auto custom-scrollbar px-1 sm:px-2">
+
           {/* Grid Layout: Configs + Info */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
@@ -267,8 +269,9 @@ export default function SettingsView({
       </div>
 
       {/* ================= SECONDARY MODAL: ALTERAR DADOS DO USUÁRIO ================= */}
+    <AnimatePresence>
       {isEditUserOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[600] flex items-center justify-center p-4 animate-fadeIn">
+        <ModalOverlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[600] flex items-center justify-center p-4">
           <div className="bg-surface-container border border-outline-variant max-w-md w-full p-6 shadow-2xl relative">
             
             {/* Secondary Header */}
@@ -352,12 +355,14 @@ export default function SettingsView({
 
             </form>
           </div>
-        </div>
+        </ModalOverlay>
       )}
+      </AnimatePresence>
 
       {/* ================= TERTIARY DIALOG: PEDIDO DE CONFIRMAÇÃO ================= */}
+    <AnimatePresence>
       {isConfirmingChange && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[650] flex items-center justify-center p-4 animate-fadeIn">
+        <ModalOverlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[650] flex items-center justify-center p-4">
           <div className="bg-surface-container border border-primary/50 max-w-sm w-full p-6 shadow-2xl relative text-center space-y-4">
             <div className="w-12 h-12 bg-primary-container border border-primary text-primary mx-auto flex items-center justify-center rounded-full">
               <AlertTriangle className="w-6 h-6 animate-pulse" />
@@ -387,9 +392,10 @@ export default function SettingsView({
               </button>
             </div>
           </div>
-        </div>
+        </ModalOverlay>
       )}
+      </AnimatePresence>
 
-    </div>
+    </ModalOverlay>
   );
 }

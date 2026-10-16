@@ -37,18 +37,24 @@ export default function Modal({
   hideCloseButton = false,
   zIndex = 'z-[999]',
 }: ModalProps) {
-  // Close on Escape key press
+  // Close on Escape key press and lock body scroll
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
         onClose();
       }
     };
+    
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
     }
+    
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
     };
   }, [isOpen, onClose]);
 

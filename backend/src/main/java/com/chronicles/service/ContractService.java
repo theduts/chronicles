@@ -6,6 +6,7 @@ import com.chronicles.domain.Role;
 import com.chronicles.domain.User;
 import com.chronicles.dto.contract.ContractRequest;
 import com.chronicles.dto.contract.ContractResponse;
+import com.chronicles.repository.CampaignPlayerRepository;
 import com.chronicles.repository.CampaignRepository;
 import com.chronicles.repository.ContractRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +24,12 @@ public class ContractService {
 
     private final ContractRepository contractRepository;
     private final CampaignRepository campaignRepository;
+    private final CampaignPlayerRepository campaignPlayerRepository;
 
     @Transactional(readOnly = true)
-    public List<ContractResponse> getContracts(UUID campaignId, String status) {
+    public List<ContractResponse> getContracts(UUID campaignId, String status, User user) {
+        validateCampaignAccess(campaignId, user, false);
+
         List<Contract> contracts;
         if (status != null && !status.isBlank()) {
             contracts = contractRepository.findAllByCampaignIdAndStatusOrderByCreatedAtDesc(campaignId, status.toUpperCase());
@@ -37,16 +41,16 @@ public class ContractService {
     }
 
     @Transactional(readOnly = true)
-    public ContractResponse getContractById(UUID id) {
+    public ContractResponse getContractById(UUID id, User user) {
         Contract contract = contractRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Contrato não encontrado"));
+        validateCampaignAccess(contract.getCampaign().getId(), user, false);
         return toResponse(contract);
     }
 
     @Transactional
     public ContractResponse createContract(ContractRequest request, User user) {
-        Campaign campaign = campaignRepository.findById(request.getCampaignId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Campanha não encontrada"));
+        Campaign campaign = validateCampaignAccess(request.getCampaignId(), user, true);
 
         Contract contract = Contract.builder()
                 .campaign(campaign)
@@ -68,6 +72,7 @@ public class ContractService {
     public ContractResponse updateContract(UUID id, ContractRequest request, User user) {
         Contract contract = contractRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Contrato não encontrado"));
+        validateCampaignAccess(contract.getCampaign().getId(), user, true);
 
         contract.setTitle(request.getTitle().trim());
         contract.setDescription(request.getDescription());
@@ -85,8 +90,28 @@ public class ContractService {
     public void deleteContract(UUID id, User user) {
         Contract contract = contractRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Contrato não encontrado"));
+        validateCampaignAccess(contract.getCampaign().getId(), user, true);
 
         contractRepository.delete(contract);
+    }
+
+    private Campaign validateCampaignAccess(UUID campaignId, User user, boolean dmOnly) {
+        Campaign campaign = campaignRepository.findById(campaignId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Campanha não encontrada"));
+
+        boolean isDm = campaign.getDm().getId().equals(user.getId()) || user.getRole() == Role.ROLE_ADMIN;
+
+        if (dmOnly) {
+            if (!isDm) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Apenas o Mestre pode realizar esta operação");
+            }
+            return campaign;
+        }
+
+        if (!isDm && !campaignPlayerRepository.existsByCampaignIdAndUserId(campaignId, user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não participa desta campanha");
+        }
+        return campaign;
     }
 
     private ContractResponse toResponse(Contract contract) {

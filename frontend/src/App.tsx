@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { QueryClient, QueryClientProvider, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from './services/api';
 import { Character, Note, ActiveScreen, Campaign } from './types';
@@ -19,6 +19,8 @@ import NPCsView from './components/NPCsView';
 import BestiaryView from './components/BestiaryView';
 import CampaignsView from './components/CampaignsView';
 import ViewRoleToggle from './components/ViewRoleToggle';
+import ModalOverlay from './components/common/ModalOverlay';
+import { AnimatePresence } from 'motion/react';
 import ToastProvider from './components/ui/ToastProvider';
 import { toast } from 'sonner';
 
@@ -81,9 +83,20 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 }
 
 function MainApp() {
-  const { user, token, logout, setUser: setStoreUser, viewRole, toggleViewRole, characterUnderEditId, setCharacterUnderEditId } = useAppStore();
+  const { user, token, logout, setUser: setStoreUser, viewRole, toggleViewRole, lastCampaignDm, lastCampaignPlayer, setLastCampaign, sessionSynced, syncSession, characterUnderEditId, setCharacterUnderEditId } = useAppStore();
   const { activeScreen, setActiveScreen } = useNavigationRouting();
   const userRole: 'player' | 'dm' = viewRole;
+
+  // Ao abrir/recarregar com token salvo, busca no servidor o modo e as últimas campanhas
+  // (fonte de verdade), em vez de confiar no que ficou guardado no navegador.
+  useEffect(() => {
+    if (!token || sessionSynced) return;
+    let cancelled = false;
+    api.get('/users/me')
+      .then((res) => { if (!cancelled) syncSession(res.data); })
+      .catch(() => { if (!cancelled) syncSession(null); });
+    return () => { cancelled = true; };
+  }, [token, sessionSynced, syncSession]);
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('daemon_theme_toggle') !== 'light';
@@ -143,13 +156,19 @@ function MainApp() {
     }
   }, [serverCampaigns]);
 
-  const [activeCampaignId, setActiveCampaignId] = useState<string>(() => {
-    try {
-      const saved = localStorage.getItem('daemon_active_campaign_id');
-      if (saved && saved !== '1' && saved !== '2') return saved;
-    } catch (e) {}
-    return '';
-  });
+  // Campanha ativa vem do banco (por modo) via store; trocar de modo troca de campanha.
+  const activeCampaignId = (userRole === 'dm' ? lastCampaignDm : lastCampaignPlayer) ?? '';
+
+  // Ajuste local (fallback): NUNCA grava no banco, para não sobrescrever a seleção salva
+  // enquanto a lista de campanhas ainda carrega.
+  const setActiveCampaignIdLocal = (id: string) => setLastCampaign(userRole, id || null);
+
+  // Seleção explícita do usuário: atualiza o store e persiste no banco.
+  const setActiveCampaignId = (id: string) => {
+    setLastCampaign(userRole, id || null);
+    api.patch('/users/me/last-campaign', { mode: userRole.toUpperCase(), campaignId: id || null })
+      .catch((error) => console.error('[LastCampaign] Falha ao salvar última campanha:', error));
+  };
 
   const {
     characters,
@@ -217,17 +236,18 @@ function MainApp() {
   });
 
   useEffect(() => {
+    // Só corrige a seleção depois que a lista do servidor foi carregada e sincronizada.
+    if (serverCampaigns === undefined || campaigns !== serverCampaigns) return;
     if (visibleCampaigns.length > 0) {
       const exists = visibleCampaigns.some(c => c.id === activeCampaignId);
       if (!exists) {
+        // Lista já sincronizada: a campanha escolhida automaticamente também é salva no banco.
         setActiveCampaignId(visibleCampaigns[0].id);
-        localStorage.setItem('daemon_active_campaign_id', visibleCampaigns[0].id);
       }
-    } else {
-      setActiveCampaignId('');
-      localStorage.removeItem('daemon_active_campaign_id');
+    } else if (activeCampaignId) {
+      setActiveCampaignIdLocal('');
     }
-  }, [campaigns, user, activeCampaignId, userRole]);
+  }, [campaigns, serverCampaigns, user, activeCampaignId, userRole]);
 
   useEffect(() => {
     if (activeScreen === 'campaign_history' && !activeCampaignId) {
@@ -246,7 +266,6 @@ function MainApp() {
       if (data?.id) {
         const idStr = String(data.id);
         setActiveCampaignId(idStr);
-        localStorage.setItem('daemon_active_campaign_id', idStr);
       }
     },
   });
@@ -271,20 +290,20 @@ function MainApp() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    if (user) {
-      localStorage.setItem('daemon_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('daemon_user');
-    }
-  }, [user]);
-
-  useEffect(() => {
-    localStorage.setItem('daemon_active_screen', activeScreen);
-  }, [activeScreen]);
-
-  useEffect(() => {
     localStorage.setItem('daemon_sidebar_collapsed', String(sidebarCollapsed));
   }, [sidebarCollapsed]);
+
+  // Trocar Jogador/Mestre dentro do editor de personagem volta para a lista,
+  // independente de qual controle disparou a troca.
+  const prevViewRoleRef = useRef(viewRole);
+  useEffect(() => {
+    if (prevViewRoleRef.current !== viewRole) {
+      prevViewRoleRef.current = viewRole;
+      if (activeScreen === 'character_editor') {
+        setActiveScreen('characters');
+      }
+    }
+  }, [viewRole, activeScreen]);
 
   // Auth actions
   const handleLoginSuccess = (_name: string, _email: string, _role: 'player' | 'dm') => {
@@ -351,6 +370,15 @@ function MainApp() {
         onNavigateTab={(tab) => setActiveScreen(tab)}
         onLoginSuccess={handleLoginSuccess}
       />
+    );
+  }
+
+  // Aguarda a confirmação da sessão no servidor para não exibir a campanha/modo antigos
+  if (!sessionSynced) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background text-on-surface-variant font-sans text-sm">
+        Carregando...
+      </div>
     );
   }
 
@@ -496,9 +524,10 @@ function MainApp() {
         </div>
 
         {/* Mobile User Modal (Settings & Logout) */}
+      <AnimatePresence>
         {isMobileUserMenuOpen && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4 md:hidden">
-            <div className="bg-surface-container border border-outline-variant w-full max-w-sm p-6 relative animate-fadeIn shadow-2xl">
+          <ModalOverlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4 md:hidden">
+            <div className="bg-surface-container border border-outline-variant w-full max-w-sm p-6 relative shadow-2xl">
               <button
                 onClick={() => setIsMobileUserMenuOpen(false)}
                 className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface cursor-pointer"
@@ -536,8 +565,9 @@ function MainApp() {
                 </button>
               </div>
             </div>
-          </div>
+          </ModalOverlay>
         )}
+        </AnimatePresence>
 
         {/* Search status summary overlay if typing in main header */}
         {searchTerm && (
@@ -555,9 +585,9 @@ function MainApp() {
         )}
 
         {/* Main Scrollable Area */}
-        <main className={`flex-1 overflow-y-auto custom-scrollbar p-6 md:p-8 relative transition-colors duration-300 ${activeScreen === 'character_editor' ? 'character-editor-bg' : 'bg-background'}`}>
+        <main className={`flex-1 flex flex-col overflow-y-auto custom-scrollbar p-6 md:p-8 relative transition-colors duration-300 ${activeScreen === 'character_editor' ? 'character-editor-bg' : 'bg-background'}`}>
           {/* Main screens multiplexer */}
-          <div className="max-w-7xl mx-auto">
+          <div key={activeScreen} className="max-w-7xl mx-auto w-full pb-12 animate-fadeIn">
             {activeScreen === 'dashboard' && (
               <DashboardView
                 characters={characters}
@@ -655,7 +685,7 @@ function MainApp() {
           </div>
           
           {/* Global Footer */}
-          <footer className="mt-12 pt-8 pb-4 border-t border-outline-variant/30 flex flex-col md:flex-row justify-between items-center gap-4 opacity-50 px-0 sm:px-6 max-w-7xl mx-auto w-full">
+          <footer className="mt-auto pt-8 pb-4 border-t border-outline-variant/30 flex flex-col md:flex-row justify-between items-center gap-4 opacity-50 px-0 sm:px-6 max-w-7xl mx-auto w-full">
             <p className="font-sans text-micro font-bold tracking-widest text-on-surface-variant uppercase text-center md:text-left leading-relaxed w-full">
               <span className="block sm:inline">© {new Date().getFullYear()} CHRONICLES</span>
               <span className="hidden sm:inline"> - </span>
@@ -665,6 +695,7 @@ function MainApp() {
         </main>
       </div>
 
+      <AnimatePresence>
       {isSettingsOpen && (
         <SettingsView
           isOpen={isSettingsOpen}
@@ -691,11 +722,13 @@ function MainApp() {
           setIsDarkMode={setIsDarkMode}
         />
       )}
+      </AnimatePresence>
 
       {/* Beautifully Crafted Create Campaign Modal */}
+    <AnimatePresence>
       {showCreateCampaignModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[300] flex items-center justify-center p-4">
-          <div className="bg-surface-container border border-outline-variant w-full max-w-md p-6 relative animate-fadeIn shadow-2xl">
+        <ModalOverlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[300] flex items-center justify-center p-4">
+          <div className="bg-surface-container border border-outline-variant w-full max-w-md p-6 relative shadow-2xl">
             <button
               onClick={() => setShowCreateCampaignModal(false)}
               className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface cursor-pointer"
@@ -772,8 +805,9 @@ function MainApp() {
               </div>
             </form>
           </div>
-        </div>
+        </ModalOverlay>
       )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -188,6 +188,23 @@ class CampaignLoreServiceTest {
     }
 
     @Test
+    @DisplayName("Player cannot add images to the gallery")
+    void testCreateLore_gallery_asPlayer_throwsForbidden() {
+        when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
+
+        CampaignLoreCreateDTO request = CampaignLoreCreateDTO.builder()
+                .category("galeria")
+                .title("Foto")
+                .imageUrl("http://img/1.png")
+                .build();
+
+        assertThatThrownBy(() -> campaignLoreService.createLore(campaignId, request, playerUser))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("403 FORBIDDEN");
+        verify(campaignLoreRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("DM can update lore visibility")
     void testUpdateLoreVisibility_asDm_togglesSuccessfully() {
         when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));

@@ -1,5 +1,6 @@
 package com.chronicles.controller;
 
+import com.chronicles.dto.auth.LastCampaignRequest;
 import com.chronicles.dto.auth.LoginRequest;
 import com.chronicles.dto.auth.RegisterRequest;
 import com.chronicles.dto.auth.ViewModeRequest;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -98,5 +100,48 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isTooManyRequests());
+    }
+
+    @Test
+    @DisplayName("PATCH /api/users/me/last-campaign should clear with null campaign")
+    void shouldClearLastCampaign() throws Exception {
+        String token = getAuthToken();
+
+        mockMvc.perform(patch("/api/users/me/last-campaign")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new LastCampaignRequest("DM", null))))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("PATCH /api/users/me/last-campaign should reject campaign the user does not belong to")
+    void shouldRejectForeignCampaign() throws Exception {
+        String token = getAuthToken();
+
+        mockMvc.perform(patch("/api/users/me/last-campaign")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new LastCampaignRequest("PLAYER", UUID.randomUUID()))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("GET /api/users/me should return session data")
+    void shouldReturnCurrentSession() throws Exception {
+        String token = getAuthToken();
+
+        mockMvc.perform(get("/api/users/me")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.lastViewMode").value("PLAYER"))
+                .andExpect(jsonPath("$.email").exists());
+    }
+
+    @Test
+    @DisplayName("GET /api/users/me without token should be rejected")
+    void shouldRejectMeWithoutToken() throws Exception {
+        mockMvc.perform(get("/api/users/me"))
+                .andExpect(status().is4xxClientError());
     }
 }

@@ -30,15 +30,19 @@ public class ContractController {
     @Operation(summary = "Listar contratos da campanha", description = "Retorna contratos de uma campanha com filtro opcional por status.")
     public ResponseEntity<List<ContractResponse>> getContracts(
             @RequestParam UUID campaignId,
-            @RequestParam(required = false) String status
+            @RequestParam(required = false) String status,
+            @AuthenticationPrincipal User user
     ) {
-        return ResponseEntity.ok(contractService.getContracts(campaignId, status));
+        return ResponseEntity.ok(contractService.getContracts(campaignId, status, user));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Obter contrato por ID", description = "Retorna detalhes e recompensas de uma missão.")
-    public ResponseEntity<ContractResponse> getContractById(@PathVariable UUID id) {
-        return ResponseEntity.ok(contractService.getContractById(id));
+    public ResponseEntity<ContractResponse> getContractById(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal User user
+    ) {
+        return ResponseEntity.ok(contractService.getContractById(id, user));
     }
 
     @PostMapping

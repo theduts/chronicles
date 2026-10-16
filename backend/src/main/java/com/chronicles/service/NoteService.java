@@ -27,12 +27,8 @@ public class NoteService {
 
     @Transactional(readOnly = true)
     public List<NoteResponse> getNotes(User user, UUID campaignId) {
-        List<Note> notes;
-        if (campaignId != null) {
-            notes = noteRepository.findAllByCampaignIdOrderByCreatedAtDesc(campaignId);
-        } else {
-            notes = noteRepository.findAllByUserIdOrderByCreatedAtDesc(user.getId());
-        }
+        // campaignId é ignorado: notas são sempre privadas ao autor e não se vinculam a campanhas.
+        List<Note> notes = noteRepository.findAllByUserIdOrderByCreatedAtDesc(user.getId());
 
         return notes.stream().map(this::toResponse).toList();
     }
@@ -53,7 +49,6 @@ public class NoteService {
     public NoteResponse createNote(NoteRequest request, User user) {
         Note note = Note.builder()
                 .user(user)
-                .campaignId(request.getCampaignId())
                 .title(request.getTitle().trim())
                 .content(request.getContent())
                 .build();
@@ -73,9 +68,6 @@ public class NoteService {
 
         note.setTitle(request.getTitle().trim());
         note.setContent(request.getContent());
-        if (request.getCampaignId() != null) {
-            note.setCampaignId(request.getCampaignId());
-        }
 
         Note saved = noteRepository.save(note);
         return toResponse(saved);

@@ -235,8 +235,9 @@ interface BestiaryViewProps {
 }
 
 export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryViewProps) {
-  // Clear any existing initial cards from state, start with localStorage only
-  const [entries, setEntries] = useState<BestiaryEntry[]>(() => {
+  // Criaturas de campanha vêm sempre do servidor. O localStorage só guarda criaturas locais
+  // pendentes de migração (ids "be_") e só é lido quando não há campanha válida ativa.
+  const readLocalEntries = (): BestiaryEntry[] => {
     try {
       const saved = localStorage.getItem('daemon_bestiary');
       if (saved) {
@@ -251,7 +252,11 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
       }
     } catch (e) {}
     return [];
-  });
+  };
+
+  const [entries, setEntries] = useState<BestiaryEntry[]>(() =>
+    isValidUUID(activeCampaignId) ? [] : readLocalEntries()
+  );
 
   const [baseCreatures, setBaseCreatures] = useState<any[]>([]);
   const [isLoadingBase, setIsLoadingBase] = useState(true);
@@ -304,6 +309,8 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
   // Load baseline creatures and campaign custom monsters on mount or campaign change
   useEffect(() => {
     let isMounted = true;
+    // Evita mostrar criaturas da campanha anterior enquanto a nova carrega
+    setEntries(isValidUUID(activeCampaignId) ? [] : readLocalEntries());
     const fetchMonsters = async () => {
       try {
         const url = isValidUUID(activeCampaignId)
@@ -391,10 +398,13 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
     };
   }, [activeCampaignId]);
 
-  // Save to localStorage (cache/fallback)
+  // Só criaturas locais pendentes de migração (ids "be_") vão para o localStorage
   const saveEntries = (updatedList: BestiaryEntry[]) => {
     setEntries(updatedList);
-    localStorage.setItem('daemon_bestiary', JSON.stringify(updatedList));
+    localStorage.setItem(
+      'daemon_bestiary',
+      JSON.stringify(updatedList.filter((e) => String(e.id).startsWith('be_')))
+    );
   };
 
   const handleOpenCreateModal = () => {
@@ -754,7 +764,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
             placeholder="Buscar ameaça por nome, tipo, habilidades..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-surface-container-low border border-outline-variant/50 text-xs py-3 pl-10 pr-4 focus:ring-0 focus:border-primary outline-none font-sans tracking-wider text-on-surface"
+            className="w-full bg-surface-container-low dark:bg-black/40 border border-outline-variant/50 text-xs py-3 pl-10 pr-4 focus:ring-0 focus:border-primary outline-none font-sans tracking-wider text-on-surface"
             id="search-beast-input"
           />
           <Search className="w-4 h-4 text-outline-variant absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -771,12 +781,12 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
           {filteredEntries.map((entry) => (
             <div
               key={entry.id}
               onClick={() => handleOpenEditModal(entry)}
-              className="bg-surface-container border border-outline-variant p-6 flex flex-col justify-between hover:border-primary/60 hover:bg-surface-container/30 transition-all duration-300 relative overflow-hidden cursor-pointer active:scale-[0.99]"
+              className="break-inside-avoid bg-surface-container border border-outline-variant p-6 flex flex-col hover:border-primary/60 hover:bg-surface-container/30 transition-all duration-300 relative overflow-hidden cursor-pointer active:scale-[0.99] mb-6"
               id={`card-beast-${entry.id}`}
             >
               {/* Sanguine skull watermark */}
@@ -852,14 +862,14 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                   {/* Render abilities/habilidades list if present */}
                   {entry.habilidades && entry.habilidades.length > 0 ? (
                     <div className="space-y-2">
-                      <span className="text-micro font-bold text-outline-variant uppercase tracking-wider block mb-1 flex items-center gap-1 text-red-400">
+                      <span className="text-micro font-bold uppercase tracking-wider block mb-1 flex items-center gap-1 text-red-400">
                         <Zap className="w-3 h-3 text-red-500 fill-current" />
                         Habilidades ({entry.habilidades.length})
                       </span>
                       <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
                         {entry.habilidades.map((hab, idx) => (
                           <div key={idx} className="bg-red-950/10 border border-red-900/25 p-2 rounded-none">
-                            <span className="text-caption font-bold text-red-300 block">{hab.habilidade}</span>
+                            <span className="text-caption font-bold text-red-700 dark:text-red-300 block">{hab.habilidade}</span>
                             <p className="text-micro text-on-surface-variant mt-0.5 leading-normal">{hab.descricao_habilidade}</p>
                           </div>
                         ))}
@@ -867,7 +877,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
                     </div>
                   ) : entry.skills ? (
                     <div>
-                      <span className="text-micro font-bold text-outline-variant uppercase tracking-wider block mb-1 flex items-center gap-1 text-red-400">
+                      <span className="text-micro font-bold uppercase tracking-wider block mb-1 flex items-center gap-1 text-red-400">
                         <Zap className="w-3 h-3 text-red-500 fill-current" />
                         Habilidades & Ataques Especiais
                       </span>
@@ -1197,7 +1207,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-1 flex flex-col gap-1">
-                  <label className="text-micro font-bold text-outline-variant uppercase">Nome da Habilidade</label>
+                  <label className="font-sans text-micro font-bold text-on-surface-variant dark:text-outline-variant uppercase tracking-widest">Nome da Habilidade</label>
                   <div className="w-full">
               <input
                     type="text"
@@ -1214,7 +1224,7 @@ export default function BestiaryView({ activeCampaignId, campaigns }: BestiaryVi
             </div>
                 </div>
                 <div className="sm:col-span-2 flex flex-col gap-1">
-                  <label className="text-micro font-bold text-outline-variant uppercase">Descrição da Habilidade</label>
+                  <label className="font-sans text-micro font-bold text-on-surface-variant dark:text-outline-variant uppercase tracking-widest">Descrição da Habilidade</label>
                   <div className="w-full">
               <input
                     type="text"

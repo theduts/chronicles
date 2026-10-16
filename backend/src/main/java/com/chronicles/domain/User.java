@@ -48,6 +48,12 @@ public class User implements UserDetails {
     @Builder.Default
     private String lastViewMode = "PLAYER";
 
+    @Column(name = "last_campaign_dm_session")
+    private UUID lastCampaignDmSession;
+
+    @Column(name = "last_campaign_player_session")
+    private UUID lastCampaignPlayerSession;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

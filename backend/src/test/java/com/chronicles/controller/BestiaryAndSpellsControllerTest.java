@@ -166,4 +166,34 @@ class BestiaryAndSpellsControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)));
     }
+
+    @Test
+    @DisplayName("Contracts: non-members cannot read or write")
+    void shouldEnforceContractAuthorization() throws Exception {
+        String unique = UUID.randomUUID().toString().substring(0, 8);
+        User stranger = userRepository.save(User.builder()
+                .username("stranger_" + unique)
+                .email("stranger_" + unique + "@chronicles.com")
+                .passwordHash("hashed")
+                .role(Role.ROLE_USER)
+                .isActive(true)
+                .build());
+        String strangerToken = "Bearer " + jwtService.generateToken(stranger);
+
+        ContractRequest request = ContractRequest.builder()
+                .campaignId(campaign.getId())
+                .title("Contrato Proibido")
+                .build();
+
+        mockMvc.perform(get("/api/contracts")
+                        .param("campaignId", campaign.getId().toString())
+                        .header(HttpHeaders.AUTHORIZATION, strangerToken))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/api/contracts")
+                        .header(HttpHeaders.AUTHORIZATION, strangerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
 }

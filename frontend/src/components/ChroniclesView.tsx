@@ -8,6 +8,7 @@ import Modal from './Modal';
 import { AddButton, SaveButton } from './ActionButtons';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ImageWithFallback from './ImageWithFallback';
+import { useIsDark, getChronicleFallbackImage } from '../hooks/useIsDark';
 import {
   useChroniclesQuery,
   useCreateChronicleMutation,
@@ -113,7 +114,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
       date: formatDisplayDate(c.sessionDate),
       desc: c.narrative && c.narrative.length > 200 ? `${c.narrative.slice(0, 197)}...` : c.narrative,
       fullText: c.narrative,
-      image: c.illustrationUrl || 'https://lh3.googleusercontent.com/aida-public/AB6AXuApaoQQsXhFuJ7cnHYim1KAq_ihU2Sf_xG5CGjFEPgNbhiuPsddO96GWeZbOWMENEh5vNo9hBtlfWmRgQPhRtv5jxPFTbN5uyXeZ4upiymyfffad_QDcNvScGlT_8wY0rCE3FfRShqdcJQVPTHEmOYoVObV49PN2V5LgIncvPaxsJSorBU3jFWhZDeZkimJ5F3OBeN8ZV3Dio3Kby7oJK-Ey4wbx3Y_eayiVvFs8RKdviqwJ42g3eL3IbehJn2PWPa2cpxK4qYGy4E',
+      image: c.illustrationUrl || '',
       danger: 'Médio',
       majorEvent: c.mission || 'Relato de aventura'
     }));
@@ -129,7 +130,8 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
   const [newLocation, setNewLocation] = useState('');
   const [newDate, setNewDate] = useState('');
   const [newFullText, setNewFullText] = useState('');
-  const [newImage, setNewImage] = useState('https://lh3.googleusercontent.com/aida-public/AB6AXuApaoQQsXhFuJ7cnHYim1KAq_ihU2Sf_xG5CGjFEPgNbhiuPsddO96GWeZbOWMENEh5vNo9hBtlfWmRgQPhRtv5jxPFTbN5uyXeZ4upiymyfffad_QDcNvScGlT_8wY0rCE3FfRShqdcJQVPTHEmOYoVObV49PN2V5LgIncvPaxsJSorBU3jFWhZDeZkimJ5F3OBeN8ZV3Dio3Kby7oJK-Ey4wbx3Y_eayiVvFs8RKdviqwJ42g3eL3IbehJn2PWPa2cpxK4qYGy4E');
+  const [newImage, setNewImage] = useState('');
+  const chronicleFallbackImage = getChronicleFallbackImage(useIsDark());
 
   // Edit/Delete State
   const [isEditing, setIsEditing] = useState(false);
@@ -215,50 +217,6 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
     }
   };
 
-  const [pendingMoveDirection, setPendingMoveDirection] = useState<'forward' | 'backward' | null>(null);
-
-  const handleMoveChronicle = (direction: 'forward' | 'backward') => {
-    if (!selectedChronicle) return;
-    setPendingMoveDirection(direction);
-  };
-
-  const confirmMoveChronicle = () => {
-    if (!selectedChronicle || !pendingMoveDirection) return;
-    
-    setLocalChronicles(prev => {
-      const idx = prev.findIndex(c => c.id === selectedChronicle.id);
-      if (idx === -1) return prev;
-      
-      const newArr = [...prev];
-      if (pendingMoveDirection === 'forward' && idx < prev.length - 1) { 
-        const temp = newArr[idx];
-        newArr[idx] = newArr[idx + 1];
-        newArr[idx + 1] = temp;
-      } else if (pendingMoveDirection === 'backward' && idx > 0) { 
-        const temp = newArr[idx];
-        newArr[idx] = newArr[idx - 1];
-        newArr[idx - 1] = temp;
-      } else {
-        return prev;
-      }
-
-      const reindexed = newArr.map((c, i) => ({ ...c, session: `SESSÃO ${toRoman(i + 1)}`, rawSessionNumber: i + 1 }));
-      
-      const updatedItem = reindexed.find(c => c.id === selectedChronicle.id);
-      if (updatedItem) {
-        setTimeout(() => {
-          setSelectedChronicle(updatedItem);
-          if (isEditing) {
-            setEditingData(prevData => ({ ...prevData, session: updatedItem.session }));
-          }
-        }, 0);
-      }
-
-      return reindexed;
-    });
-    setPendingMoveDirection(null);
-  };
-
   const handleDeleteConfirm = () => {
     if (chronicleToDelete) {
       if (campaignId) {
@@ -311,7 +269,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
         location: newLocation.toUpperCase(),
         sessionDate: toIsoDate(newDate),
         mission: 'Relato de aventura',
-        illustrationUrl: newImage || 'https://lh3.googleusercontent.com/aida-public/AB6AXuApaoQQsXhFuJ7cnHYim1KAq_ihU2Sf_xG5CGjFEPgNbhiuPsddO96GWeZbOWMENEh5vNo9hBtlfWmRgQPhRtv5jxPFTbN5uyXeZ4upiymyfffad_QDcNvScGlT_8wY0rCE3FfRShqdcJQVPTHEmOYoVObV49PN2V5LgIncvPaxsJSorBU3jFWhZDeZkimJ5F3OBeN8ZV3Dio3Kby7oJK-Ey4wbx3Y_eayiVvFs8RKdviqwJ42g3eL3IbehJn2PWPa2cpxK4qYGy4E',
+        illustrationUrl: newImage,
         narrative: newFullText
       }, {
         onSuccess: () => {
@@ -332,7 +290,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
         date: newDate,
         desc: derivedDesc,
         fullText: newFullText,
-        image: newImage || 'https://lh3.googleusercontent.com/aida-public/AB6AXuApaoQQsXhFuJ7cnHYim1KAq_ihU2Sf_xG5CGjFEPgNbhiuPsddO96GWeZbOWMENEh5vNo9hBtlfWmRgQPhRtv5jxPFTbN5uyXeZ4upiymyfffad_QDcNvScGlT_8wY0rCE3FfRShqdcJQVPTHEmOYoVObV49PN2V5LgIncvPaxsJSorBU3jFWhZDeZkimJ5F3OBeN8ZV3Dio3Kby7oJK-Ey4wbx3Y_eayiVvFs8RKdviqwJ42g3eL3IbehJn2PWPa2cpxK4qYGy4E',
+        image: newImage,
         danger: 'Médio',
         majorEvent: 'Relato de aventura'
       };
@@ -362,7 +320,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
   const reversedChronicles = [...filteredChronicles].reverse();
 
   return (
-    <div className="space-y-8 pb-24 max-w-7xl mx-auto px-1 animate-fadeIn text-on-surface relative font-sans">
+    <div className="space-y-8 pb-24 max-w-7xl mx-auto px-1 text-on-surface relative font-sans">
       {/* Visual background overlays */}
       <div className="absolute right-10 top-20 w-80 h-80 bg-primary-container/5 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
@@ -476,7 +434,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
             placeholder="Pesquisar crônicas por título, local, relatos, segredos..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-transparent border-none outline-none text-xs w-full text-on-surface placeholder:text-on-surface-variant/40 font-sans min-w-0 pr-12"
+            className="bg-transparent border-none outline-none text-xs w-full text-on-surface placeholder:text-on-surface-variant/70 dark:placeholder:text-on-surface-variant/40 font-sans min-w-0 pr-12"
           />
           <div className={`absolute right-8 text-micro font-mono ${search.length >= 50 ? 'text-red-500' : 'text-on-surface-variant/50'}`}>
             {search.length}/50
@@ -532,7 +490,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                 {/* Banner Thumbnail Treatment */}
                 <div className="h-36 sm:h-40 relative overflow-hidden shrink-0">
                   <ImageWithFallback
-                    src={chronicle.image}
+                    src={chronicle.image || chronicleFallbackImage}
                     alt={chronicle.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     referrerPolicy="no-referrer"
@@ -839,25 +797,6 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                       </button>
                     )}
 
-                    {isEditing && !campaignId && (
-                      <>
-                        <button
-                          onClick={() => handleMoveChronicle('backward')}
-                          className="text-[#fbb1a9] hover:text-[#fbb1a9] transition-colors cursor-pointer w-8 h-8 flex items-center justify-center bg-black/40 border border-[#fbb1a9]/30 hover:border-[#fbb1a9]"
-                          title="Mover para trás no tempo"
-                        >
-                          <span className="material-symbols-outlined text-sm text-[#fbb1a9]">arrow_back</span>
-                        </button>
-                        <button
-                          onClick={() => handleMoveChronicle('forward')}
-                          className="text-[#fbb1a9] hover:text-[#fbb1a9] transition-colors cursor-pointer w-8 h-8 flex items-center justify-center bg-black/40 border border-[#fbb1a9]/30 hover:border-[#fbb1a9]"
-                          title="Mover para frente no tempo"
-                        >
-                          <span className="material-symbols-outlined text-sm text-[#fbb1a9]">arrow_forward</span>
-                        </button>
-                      </>
-                    )}
-
                     <button
                       onClick={() => {
                         if (isEditing) {
@@ -889,7 +828,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
               {/* Cover Banner inside reader detail modal */}
               <div className="h-44 shrink-0 relative overflow-hidden">
                 <ImageWithFallback
-                  src={displayChronicle.image}
+                  src={displayChronicle.image || chronicleFallbackImage}
                   alt={displayChronicle.title}
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
@@ -933,7 +872,16 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                 )}
 
                 {/* Banner Header Info */}
-                <div className="absolute bottom-4 left-6 right-20">
+                <div 
+                  className="absolute bottom-0 left-0 right-0 p-4 pl-6 pt-16 flex flex-col justify-end z-10"
+                  style={{
+                    background: 'rgba(20, 20, 22, 0.65)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    maskImage: 'linear-gradient(to top, black 70%, transparent 100%)',
+                    WebkitMaskImage: 'linear-gradient(to top, black 70%, transparent 100%)',
+                  }}
+                >
                   {isEditing ? (
                     <>
                       {/* Mobile Inline Title Form */}
@@ -945,9 +893,9 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                             value={editingData.location ?? displayChronicle.location ?? ''}
                             onChange={(e) => setEditingData(prev => ({ ...prev, location: e.target.value }))}
                             placeholder="LOCALIZAÇÃO"
-                            className="font-mono text-micro tracking-widest text-on-surface font-bold block uppercase bg-black/40 border border-outline-variant/30 px-2 py-1 w-32"
+                            className="font-mono text-micro tracking-widest text-white font-bold block uppercase bg-black/40 border border-outline-variant/30 px-2 py-1 w-32"
                           />
-                          <span className="font-mono text-micro tracking-widest text-on-surface font-bold block uppercase">• {displayChronicle.session}</span>
+                          <span className="font-mono text-micro tracking-widest text-white/90 font-bold block uppercase">• {displayChronicle.session}</span>
                         </div>
                         <input
                           type="text"
@@ -955,31 +903,31 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
                           value={editingData.title ?? displayChronicle.title ?? ''}
                           onChange={(e) => setEditingData(prev => ({ ...prev, title: e.target.value }))}
                           placeholder="Título da Sessão"
-                          className="font-serif text-xl text-on-surface font-bold leading-tight bg-black/40 border border-outline-variant/30 px-2 py-1 w-full"
+                          className="font-serif text-xl text-white font-bold leading-tight bg-black/40 border border-outline-variant/30 px-2 py-1 w-full"
                         />
                       </div>
 
                       {/* Desktop Live Preview Title */}
                       <div className="hidden md:block">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-micro tracking-widest text-on-surface font-bold block uppercase">
+                          <span className="font-mono text-micro tracking-widest text-white/90 font-bold block uppercase drop-shadow-md">
                             {displayChronicle.location || 'LOCAL'} • {displayChronicle.session}
                           </span>
                           <span className="bg-primary/20 text-primary text-micro font-mono font-bold px-1.5 py-0.5 border border-primary/30 uppercase tracking-widest">
                             Live Preview
                           </span>
                         </div>
-                        <h4 className="font-serif text-2xl md:text-3xl text-on-surface font-bold leading-tight mt-1">
+                        <h4 className="font-serif text-2xl md:text-3xl text-white font-bold leading-tight mt-1 drop-shadow-lg">
                           {displayChronicle.title || 'Título da Sessão'}
                         </h4>
                       </div>
                     </>
                   ) : (
                     <>
-                      <span className="font-mono text-micro tracking-widest text-on-surface font-bold block uppercase">
+                      <span className="font-mono text-micro tracking-widest text-white/90 font-bold block uppercase drop-shadow-md">
                         {displayChronicle.location} • {displayChronicle.session}
                       </span>
-                      <h4 className="font-serif text-2xl md:text-3xl text-on-surface font-bold leading-tight mt-1">
+                      <h4 className="font-serif text-2xl md:text-3xl text-white font-bold leading-tight mt-1 drop-shadow-lg">
                         {displayChronicle.title}
                       </h4>
                     </>
@@ -1098,17 +1046,26 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
               {/* Cover Banner */}
               <div className="h-44 shrink-0 relative overflow-hidden">
                 <ImageWithFallback
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuApaoQQsXhFuJ7cnHYim1KAq_ihU2Sf_xG5CGjFEPgNbhiuPsddO96GWeZbOWMENEh5vNo9hBtlfWmRgQPhRtv5jxPFTbN5uyXeZ4upiymyfffad_QDcNvScGlT_8wY0rCE3FfRShqdcJQVPTHEmOYoVObV49PN2V5LgIncvPaxsJSorBU3jFWhZDeZkimJ5F3OBeN8ZV3Dio3Kby7oJK-Ey4wbx3Y_eayiVvFs8RKdviqwJ42g3eL3IbehJn2PWPa2cpxK4qYGy4E"
+                  src={chronicleFallbackImage}
                   alt="Lore de Occultus"
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
                 />
                 <div className="absolute inset-0 dark:bg-gradient-to-t dark:from-surface-container via-transparent to-transparent"></div>
-                <div className="absolute bottom-0 left-0 right-0 p-4 pl-6 bg-[#F5F2EB]/20 dark:bg-transparent backdrop-blur-sm dark:backdrop-blur-none">
-                  <span className="font-mono text-micro tracking-widest text-primary font-bold block uppercase">
+                <div 
+                  className="absolute bottom-0 left-0 right-0 p-4 pl-6 pt-16 flex flex-col justify-end z-10"
+                  style={{
+                    background: 'rgba(20, 20, 22, 0.65)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    maskImage: 'linear-gradient(to top, black 70%, transparent 100%)',
+                    WebkitMaskImage: 'linear-gradient(to top, black 70%, transparent 100%)',
+                  }}
+                >
+                  <span className="font-mono text-micro tracking-widest text-[#dd9281] font-bold block uppercase drop-shadow-md">
                     CODEX ANCESTRAL • LORE DA CAMPANHA
                   </span>
-                  <h4 className="font-serif text-2xl md:text-3xl text-on-surface font-bold leading-tight mt-1">
+                  <h4 className="font-serif text-2xl md:text-3xl text-white font-bold leading-tight mt-1 drop-shadow-lg">
                     O Crepúsculo de Occultus
                   </h4>
                 </div>
@@ -1335,16 +1292,6 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
         title="Apagar Crônica"
         description="Tem certeza que deseja apagar este relato dos tomos? Esta ação não poderá ser desfeita."
         itemPreview={chronicleToDelete ? `${chronicleToDelete.session}: ${chronicleToDelete.title}` : undefined}
-      />
-
-      <ConfirmDeleteModal
-        isOpen={!!pendingMoveDirection}
-        onClose={() => setPendingMoveDirection(null)}
-        onConfirm={confirmMoveChronicle}
-        title="Alterar Cronologia"
-        description="Isso vai mexer na cronologia das sessões! Tem certeza que deseja continuar?"
-        cancelText="Cancelar"
-        confirmText="Confirmar"
       />
     </div>
   );

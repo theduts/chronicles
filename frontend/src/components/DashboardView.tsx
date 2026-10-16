@@ -1,12 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, ChevronRight, Coins, Plus, Trash2, Edit, BookOpen } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
 import { Character, Note, ActiveScreen } from '../types';
-import CustomSelect from './CustomSelect';
-import Modal from './Modal';
-import ConfirmDeleteModal from './ConfirmDeleteModal';
-import { ActionButton, SaveButton, AddButton, EditButton, DeleteButton } from './ActionButtons';
 import ImageWithFallback from './ImageWithFallback';
+import { useIsDark, getChronicleFallbackImage } from '../hooks/useIsDark';
 import { toRoman, formatDisplayDate, type ChronicleSession } from './ChroniclesView';
 import { useChroniclesQuery } from '../hooks/useChroniclesMutations';
 
@@ -21,15 +18,6 @@ interface DashboardViewProps {
   campaignId?: string;
 }
 
-const ALL_CONTRACTS = [
-  { id: 1, title: "O Terror do Esgoto", danger: "Médio", reward: "150 PO", desc: "Eliminar a besta bípede imunda que anda sequestrando os porcos da taverna do Velho Galdor." },
-  { id: 2, title: "O Grimório Fugitivo", danger: "Alto", reward: "300 PO", desc: "Procurar e recuperar o livro proibido de feitiços de Necromancia que escapou levitando." },
-  { id: 3, title: "A Essência do Pesadelo", danger: "Extremo", reward: "250 PO + Anel Obsidian", desc: "Coletar 3 frascos das lágrimas de um Espectro da Floresta Sombria para alquimia." },
-  { id: 4, title: "Resgate na Caverna de Gelo", danger: "Alto", reward: "400 PO", desc: "Encontrar o explorador ferido supostamente capturado pelos cultistas da Geada Selada." },
-  { id: 5, title: "O Mistério da Estátua Chorosa", danger: "Baixo", reward: "Amuleto de Bronze", desc: "Investigar a estátua rúnica que chora sangue no cemitério principal durante a meia-noite." },
-  { id: 6, title: "A Purga dos Goblins", danger: "Médio", reward: "180 PO", desc: "Eliminar o assentamento de saqueadores goblinoides sob a ponte de ferro da estrada real." }
-];
-
 export default function DashboardView({
   characters,
   notes,
@@ -43,14 +31,8 @@ export default function DashboardView({
   const [paraX, setParaX] = useState(0);
   const [paraY, setParaY] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [contractsExpanded, setContractsExpanded] = useState(false);
 
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    if (typeof document !== 'undefined') {
-      return document.documentElement.classList.contains('dark');
-    }
-    return true;
-  });
+  const isDark = useIsDark();
 
   const effectiveCampaignId = activeCampaign?.id || campaignId;
   const { data: dbChronicles = [] } = useChroniclesQuery(effectiveCampaignId);
@@ -83,47 +65,12 @@ export default function DashboardView({
       date: formatDisplayDate(c.sessionDate),
       desc: c.narrative && c.narrative.length > 200 ? `${c.narrative.slice(0, 197)}...` : c.narrative,
       fullText: c.narrative,
-      image: (c as any).illustrationUrl || (c as any).ilustration_url || (c as any).illustration_url || 'https://lh3.googleusercontent.com/aida-public/AB6AXuApaoQQsXhFuJ7cnHYim1KAq_ihU2Sf_xG5CGjFEPgNbhiuPsddO96GWeZbOWMENEh5vNo9hBtlfWmRgQPhRtv5jxPFTbN5uyXeZ4upiymyfffad_QDcNvScGlT_8wY0rCE3FfRShqdcJQVPTHEmOYoVObV49PN2V5LgIncvPaxsJSorBU3jFWhZDeZkimJ5F3OBeN8ZV3Dio3Kby7oJK-Ey4wbx3Y_eayiVvFs8RKdviqwJ42g3eL3IbehJn2PWPa2cpxK4qYGy4E',
+      image: (c as any).illustrationUrl || (c as any).ilustration_url || (c as any).illustration_url || '',
       danger: 'Médio',
       majorEvent: c.mission || 'Relato de aventura'
     }));
   }, [effectiveCampaignId, dbChronicles, localChronicles]);
 
-  useEffect(() => {
-    const checkDark = () => {
-      setIsDark(document.documentElement.classList.contains('dark'));
-    };
-    checkDark();
-
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.attributeName === 'class') {
-          checkDark();
-        }
-      }
-    });
-
-    observer.observe(document.documentElement, { attributes: true });
-    return () => observer.disconnect();
-  }, []);
-  
-  // Contracts list with persistence
-  const [contractsList, setContractsList] = useState<any[]>(() => {
-    try {
-      const saved = localStorage.getItem('daemon_contracts_list');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-      return ALL_CONTRACTS;
-    } catch (e) {
-      return ALL_CONTRACTS;
-    }
-  });
-
-  const [selectedContracts, setSelectedContracts] = useState<any[]>([]);
-  const [acceptedContracts, setAcceptedContracts] = useState<number[]>([]);
-  const [contractToDelete, setContractToDelete] = useState<number | null>(null);
   const [selectedChronicle, setSelectedChronicle] = useState<ChronicleSession | null>(null);
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
@@ -136,183 +83,6 @@ export default function DashboardView({
       return [];
     }
   });
-
-  // Add Contract Form State
-  const [showAddContractModal, setShowAddContractModal] = useState(false);
-  const [contractName, setContractName] = useState('');
-  const [contractDesc, setContractDesc] = useState('');
-  const [coinAmount, setCoinAmount] = useState('');
-  const [coinType, setCoinType] = useState<'Ouro' | 'Prata' | 'Bronze'>('Ouro');
-  const [isToNegotiate, setIsToNegotiate] = useState(false);
-
-  // Detail / Edit Contract State
-  const [viewingContract, setViewingContract] = useState<any | null>(null);
-  const [isEditingContract, setIsEditingContract] = useState(false);
-  const [editName, setEditName] = useState('');
-  const [editDesc, setEditDesc] = useState('');
-  const [editCoinAmount, setEditCoinAmount] = useState('');
-  const [editCoinType, setEditCoinType] = useState<'Ouro' | 'Prata' | 'Bronze'>('Ouro');
-  const [editIsToNegotiate, setEditIsToNegotiate] = useState(false);
-
-  const handleStartEdit = () => {
-    if (!viewingContract) return;
-    setEditName(viewingContract.title);
-    setEditDesc(viewingContract.desc);
-    
-    const reward = viewingContract.reward || '';
-    const coinT = viewingContract.coinType;
-    
-    if (coinT === 'A combinar' || reward === 'A combinar') {
-      setEditIsToNegotiate(true);
-      setEditCoinAmount('');
-      setEditCoinType('Ouro');
-    } else {
-      setEditIsToNegotiate(false);
-      const match = reward.match(/^(\d+)/);
-      if (match) {
-        setEditCoinAmount(match[1]);
-      } else {
-        setEditCoinAmount('');
-      }
-      
-      if (coinT === 'Prata' || reward.includes('PP') || reward.includes('Prata')) {
-        setEditCoinType('Prata');
-      } else if (coinT === 'Bronze' || reward.includes('PB') || reward.includes('Bronze')) {
-        setEditCoinType('Bronze');
-      } else {
-        setEditCoinType('Ouro');
-      }
-    }
-    setIsEditingContract(true);
-  };
-
-  const handleSaveEdit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editName || !editDesc) {
-      alert('Por favor, preencha todos os campos obrigatórios.');
-      return;
-    }
-
-    let rewardString = '';
-    if (editIsToNegotiate) {
-      rewardString = 'A combinar';
-    } else {
-      const amount = parseInt(editCoinAmount);
-      if (isNaN(amount) || amount <= 0) {
-        alert('Por favor, insira uma quantidade de moedas válida.');
-        return;
-      }
-      rewardString = `${amount} P${editCoinType === 'Ouro' ? 'O' : editCoinType === 'Prata' ? 'P' : 'B'}`;
-    }
-
-    const updatedContract = {
-      ...viewingContract,
-      title: editName,
-      desc: editDesc,
-      reward: rewardString,
-      coinType: editIsToNegotiate ? 'A combinar' : editCoinType
-    };
-
-    const updatedContractsList = contractsList.map(c => c.id === viewingContract.id ? updatedContract : c);
-    setContractsList(updatedContractsList);
-    localStorage.setItem('daemon_contracts_list', JSON.stringify(updatedContractsList));
-
-    setSelectedContracts(prev => prev.map(c => c.id === viewingContract.id ? updatedContract : c));
-    setViewingContract(updatedContract);
-    setIsEditingContract(false);
-  };
-
-  const handleRemoveContract = () => {
-    if (contractToDelete === null) return;
-    const updatedContractsList = contractsList.filter(c => c.id !== contractToDelete);
-    setContractsList(updatedContractsList);
-    localStorage.setItem('daemon_contracts_list', JSON.stringify(updatedContractsList));
-
-    setSelectedContracts(prev => prev.filter(c => c.id !== contractToDelete));
-    if (viewingContract?.id === contractToDelete) {
-      setViewingContract(null);
-      setIsEditingContract(false);
-    }
-    setContractToDelete(null);
-  };
-
-  useEffect(() => {
-    // Pick 3 random unique contracts on load from persisted list
-    const shuffled = [...contractsList].sort(() => 0.5 - Math.random());
-    setSelectedContracts(shuffled.slice(0, Math.min(3, shuffled.length)));
-  }, []);
-
-  const handleCreateContract = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!contractName || !contractDesc) {
-      alert('Por favor, preencha todos os campos obrigatórios.');
-      return;
-    }
-
-    let rewardString = '';
-    if (isToNegotiate) {
-      rewardString = 'A combinar';
-    } else {
-      const amount = parseInt(coinAmount);
-      if (isNaN(amount) || amount <= 0) {
-        alert('Por favor, insira uma quantidade de moedas válida.');
-        return;
-      }
-      rewardString = `${amount} P${coinType === 'Ouro' ? 'O' : coinType === 'Prata' ? 'P' : 'B'}`;
-    }
-
-    const newContract = {
-      id: Date.now(),
-      title: contractName,
-      desc: contractDesc,
-      danger: 'Médio',
-      reward: rewardString,
-      coinType: isToNegotiate ? 'A combinar' : coinType
-    };
-
-    const updatedList = [...contractsList, newContract];
-    setContractsList(updatedList);
-    localStorage.setItem('daemon_contracts_list', JSON.stringify(updatedList));
-
-    setSelectedContracts((prev) => [...prev, newContract]);
-    setContractsExpanded(true);
-
-    // Reset fields
-    setContractName('');
-    setContractDesc('');
-    setCoinAmount('');
-    setCoinType('Ouro');
-    setIsToNegotiate(false);
-    setShowAddContractModal(false);
-  };
-
-  const getRewardColor = (contract: any) => {
-    const coinType = contract.coinType;
-    if (coinType === 'Ouro') return 'text-[#f5be38]';
-    if (coinType === 'Prata') return 'text-[#cbd5e1]';
-    if (coinType === 'Bronze') return 'text-[#cd7f32]';
-    if (coinType === 'A combinar') return 'text-zinc-400 font-bold';
-    
-    const reward = contract.reward || '';
-    if (reward.includes('PO')) return 'text-[#f5be38]';
-    if (reward.includes('PP')) return 'text-[#cbd5e1]';
-    if (reward.includes('Bronze') || reward.includes('PB')) return 'text-[#cd7f32]';
-    return 'text-amber-500';
-  };
-
-  const getCoinIconColor = (contract: any) => {
-    const coinType = contract.coinType;
-    if (coinType === 'Ouro') return 'text-[#f5be38]';
-    if (coinType === 'Prata') return 'text-[#cbd5e1]';
-    if (coinType === 'Bronze') return 'text-[#cd7f32]';
-    if (coinType === 'A combinar') return 'text-zinc-500';
-    
-    const reward = contract.reward || '';
-    if (reward.includes('PO')) return 'text-[#f5be38]';
-    if (reward.includes('PP')) return 'text-[#cbd5e1]';
-    if (reward.includes('Bronze') || reward.includes('PB')) return 'text-[#cd7f32]';
-    return 'text-amber-500';
-  };
 
   const latestChronicle = chronicles.length > 0 ? chronicles[chronicles.length - 1] : null;
 
@@ -329,7 +99,7 @@ export default function DashboardView({
       title: latestChronicle ? latestChronicle.title : "No último capítulo...",
       subtitle: latestChronicle?.location ? `Em ${latestChronicle.location}` : "Um relato escrito em tinta e sangue",
       description: latestChronicle ? (latestChronicle.desc || latestChronicle.fullText) : "Acompanhe o que aconteceu na última sessão através dos relatos dos bardos poetas que contarão suas histórias e crônicas de geração em geração que hão de vir.",
-      image: latestChronicle?.image || (isDark ? "/images/last_session - escuro.webp" : "/images/last_session - claro.webp"),
+      image: latestChronicle?.image || getChronicleFallbackImage(isDark),
     },
     {
       welcome: "",
@@ -396,10 +166,7 @@ export default function DashboardView({
         {/* Navigation Arrows */}
         {currentSlide > 0 && (
           <button
-            onClick={() => {
-              setContractsExpanded(false);
-              setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-            }}
+            onClick={() => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)}
             className="absolute left-2 sm:-left-5 max-sm:top-auto max-sm:bottom-14 max-sm:translate-y-0 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-surface hover:bg-surface-container-highest text-on-surface hover:text-on-surface rounded-full shadow-lg z-40 transition-all active:scale-95 cursor-pointer flex items-center justify-center border border-[#8C7A65]/20"
             aria-label="Anterior"
           >
@@ -408,10 +175,7 @@ export default function DashboardView({
         )}
         {currentSlide < slides.length - 1 && (
           <button
-            onClick={() => {
-              setContractsExpanded(false);
-              setCurrentSlide((prev) => (prev + 1) % slides.length);
-            }}
+            onClick={() => setCurrentSlide((prev) => (prev + 1) % slides.length)}
             className="absolute right-2 sm:-right-5 max-sm:top-auto max-sm:bottom-14 max-sm:translate-y-0 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-surface hover:bg-surface-container-highest text-on-surface hover:text-on-surface rounded-full shadow-lg z-40 transition-all active:scale-95 cursor-pointer flex items-center justify-center border border-[#8C7A65]/20"
             aria-label="Próximo"
           >
@@ -497,10 +261,7 @@ export default function DashboardView({
           {slides.map((_, idx) => (
             <button
               key={idx}
-              onClick={() => {
-                setContractsExpanded(false);
-                setCurrentSlide(idx);
-              }}
+              onClick={() => setCurrentSlide(idx)}
               className={`w-12 h-1 transition-all duration-300 cursor-pointer ${
                 idx === currentSlide ? 'bg-primary w-16' : 'bg-surface-container hover:bg-[#6A6A6A]'
               }`}
@@ -545,35 +306,44 @@ export default function DashboardView({
                 <div
                   key={chronicle.id}
                   onClick={() => setSelectedChronicle(chronicle)}
-                  className="w-[220px] sm:w-[320px] md:w-[380px] lg:w-[425px] shrink-0 snap-start relative overflow-hidden group h-[320px] sm:h-[240px] md:h-[260px] lg:h-[290px] border border-outline-variant hover:border-primary/60 transition-all duration-300 cursor-pointer bg-surface-container"
+                  className="w-[220px] sm:w-[320px] md:w-[380px] lg:w-[425px] shrink-0 snap-start relative overflow-hidden group h-[320px] sm:h-[240px] md:h-[260px] lg:h-[290px] border border-outline-variant hover:border-primary/60 transition-all duration-300 cursor-pointer rounded-sm"
                 >
                   <ImageWithFallback
                     alt={chronicle.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    src={chronicle.image}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    src={chronicle.image || getChronicleFallbackImage(isDark)}
                     fallbackText={chronicle.title}
                   />
-                  <div className="absolute inset-0 dark:bg-gradient-to-t dark:from-background dark:via-background/40 dark:to-transparent transition-opacity group-hover:opacity-95"></div>
 
                   {/* Hover book read symbol indicator */}
-                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 border border-[#fbb1a9]/40 p-2 rounded-full flex items-center justify-center">
+                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 border border-[#fbb1a9]/40 p-2 rounded-full flex items-center justify-center z-20">
                     <span className="material-symbols-outlined text-[#fbb1a9] text-sm">auto_stories</span>
                   </div>
 
-                  <div className="absolute bottom-0 left-0 p-4 sm:p-5 w-full dark:bg-gradient-to-t dark:from-background dark:via-background/80 dark:to-transparent">
+                  {/* Bottom Content with Liquid Glass and Fade Out top */}
+                  <div 
+                    className="absolute bottom-0 left-0 p-4 sm:p-5 pt-16 w-full flex flex-col justify-end z-10"
+                    style={{
+                      background: 'rgba(20, 20, 22, 0.65)',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      maskImage: 'linear-gradient(to top, black 75%, transparent 100%)',
+                      WebkitMaskImage: 'linear-gradient(to top, black 75%, transparent 100%)',
+                    }}
+                  >
                     <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 mb-1">
                       <span className="text-micro sm:text-micro font-mono tracking-widest font-bold text-[#dd9281]">
                         {chronicle.session}
                       </span>
-                      <span className="text-micro sm:text-micro text-on-surface-variant/40">•</span>
-                      <span className="text-micro sm:text-micro font-sans font-bold tracking-widest text-on-surface-variant/80 uppercase">
+                      <span className="text-white/60 text-micro sm:text-micro">•</span>
+                      <span className="text-micro sm:text-micro font-sans font-bold tracking-widest text-[#dd9281]/80 uppercase">
                         {chronicle.location}
                       </span>
                     </div>
-                    <h4 className="font-serif text-sm sm:text-lg text-on-surface font-semibold group-hover:text-primary transition-colors line-clamp-2 sm:line-clamp-1">
+                    <h4 className="font-serif text-sm sm:text-lg text-white font-semibold group-hover:text-primary transition-colors line-clamp-2 sm:line-clamp-1 drop-shadow-md">
                       {chronicle.title}
                     </h4>
-                    <p className="text-on-surface-variant/80 text-micro sm:text-caption mt-1 line-clamp-4 sm:line-clamp-2 leading-relaxed font-sans font-medium">
+                    <p className="text-white/90 text-micro sm:text-caption mt-1 line-clamp-4 sm:line-clamp-2 leading-relaxed font-sans font-medium drop-shadow">
                       {chronicle.desc}
                     </p>
                   </div>
@@ -603,7 +373,7 @@ export default function DashboardView({
       </section>
 
       {/* Updates section */}
-      <section className="px-0 sm:px-6 md:px-12 max-w-2xl mx-auto w-full animate-fade-in">
+      <section className="px-0 sm:px-6 md:px-12 max-w-2xl mx-auto w-full">
         <div className="bg-surface-container border-y sm:border border-outline-variant p-6 flex flex-col parchment-texture">
           <h5 className="font-sans text-micro text-on-surface-variant font-bold tracking-widest mb-6 uppercase text-center sm:text-left">
             UPDATES MESSAGES
@@ -725,12 +495,21 @@ export default function DashboardView({
                   className="w-full h-full object-cover"
                   fallbackText={selectedChronicle.title}
                 />
-                <div className="absolute inset-0 dark:bg-gradient-to-t dark:from-surface-container dark:via-transparent dark:to-transparent"></div>
-                <div className="absolute bottom-0 left-0 right-0 p-4 pl-6 bg-[#F5F2EB]/20 dark:bg-transparent backdrop-blur-sm dark:backdrop-blur-none">
-                  <span className="font-mono text-micro tracking-widest text-primary font-bold block uppercase">
+                <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-transparent pointer-events-none opacity-80"></div>
+                <div 
+                  className="absolute bottom-0 left-0 right-0 p-4 pl-6 pt-16 flex flex-col justify-end z-10"
+                  style={{
+                    background: 'rgba(20, 20, 22, 0.65)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    maskImage: 'linear-gradient(to top, black 70%, transparent 100%)',
+                    WebkitMaskImage: 'linear-gradient(to top, black 70%, transparent 100%)',
+                  }}
+                >
+                  <span className="font-mono text-micro tracking-widest text-white/90 font-bold block uppercase drop-shadow-md">
                     {selectedChronicle.location} • {selectedChronicle.session}
                   </span>
-                  <h4 className="font-serif text-2xl md:text-3xl text-on-surface font-bold leading-tight mt-1">
+                  <h4 className="font-serif text-2xl md:text-3xl text-white font-bold leading-tight mt-1 drop-shadow-lg">
                     {selectedChronicle.title}
                   </h4>
                 </div>
@@ -760,327 +539,6 @@ export default function DashboardView({
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Add Contract Modal */}
-      <Modal
-        isOpen={showAddContractModal}
-        onClose={() => setShowAddContractModal(false)}
-        title="Adicionar Contrato"
-        icon={<BookOpen className="w-5 h-5 text-primary" />}
-        maxWidth="max-w-xl"
-        onSubmit={handleCreateContract}
-        footer={
-          <div className="flex justify-end w-full">
-            <SaveButton
-              type="submit"
-              label="Registrar Contrato"
-              variant="primary-ghost"
-            />
-          </div>
-        }
-      >
-        <div className="space-y-4 font-sans text-xs">
-          <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
-            Registre um novo contrato para aventureiros, definindo a recompensa e os detalhes do serviço.
-          </p>
-
-          {/* Nome */}
-          <div>
-            <label className="block text-primary font-bold uppercase tracking-widest text-micro mb-1.5">Nome do Contrato *</label>
-            <div className="w-full">
-              <input
-                type="text"
-                required
-                maxLength={50}
-                placeholder="e.g. O Resgate da Princesa, Extermínio de Ratos..."
-                value={contractName}
-                onChange={(e) => setContractName(e.target.value)}
-                className="`${contractName.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant p-2.5  focus:outline-none focus:border-primary font-sans rounded-none`"
-              />
-              {contractName.length >= 50 && (
-                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
-                  Limite atingido (50)
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Descrição */}
-          <div>
-            <label className="block text-primary font-bold uppercase tracking-widest text-micro mb-1.5">Descrição *</label>
-            <div className="w-full">
-              <textarea
-                required
-                rows={4}
-                maxLength={300}
-                placeholder="Descreva o objetivo do contrato, o contratante e as condições..."
-                value={contractDesc}
-                onChange={(e) => setContractDesc(e.target.value)}
-                className="`${contractDesc.length >= 300 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant p-2.5  focus:outline-none focus:border-primary font-sans rounded-none resize-none custom-scrollbar`"
-              />
-              {contractDesc.length >= 300 && (
-                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
-                  Limite atingido (300)
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Pagamento Section */}
-          <div className="border-t border-outline-variant/30 pt-4 mt-4 font-sans">
-            <h4 className="font-serif text-xs text-primary uppercase tracking-widest mb-3 font-bold">Pagamento</h4>
-            
-            {/* Option A Combinar styled checkbox */}
-            <div className="flex items-center gap-3 mb-4 select-none">
-              <label className="relative flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  id="isToNegotiate"
-                  checked={isToNegotiate}
-                  onChange={(e) => setIsToNegotiate(e.target.checked)}
-                  className="`${editName.length >= 50 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} sr-only peer`"
-                />
-                <div className="w-5 h-5 border border-primary/50 bg-surface-container flex items-center justify-center transition-all peer-checked:border-primary peer-checked:bg-primary/20">
-                  <div className={`w-2.5 h-2.5 bg-primary transition-transform ${isToNegotiate ? 'scale-100' : 'scale-0'}`} />
-                </div>
-                <span className="text-on-surface font-sans text-xs select-none">
-                  A combinar (definir valor posteriormente)
-                </span>
-              </label>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Quantidade */}
-              <div>
-                <label className={`block font-bold uppercase tracking-widest text-micro mb-1.5 ${isToNegotiate ? 'text-on-surface-variant/40' : 'text-primary'}`}>
-                  Quantidade *
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="99"
-                  required={!isToNegotiate}
-                  disabled={isToNegotiate}
-                  placeholder="Ex: 99"
-                  value={coinAmount}
-                  onChange={(e) => {
-                    if (e.target.value.length <= 2) setCoinAmount(e.target.value);
-                  }}
-                  className="w-full bg-surface-container border border-outline-variant p-2.5 text-on-surface focus:outline-none focus:border-primary font-sans rounded-none disabled:opacity-40 disabled:border-outline-variant/20"
-                />
-              </div>
-
-              {/* Tipo Moeda */}
-              <div>
-                <label className={`block font-bold uppercase tracking-widest text-micro mb-1.5 ${isToNegotiate ? 'text-on-surface-variant/40' : 'text-primary'}`}>
-                  Tipo de Moeda *
-                </label>
-                <CustomSelect
-                  disabled={isToNegotiate}
-                  value={coinType}
-                  onChange={(e) => setCoinType(e.target.value as 'Ouro' | 'Prata' | 'Bronze')}
-                  variant="parchment"
-                  options={[
-                    { value: "Ouro", label: "Ouro" },
-                    { value: "Prata", label: "Prata" },
-                    { value: "Bronze", label: "Bronze" },
-                  ]}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Contract Detail & Edit/Remove Modal */}
-      <Modal
-        isOpen={!!viewingContract}
-        onClose={() => {
-          setViewingContract(null);
-          setIsEditingContract(false);
-        }}
-        title={isEditingContract ? 'Editar Contrato' : (viewingContract?.title || 'Detalhes do Contrato')}
-        icon={<BookOpen className="w-5 h-5 text-primary" />}
-        maxWidth="max-w-xl"
-        onSubmit={isEditingContract ? handleSaveEdit : undefined}
-        footer={
-          !isEditingContract ? (
-            userRole === 'dm' ? (
-              <div className="flex justify-between w-full">
-                <DeleteButton
-                  type="button"
-                  onClick={() => viewingContract && setContractToDelete(viewingContract.id)}
-                  label="Remover"
-                />
-                <EditButton
-                  type="button"
-                  onClick={handleStartEdit}
-                  variant="primary-ghost"
-                />
-              </div>
-            ) : (
-              <div className="flex justify-end w-full">
-                <button
-                  type="button"
-                  onClick={() => setViewingContract(null)}
-                  className="px-5 py-2.5 bg-surface-container/10 hover:bg-surface-container/20 text-on-surface text-caption font-sans font-bold uppercase tracking-wider transition-colors cursor-pointer rounded-none"
-                >
-                  Fechar
-                </button>
-              </div>
-            )
-          ) : (
-            <div className="flex justify-end w-full">
-              <SaveButton
-                type="submit"
-                label="Salvar Alterações"
-                variant="primary-ghost"
-              />
-            </div>
-          )
-        }
-      >
-        {viewingContract && (
-          !isEditingContract ? (
-            <div className="space-y-6 font-sans text-xs">
-              <div className="text-center space-y-1 pb-4 border-b border-outline-variant/30">
-                <div className="flex items-center justify-center gap-2 mt-2">
-                  <Coins className={`${getCoinIconColor(viewingContract)} w-4 h-4`} />
-                  <span className={`font-mono text-sm ${getRewardColor(viewingContract)} font-bold`}>
-                    {viewingContract.reward}
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="font-serif text-xs text-primary uppercase tracking-widest font-bold">Detalhes do Contrato</h4>
-                <p className="font-sans text-xs text-on-surface-variant leading-relaxed bg-black/40 p-4 border border-white/5 whitespace-pre-wrap">
-                  {viewingContract.desc}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4 font-sans text-xs">
-              <p className="font-sans text-xs text-on-surface-variant mb-2">
-                Modifique os dados do contrato ativo.
-              </p>
-
-              {/* Nome */}
-              <div>
-                <label className="block text-primary font-bold uppercase tracking-widest text-micro mb-1.5">Nome do Contrato *</label>
-                <div className="w-full">
-              <input
-                    type="text"
-                    required
-                    maxLength={50}
-                    placeholder="e.g. O Resgate da Princesa, Extermínio de Ratos..."
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="w-full bg-surface-container border border-outline-variant p-2.5 text-on-surface focus:outline-none focus:border-primary font-sans rounded-none"
-                  />
-              {editName.length >= 50 && (
-                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
-                  Limite atingido (50)
-                </div>
-              )}
-            </div>
-              </div>
-
-              {/* Descrição */}
-              <div>
-                <label className="block text-primary font-bold uppercase tracking-widest text-micro mb-1.5">Descrição *</label>
-                <div className="w-full">
-              <textarea
-                    required
-                    rows={4}
-                    maxLength={300}
-                    placeholder="Descreva o objetivo do contrato, o contratante e as condições..."
-                    value={editDesc}
-                    onChange={(e) => setEditDesc(e.target.value)}
-                    className="`${editDesc.length >= 300 ? '!text-red-500 focus:!text-red-500 !font-bold' : 'text-on-surface'} w-full bg-surface-container border border-outline-variant p-2.5  focus:outline-none focus:border-primary font-sans rounded-none resize-none custom-scrollbar`"
-                  />
-              {editDesc.length >= 300 && (
-                <div className="text-right mt-1 text-micro font-medium text-red-500/80">
-                  Limite atingido (300)
-                </div>
-              )}
-            </div>
-              </div>
-
-              {/* Pagamento Section */}
-              <div className="border-t border-outline-variant/30 pt-4 mt-4 font-sans">
-                <h4 className="font-serif text-xs text-primary uppercase tracking-widest mb-3 font-bold">Pagamento</h4>
-                
-                {/* Option A Combinar styled checkbox */}
-                <div className="flex items-center gap-3 mb-4 select-none">
-                  <label className="relative flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={editIsToNegotiate}
-                      onChange={(e) => setEditIsToNegotiate(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-5 h-5 border border-primary/50 bg-surface-container flex items-center justify-center transition-all peer-checked:border-primary peer-checked:bg-primary/20">
-                      <div className={`w-2.5 h-2.5 bg-primary transition-transform ${editIsToNegotiate ? 'scale-100' : 'scale-0'}`} />
-                    </div>
-                    <span className="text-on-surface font-sans text-xs select-none">
-                      A combinar (definir valor posteriormente)
-                    </span>
-                  </label>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Quantidade */}
-                  <div>
-                    <label className={`block font-bold uppercase tracking-widest text-micro mb-1.5 ${editIsToNegotiate ? 'text-on-surface-variant/40' : 'text-primary'}`}>
-                      Quantidade *
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="99"
-                      required={!editIsToNegotiate}
-                      disabled={editIsToNegotiate}
-                      placeholder="Ex: 99"
-                      value={editCoinAmount}
-                      onChange={(e) => {
-                        if (e.target.value.length <= 2) setEditCoinAmount(e.target.value);
-                      }}
-                      className="w-full bg-surface-container border border-outline-variant p-2.5 text-on-surface focus:outline-none focus:border-primary font-sans rounded-none disabled:opacity-40 disabled:border-outline-variant/20"
-                    />
-                  </div>
-
-                  {/* Tipo Moeda */}
-                  <div>
-                    <label className={`block font-bold uppercase tracking-widest text-micro mb-1.5 ${editIsToNegotiate ? 'text-on-surface-variant/40' : 'text-primary'}`}>
-                      Tipo de Moeda *
-                    </label>
-                    <CustomSelect
-                      disabled={editIsToNegotiate}
-                      value={editCoinType}
-                      onChange={(e) => setEditCoinType(e.target.value as 'Ouro' | 'Prata' | 'Bronze')}
-                      variant="parchment"
-                      options={[
-                        { value: "Ouro", label: "Ouro" },
-                        { value: "Prata", label: "Prata" },
-                        { value: "Bronze", label: "Bronze" },
-                      ]}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )
-        )}
-      </Modal>
-      {/* Delete Contract Confirm Modal */}
-      <ConfirmDeleteModal
-        isOpen={contractToDelete !== null}
-        onClose={() => setContractToDelete(null)}
-        onConfirm={handleRemoveContract}
-        title="Remover Contrato"
-        description="Tem certeza de que deseja remover este contrato? Esta ação não pode ser desfeita."
-      />
     </div>
   );
 }

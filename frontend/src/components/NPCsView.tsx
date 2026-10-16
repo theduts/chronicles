@@ -329,7 +329,7 @@ function NpcMasonryCard({ npc, onEdit, onPromote, isPromotePending }: NpcMasonry
 
               <div className="space-y-3 font-sans text-xs text-on-surface-variant leading-relaxed">
                 <div>
-                  <span className="text-micro font-bold text-outline-variant uppercase tracking-wider block mb-1">
+                  <span className="text-micro font-bold text-on-surface-variant dark:text-outline-variant uppercase tracking-wider block mb-1">
                     Descrição & Aparência
                   </span>
                   <p className="italic text-on-surface">{npc.description || 'Nenhuma descrição fornecida.'}</p>
@@ -337,7 +337,7 @@ function NpcMasonryCard({ npc, onEdit, onPromote, isPromotePending }: NpcMasonry
 
                 {npc.notes && (
                   <div>
-                    <span className="text-micro font-bold text-outline-variant uppercase tracking-wider block mb-1">
+                    <span className="text-micro font-bold text-on-surface-variant dark:text-outline-variant uppercase tracking-wider block mb-1">
                       Segredos & Anotações
                     </span>
                     <p className="text-primary bg-primary/10 border border-primary/20 p-2.5">
@@ -964,7 +964,7 @@ export default function NPCsView({ activeCampaignId, campaigns }: NPCsViewProps)
             placeholder="Buscar NPC por nome, raça ou ocupação..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-surface-container-low border border-outline-variant/50 text-xs py-3 pl-10 pr-4 focus:ring-0 focus:border-primary outline-none font-sans tracking-wider text-on-surface"
+            className="w-full bg-surface-container-low dark:bg-black/40 border border-outline-variant/50 text-xs py-3 pl-10 pr-4 focus:ring-0 focus:border-primary outline-none font-sans tracking-wider text-on-surface"
           />
           <Search className="w-4 h-4 text-outline-variant absolute left-3 top-3.5" />
         </div>
@@ -985,7 +985,7 @@ export default function NPCsView({ activeCampaignId, campaigns }: NPCsViewProps)
           </p>
         </div>
       ) : (
-        <div className="columns-1 md:columns-2 gap-6 space-y-6">
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
           {filteredNpcs.map((npc) => (
             <NpcMasonryCard
               key={npc.id}
@@ -1424,7 +1424,7 @@ export default function NPCsView({ activeCampaignId, campaigns }: NPCsViewProps)
                         </span>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <div className="sm:col-span-1 flex flex-col gap-1">
-                            <label className="text-micro font-bold text-outline-variant uppercase">
+                            <label className="font-sans text-micro font-bold text-on-surface-variant dark:text-outline-variant uppercase tracking-widest">
                               Nome da Habilidade
                             </label>
                             <input
@@ -1436,7 +1436,7 @@ export default function NPCsView({ activeCampaignId, campaigns }: NPCsViewProps)
                             />
                           </div>
                           <div className="sm:col-span-2 flex flex-col gap-1">
-                            <label className="text-micro font-bold text-outline-variant uppercase">
+                            <label className="font-sans text-micro font-bold text-on-surface-variant dark:text-outline-variant uppercase tracking-widest">
                               Descrição da Habilidade
                             </label>
                             <input

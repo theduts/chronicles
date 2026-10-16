@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { AnimatePresence } from 'motion/react';
+import ModalOverlay from './common/ModalOverlay';
 import PageHeader from './common/PageHeader';
 import { toast } from 'sonner';
 import { Note } from '../types';
@@ -189,13 +191,6 @@ export default function NotesView({
           <p className="font-sans text-xs text-on-surface-variant max-w-xs mx-auto mt-2">
             Sua mesa está vazia. Clique em "Nova anotação" para registrar suas crônicas e descobertas.
           </p>
-          <div className="mt-6 flex justify-center">
-            <AddButton
-              onClick={handleCreateNewNote}
-              label="Criar primeira anotação"
-              variant="secondary"
-            />
-          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -249,10 +244,11 @@ export default function NotesView({
       </button>
 
       {/* Note Full Content & Editing Modal */}
+      <AnimatePresence>
       {activeNote && (
-        <div
+        <ModalOverlay
           onClick={handleCloseModal}
-          className="fixed inset-0 bg-black/85 flex items-center justify-center z-[900] backdrop-blur-md p-4 animate-fadeIn"
+          className="fixed inset-0 bg-black/85 flex items-center justify-center z-[900] backdrop-blur-md p-4"
         >
           <div
             onClick={(e) => e.stopPropagation()}
@@ -437,8 +433,9 @@ export default function NotesView({
               />
             </div>
           </div>
-        </div>
+        </ModalOverlay>
       )}
+      </AnimatePresence>
 
       {/* Delete Confirmation Modal */}
       <ConfirmDeleteModal

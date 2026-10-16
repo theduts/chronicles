@@ -4,17 +4,15 @@ export interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImag
   fallbackSrc?: string;
 }
 
-export const FALLBACK_IMAGE_PATH = '/images/placeholders/fallback.svg';
-
 export default function ImageWithFallback({
   src,
   alt = '',
   className = '',
-  fallbackSrc = FALLBACK_IMAGE_PATH,
+  fallbackSrc,
   onError,
   ...props
 }: ImageWithFallbackProps) {
-  const [imgSrc, setImgSrc] = useState<string>(src || fallbackSrc);
+  const [imgSrc, setImgSrc] = useState<string | undefined>(src || fallbackSrc);
   const [hasFallbackError, setHasFallbackError] = useState(false);
 
   useEffect(() => {
@@ -23,7 +21,7 @@ export default function ImageWithFallback({
   }, [src, fallbackSrc]);
 
   const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    if (imgSrc !== fallbackSrc && !hasFallbackError) {
+    if (fallbackSrc && imgSrc !== fallbackSrc && !hasFallbackError) {
       setImgSrc(fallbackSrc);
     } else {
       setHasFallbackError(true);

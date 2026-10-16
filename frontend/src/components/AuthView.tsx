@@ -38,7 +38,7 @@ export default function AuthView({ onLoginSuccess, initialTab = 'login', onNavig
         email: data.email,
         role: userRole,
       };
-      useAppStore.getState().login(data.token, user);
+      useAppStore.getState().login(data.token, user, data);
       if (onLoginSuccess) {
         onLoginSuccess(user.username, user.email, userRole as 'player' | 'dm');
       }

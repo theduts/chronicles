@@ -1,6 +1,7 @@
 package com.chronicles.dto.auth;
 
 import com.chronicles.domain.Role;
+import com.chronicles.domain.User;
 
 import java.util.UUID;
 
@@ -11,9 +12,13 @@ public record AuthResponse(
     String username,
     String email,
     Role role,
-    String lastViewMode
+    String lastViewMode,
+    UUID lastCampaignDmSession,
+    UUID lastCampaignPlayerSession
 ) {
-    public static AuthResponse of(String token, UUID id, String username, String email, Role role, String lastViewMode) {
-        return new AuthResponse(token, "Bearer", id, username, email, role, lastViewMode);
+    public static AuthResponse of(String token, User user) {
+        return new AuthResponse(token, "Bearer", user.getId(), user.getActualUsername(), user.getEmail(),
+                user.getRole(), user.getLastViewMode(),
+                user.getLastCampaignDmSession(), user.getLastCampaignPlayerSession());
     }
 }

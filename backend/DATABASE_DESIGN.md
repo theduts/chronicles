@@ -4,6 +4,25 @@ Este documento registra as decisões tomadas, justificativas técnicas e os esqu
 
 ---
 
+## 0. Histórico de Migrations Flyway
+
+Fonte da verdade: `backend/src/main/resources/db/migration/`. **Toda alteração no banco deve atualizar este documento** (regra 10 de "Workflow Rules" do `.agents/AGENTS.md`).
+
+| Versão | Arquivo | Resumo |
+|--------|---------|--------|
+| V1 | `V1__initial_schema.sql` | Schema inicial: `users`, `campaigns`, `campaign_players`, `characters`, `campaign_npcs`, `bestiary_monsters`, `campaign_lore`, `campaign_chronicles`, `contracts`, `notes`, `system_rules`, `feedbacks`, `spells`. Inclui `campaigns.current_act` e índice GIN `idx_bestiary_attributes`. |
+| V2 | `V2__seed_system_rules.sql` | Seed de `system_rules` (Daemon): `racas`, `aprimoramentos`, `pericias`, `itens`, `familiares`, `montaria`, `levelup`, `regras_jogo`, `regras_novo_personagem`. |
+| V3 | `V3__seed_official_bestiary.sql` | Seed de 295 criaturas oficiais em `bestiary_monsters` (`is_official = TRUE`, `campaign_id NULL`). |
+| V4 | `V4__notes_campaign_on_delete_set_null.sql` | `notes.campaign_id`: FK passa de `ON DELETE CASCADE` para `ON DELETE SET NULL` (excluir a campanha preserva a anotação como pessoal). |
+| V5 | `V5__login_rate_limiting.sql` | Nova tabela `login_attempts` (rate limiting de login). Ver seção 14. |
+| V6 | `V6__add_last_view_mode.sql` | `users.last_view_mode` (`PLAYER`/`DM`, default `PLAYER`) + `chk_users_last_view_mode`. |
+| V7 | `V7__add_template_columns_to_campaign_npcs.sql` | `campaign_npcs.data JSONB` e `is_template BOOLEAN` + índice parcial `idx_campaign_npcs_template`; seed `system_rules('npc_templates')` com 15 templates oficiais de NPC. |
+| V8 | `V8__add_last_campaign_sessions.sql` | `users.last_campaign_dm_session` e `last_campaign_player_session` (FK `campaigns`, `ON DELETE SET NULL`). |
+
+> As seções 1–12 abaixo descrevem o desenho original; os **deltas das migrations V4–V8** estão consolidados na seção 14 e nas notas "Atualizado em Vx" de cada seção.
+
+---
+
 ## 1. Tabela de Usuários (`users`)
 
 ### Decisões e Justificativas:
@@ -58,6 +77,8 @@ CREATE UNIQUE INDEX idx_users_email_lower ON users (LOWER(email));
 -- Índice para busca rápida de usuários por username
 CREATE INDEX idx_users_username ON users (username);
 ```
+
+> **Atualizado em V6 e V8:** colunas adicionadas à `users` (ver DDL na seção 14): `last_view_mode`, `last_campaign_dm_session`, `last_campaign_player_session`.
 
 ---
 
@@ -150,6 +171,7 @@ CREATE TABLE campaigns (
     name VARCHAR(150) NOT NULL,
     subtitle VARCHAR(255),
     universe VARCHAR(100),       -- Ex: 'Medieval / Tormenta', 'Trevas', 'Cyberpunk', etc.
+    current_act VARCHAR(100) DEFAULT 'Ato I', -- Ato atual da campanha (V1)
     lore TEXT,
     illustration_url TEXT,       -- URL da imagem de capa no MinIO
     
@@ -213,6 +235,19 @@ CREATE INDEX idx_campaign_npcs_campaign_id ON campaign_npcs(campaign_id);
 CREATE INDEX idx_campaign_npcs_persona ON campaign_npcs(campaign_id, is_persona) WHERE is_persona = TRUE;
 ```
 
+### Atualizado em V7 (templates e dados de combate):
+
+```sql
+ALTER TABLE campaign_npcs
+    ADD COLUMN data JSONB NOT NULL DEFAULT '{}'::jsonb,   -- atributos, perícias, combate (formato do template)
+    ADD COLUMN is_template BOOLEAN NOT NULL DEFAULT FALSE; -- NPC salvo como template reutilizável da campanha
+
+CREATE INDEX idx_campaign_npcs_template ON campaign_npcs(campaign_id, is_template) WHERE is_template = TRUE;
+```
+
+- Índice parcial (flag de baixa cardinalidade), conforme regra 22 do `AGENTS.md`.
+- Os 15 templates oficiais ficam em `system_rules` (`rule_key = 'npc_templates'`), semeados na V7 via `INSERT ... ON CONFLICT (system_slug, rule_key) DO UPDATE` (idempotente). O payload é clonado para `data` ao instanciar um NPC (regra 23).
+
 ---
 
 ## 5. Bestiário e Catálogo de Criaturas (`bestiary_monsters`)
@@ -258,6 +293,7 @@ CREATE TABLE bestiary_monsters (
 
 CREATE INDEX idx_bestiary_campaign_id ON bestiary_monsters(campaign_id);
 CREATE INDEX idx_bestiary_official ON bestiary_monsters(is_official) WHERE is_official = TRUE;
+CREATE INDEX idx_bestiary_attributes ON bestiary_monsters USING gin (attributes); -- V1
 ```
 
 ---
@@ -395,6 +431,7 @@ CREATE INDEX idx_contracts_status ON contracts(campaign_id, status);
 1. **Flexibilidade de Escopo (`campaign_id NULL`):**
    - Se `campaign_id IS NULL`: Anotação pessoal do jogador (acervo geral, builds, rascunhos).
    - Se `campaign_id IS NOT NULL`: Anotação atrelada a uma mesa de RPG específica.
+   - **Atualizado em V4:** a FK `notes_campaign_id_fkey` usa `ON DELETE SET NULL` (e não `CASCADE`): ao excluir a campanha, a anotação do jogador é preservada como pessoal.
 2. **Ordenação Temporal (`updated_at`):**
    - Imprescindível para o bloco de notas rich-text do frontend listar as notas ordenadas pelas modificadas mais recentemente.
 
@@ -404,7 +441,7 @@ CREATE INDEX idx_contracts_status ON contracts(campaign_id, status);
 CREATE TABLE notes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    campaign_id UUID NULL REFERENCES campaigns(id) ON DELETE CASCADE,
+    campaign_id UUID NULL REFERENCES campaigns(id) ON DELETE SET NULL, -- V4 (era CASCADE na V1)
     
     title VARCHAR(200) NOT NULL,
     content TEXT NOT NULL,
@@ -541,6 +578,52 @@ CREATE INDEX idx_spells_system_name ON spells(system_slug, name);
 CREATE INDEX idx_spells_system_school ON spells(system_slug, school_or_focus);
 CREATE INDEX idx_spells_official ON spells(system_slug, is_official) WHERE is_official = TRUE;
 CREATE INDEX idx_spells_data ON spells USING gin (data);
+```
+
+---
+
+## 14. Rate Limiting de Login e Preferências de Sessão (V5, V6, V8)
+
+### 14.1 Tabela `login_attempts` (V5)
+
+**Decisões:**
+- Controle progressivo de tentativas de login por par `(ip_address, identifier)`, com bloqueio temporal via `blocked_until` (ver regra 14 do `AGENTS.md`: rate limiting antes de qualquer busca por entidade, evitando enumeração).
+- `ip_address VARCHAR(45)` comporta IPv6. A constraint `uq_login_attempts_ip_identifier` permite upsert atômico por par.
+- O índice em `last_attempt_at` suporta o expurgo periódico de registros antigos.
+- Sem FK para `users`: o `identifier` é o valor digitado (e-mail/username), existente ou não, o que mantém respostas uniformes.
+
+```sql
+CREATE TABLE login_attempts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    ip_address VARCHAR(45) NOT NULL,
+    identifier VARCHAR(255) NOT NULL,
+    attempt_count INT NOT NULL DEFAULT 1,
+    blocked_until TIMESTAMPTZ,
+    first_attempt_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_attempt_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_login_attempts_ip_identifier UNIQUE (ip_address, identifier)
+);
+
+CREATE INDEX idx_login_attempts_last_attempt_at ON login_attempts (last_attempt_at);
+```
+
+### 14.2 Colunas de preferência em `users` (V6 e V8)
+
+**Decisões:**
+- `last_view_mode`: lembra o último modo de visualização (`PLAYER` ou `DM`), pois o papel é contextual por campanha (seção 1). Segue o padrão `VARCHAR + CHECK` (sem ENUM nativo).
+- `last_campaign_dm_session` / `last_campaign_player_session`: última campanha ativa em cada modo. `ON DELETE SET NULL` para não bloquear a exclusão da campanha.
+
+```sql
+-- V6
+ALTER TABLE users
+    ADD COLUMN last_view_mode VARCHAR(20) NOT NULL DEFAULT 'PLAYER';
+ALTER TABLE users
+    ADD CONSTRAINT chk_users_last_view_mode CHECK (last_view_mode IN ('PLAYER', 'DM'));
+
+-- V8
+ALTER TABLE users
+    ADD COLUMN last_campaign_dm_session UUID NULL REFERENCES campaigns(id) ON DELETE SET NULL,
+    ADD COLUMN last_campaign_player_session UUID NULL REFERENCES campaigns(id) ON DELETE SET NULL;
 ```
 
 ---

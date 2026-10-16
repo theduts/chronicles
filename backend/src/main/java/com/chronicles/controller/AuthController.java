@@ -63,14 +63,7 @@ public class AuthController {
         String token = jwtService.generateToken(savedUser);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(AuthResponse.of(
-                        token,
-                        savedUser.getId(),
-                        savedUser.getActualUsername(),
-                        savedUser.getEmail(),
-                        savedUser.getRole(),
-                        savedUser.getLastViewMode()
-                ));
+                .body(AuthResponse.of(token, savedUser));
     }
 
     @PostMapping("/login")
@@ -100,13 +93,6 @@ public class AuthController {
         loginRateLimitService.recordSuccess(ipAddress, identifier);
         String token = jwtService.generateToken(user);
 
-        return ResponseEntity.ok(AuthResponse.of(
-                token,
-                user.getId(),
-                user.getActualUsername(),
-                user.getEmail(),
-                user.getRole(),
-                user.getLastViewMode()
-        ));
+        return ResponseEntity.ok(AuthResponse.of(token, user));
     }
 }
