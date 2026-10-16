@@ -10,6 +10,7 @@ import com.chronicles.domain.jsonb.CharacterSheet;
 import com.chronicles.dto.review.ReviewTicketResponse;
 import com.chronicles.repository.CampaignRepository;
 import com.chronicles.repository.CharacterReviewTicketRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class ReviewTicketService {
     private final CharacterReviewTicketRepository ticketRepository;
     private final CampaignRepository campaignRepository;
     private final SheetDiffCalculator diffCalculator;
+    private final ObjectMapper objectMapper;
 
     /**
      * Abre um ticket PENDING para a submissão. Se já existir um ticket pendente para o personagem,
@@ -34,7 +36,7 @@ public class ReviewTicketService {
      */
     @Transactional
     public CharacterReviewTicket openTicket(Character character, CharacterSheet proposed, User player) {
-        var changes = diffCalculator.diff(character.getSheet(), proposed);
+        var changes = diffCalculator.diff(baselineSheet(character), proposed);
 
         CharacterReviewTicket ticket = ticketRepository
                 .findByCharacterIdAndStatus(character.getId(), ReviewTicketStatus.PENDING)
@@ -47,6 +49,23 @@ public class ReviewTicketService {
         ticket.setCampaignId(character.getCampaignId());
         ticket.setChanges(changes);
         return ticketRepository.save(ticket);
+    }
+
+    /**
+     * Ficha atual para comparação: o JSON da ficha completado com as colunas do personagem
+     * (nome, raça, kit, nível, XP, retrato), que ficam fora do JSON e gerariam falsas adições.
+     */
+    private CharacterSheet baselineSheet(Character character) {
+        CharacterSheet base = character.getSheet() == null
+                ? new CharacterSheet()
+                : objectMapper.convertValue(character.getSheet(), CharacterSheet.class);
+        if (base.getName() == null) base.setName(character.getName());
+        if (base.getRace() == null) base.setRace(character.getRace());
+        if (base.getClassKit() == null) base.setClassKit(character.getClassKit());
+        if (base.getLevel() == null) base.setLevel(character.getCurrentLevel());
+        if (base.getXp() == null) base.setXp(character.getXp());
+        if (base.getPortraitUrl() == null) base.setPortraitUrl(character.getPortraitUrl());
+        return base;
     }
 
     /** Fecha o ticket pendente do personagem (se houver) com a decisão do Mestre. */

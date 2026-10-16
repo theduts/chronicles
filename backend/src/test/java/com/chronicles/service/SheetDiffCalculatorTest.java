@@ -57,4 +57,32 @@ class SheetDiffCalculatorTest {
         ObjectNode delta = calculator.diff(null, CharacterSheet.builder().level(2).build());
         assertEquals(2, delta.at("/level/new").asInt());
     }
+
+    @Test
+    void emptyBaseListAddsEachItemByKey() {
+        CharacterSheet last = CharacterSheet.builder().skills(List.of()).build();
+        CharacterSheet proposed = CharacterSheet.builder().skills(List.of(
+                SkillRow.builder().group("Idiomas").chosenSubgroup("Anões").build(),
+                SkillRow.builder().group("Furtividade").build())).build();
+
+        ObjectNode delta = calculator.diff(last, proposed);
+
+        assertTrue(delta.at("/skills/Idiomas (Anões)/last").isNull());
+        assertEquals("Idiomas", delta.at("/skills/Idiomas (Anões)/new/group").asText());
+        assertTrue(delta.at("/skills/Furtividade/last").isNull());
+    }
+
+    @Test
+    void sameGroupWithDifferentSubgroupsAreDistinctItems() {
+        CharacterSheet last = CharacterSheet.builder().skills(List.of(
+                SkillRow.builder().group("Idiomas").chosenSubgroup("Anões").build())).build();
+        CharacterSheet proposed = CharacterSheet.builder().skills(List.of(
+                SkillRow.builder().group("Idiomas").chosenSubgroup("Anões").build(),
+                SkillRow.builder().group("Idiomas").chosenSubgroup("Elfos").build())).build();
+
+        ObjectNode delta = calculator.diff(last, proposed);
+
+        assertEquals(1, delta.get("skills").size());
+        assertTrue(delta.at("/skills/Idiomas (Elfos)/last").isNull());
+    }
 }

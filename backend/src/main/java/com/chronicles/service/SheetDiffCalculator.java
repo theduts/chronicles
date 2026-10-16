@@ -16,8 +16,8 @@ import java.util.Set;
 
 /**
  * Calcula o delta estruturado entre duas fichas no formato {@code {campo: {last, new}}}.
- * Objetos são comparados recursivamente; listas de objetos com {@code name}/{@code group} único são
- * comparadas por nome (ex.: perícias); demais listas são comparadas por inteiro.
+ * Objetos são comparados recursivamente; listas de objetos com chave única ({@code name}, {@code group} ou {@code id})
+ * são comparadas item a item (ex.: perícias e magias); demais listas são comparadas por inteiro.
  */
 @Component
 @RequiredArgsConstructor
@@ -57,7 +57,7 @@ public class SheetDiffCalculator {
             ObjectNode nested = diffObjects(l, n);
             return nested.isEmpty() ? null : nested;
         }
-        if (!lMissing && !nMissing && isNamedList(l) && isNamedList(n)) {
+        if (isKeyedList(l) && isKeyedList(n)) {
             ObjectNode nested = diffNamedLists(l, n);
             return nested.isEmpty() ? null : nested;
         }
@@ -83,8 +83,10 @@ public class SheetDiffCalculator {
         return result;
     }
 
-    private boolean isNamedList(JsonNode node) {
-        if (!(node instanceof ArrayNode array) || array.isEmpty()) return false;
+    /** Lista vazia/ausente ou lista de objetos com chave única (aceita ausente como lista vazia). */
+    private boolean isKeyedList(JsonNode node) {
+        if (node == null || node.isNull()) return true;
+        if (!(node instanceof ArrayNode array)) return false;
         Set<String> seen = new HashSet<>();
         for (JsonNode el : array) {
             String key = keyOf(el);
@@ -95,16 +97,22 @@ public class SheetDiffCalculator {
 
     private Map<String, JsonNode> byName(JsonNode array) {
         Map<String, JsonNode> map = new LinkedHashMap<>();
-        array.forEach(el -> map.put(keyOf(el), el));
+        if (array != null) {
+            array.forEach(el -> map.put(keyOf(el), el));
+        }
         return map;
     }
 
-    /** Identificador de um item de lista: "name" (genérico) ou "group" (perícias). */
+    /** Identificador de um item de lista: "name" (magias), "group" + subgrupo escolhido (perícias) ou "id". */
     private String keyOf(JsonNode el) {
         if (!el.isObject()) return null;
-        for (String field : new String[]{"name", "group"}) {
-            if (el.path(field).isTextual()) return el.get(field).asText();
+        if (el.path("name").isTextual()) return el.get("name").asText();
+        if (el.path("group").isTextual()) {
+            String group = el.get("group").asText();
+            String sub = el.path("chosenSubgroup").asText("");
+            return sub.isBlank() ? group : group + " (" + sub + ")";
         }
+        if (el.path("id").isTextual()) return el.get("id").asText();
         return null;
     }
 }
