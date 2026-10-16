@@ -4,6 +4,7 @@ import { Character, User } from '../types';
 import { api } from '../services/api';
 import * as errorUtils from './useApiErrorToast';
 import { toast } from 'sonner';
+import { REVIEW_TICKETS_KEY } from './useReviewTickets';
 
 export function useCharacterMutations(
   user: User | null,
@@ -76,6 +77,7 @@ export function useCharacterMutations(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['characters'] });
       queryClient.invalidateQueries({ queryKey: ['campaign-characters'] });
+      queryClient.invalidateQueries({ queryKey: REVIEW_TICKETS_KEY });
     },
     onError: (err: unknown) => {
       const fieldMap = errorUtils.extractFieldErrors(err);
@@ -100,24 +102,26 @@ export function useCharacterMutations(
   });
 
   const approveCharacterMutation = useMutation({
-    mutationFn: async ({ campaignId, characterId }: { campaignId: string; characterId: string }) => {
-      const response = await api.post(`/campaigns/${campaignId}/approve-character/${characterId}`);
+    mutationFn: async ({ campaignId, characterId, dmFeedback }: { campaignId: string; characterId: string; dmFeedback?: string }) => {
+      const response = await api.post(`/campaigns/${campaignId}/approve-character/${characterId}`, { dmFeedback });
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['characters'] });
       queryClient.invalidateQueries({ queryKey: ['campaign-characters'] });
+      queryClient.invalidateQueries({ queryKey: REVIEW_TICKETS_KEY });
     },
   });
 
   const rejectCharacterMutation = useMutation({
-    mutationFn: async ({ campaignId, characterId }: { campaignId: string; characterId: string }) => {
-      const response = await api.post(`/campaigns/${campaignId}/reject-character/${characterId}`);
+    mutationFn: async ({ campaignId, characterId, dmFeedback }: { campaignId: string; characterId: string; dmFeedback?: string }) => {
+      const response = await api.post(`/campaigns/${campaignId}/reject-character/${characterId}`, { dmFeedback });
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['characters'] });
       queryClient.invalidateQueries({ queryKey: ['campaign-characters'] });
+      queryClient.invalidateQueries({ queryKey: REVIEW_TICKETS_KEY });
     },
   });
 
@@ -129,6 +133,7 @@ export function useCharacterMutations(
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['characters'] });
       queryClient.invalidateQueries({ queryKey: ['campaign-characters'] });
+      queryClient.invalidateQueries({ queryKey: REVIEW_TICKETS_KEY });
       toast.success(`Personagem evoluído com sucesso para o Nível ${data.level}!`);
     },
     onError: (error: any) => {
@@ -187,19 +192,19 @@ export function useCharacterMutations(
     queryClient.setQueryData<Character[]>(['characters'], (prev = []) => prev.filter((c) => c.id !== id));
   };
 
-  const handleApproveCharacter = (id: string) => {
+  const handleApproveCharacter = (id: string, dmFeedback?: string) => {
     const char = characters.find((c) => c.id === id);
     const campaignId = char?.campaignId || activeCampaignId;
     if (campaignId) {
-      approveCharacterMutation.mutate({ campaignId, characterId: id });
+      approveCharacterMutation.mutate({ campaignId, characterId: id, dmFeedback });
     }
   };
 
-  const handleRejectCharacter = (id: string) => {
+  const handleRejectCharacter = (id: string, dmFeedback?: string) => {
     const char = characters.find((c) => c.id === id);
     const campaignId = char?.campaignId || activeCampaignId;
     if (campaignId) {
-      rejectCharacterMutation.mutate({ campaignId, characterId: id });
+      rejectCharacterMutation.mutate({ campaignId, characterId: id, dmFeedback });
     }
   };
 

@@ -11,6 +11,8 @@ import ConfirmDeleteModal from './ConfirmDeleteModal';
 import Toggle from './Toggle';
 import { ActionButton, SaveButton, AddButton, DeleteButton } from './ActionButtons';
 import ImageWithFallback from './ImageWithFallback';
+import CampaignReviewDashboard from './CampaignReviewDashboard';
+import { useAppStore } from '../store/useAppStore';
 
 interface CampaignsViewProps {
   campaigns: Campaign[];
@@ -29,6 +31,7 @@ export default function CampaignsView({
   activeCampaignId,
   setActiveCampaignId
 }: CampaignsViewProps) {
+  const { user: storeUser, token } = useAppStore();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
@@ -456,6 +459,12 @@ export default function CampaignsView({
           </div>
         )}
       </div>
+
+      {/* Central de Solicitações (Mestre da campanha ativa) */}
+      {activeCampaignObj && !activeCampaignObj.id.startsWith('camp_') &&
+        (activeCampaignObj.isDm || activeCampaignObj.dmEmail === user.email) && (
+          <CampaignReviewDashboard campaignId={activeCampaignObj.id} user={storeUser} token={token} />
+        )}
 
       {/* MODAL: Nova Campanha */}
       <Modal

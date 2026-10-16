@@ -9,7 +9,10 @@ import com.chronicles.repository.CampaignRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import com.chronicles.repository.UserRepository;
+import com.chronicles.service.ReviewTicketService;
 import com.chronicles.service.ViewModeRateLimitService;
+import com.chronicles.dto.review.ReviewTicketResponse;
+import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -30,11 +33,18 @@ public class UserController {
     private final ViewModeRateLimitService viewModeRateLimitService;
     private final CampaignRepository campaignRepository;
     private final CampaignPlayerRepository campaignPlayerRepository;
+    private final ReviewTicketService reviewTicketService;
 
     @GetMapping("/me")
     @Operation(summary = "Sessão do usuário", description = "Retorna o perfil, o último modo de visualização e as últimas campanhas (Mestre/Jogador) do usuário logado")
     public ResponseEntity<UserSessionResponse> getMe(@AuthenticationPrincipal User currentUser) {
         return ResponseEntity.ok(UserSessionResponse.of(currentUser));
+    }
+
+    @GetMapping("/me/review-tickets")
+    @Operation(summary = "Meus pedidos de análise", description = "Retorna o histórico de pedidos de análise de ficha do usuário logado")
+    public ResponseEntity<List<ReviewTicketResponse>> getMyReviewTickets(@AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(reviewTicketService.getTicketsForPlayer(currentUser));
     }
 
     @PatchMapping("/me/view-mode")

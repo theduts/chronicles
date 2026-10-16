@@ -3,6 +3,7 @@ package com.chronicles.service;
 import com.chronicles.domain.Campaign;
 import com.chronicles.domain.Character;
 import com.chronicles.domain.Role;
+import com.chronicles.domain.ReviewTicketStatus;
 import com.chronicles.domain.User;
 import com.chronicles.domain.jsonb.CharacterSheet;
 import com.chronicles.dto.character.CharacterRequest;
@@ -47,6 +48,7 @@ public class CharacterService {
     private final CampaignRepository campaignRepository;
     private final CharacterMapper characterMapper;
     private final ObjectMapper objectMapper;
+    private final ReviewTicketService reviewTicketService;
 
     @Transactional(readOnly = true)
     public List<CharacterResponse> getCharactersForUser(User user) {
@@ -155,6 +157,7 @@ public class CharacterService {
         }
 
         CharacterSheet proposed = characterMapper.extractSheet(request);
+        reviewTicketService.openTicket(character, proposed, user);
         character.setProposedSheet(proposed);
         character.setIsPendingReview(true);
 
@@ -230,6 +233,7 @@ public class CharacterService {
         character.setXp(updatedXp);
         character.setIsPendingReview(false);
         character.setProposedSheet(null);
+        reviewTicketService.resolvePending(character.getId(), ReviewTicketStatus.APPROVED, user, null);
 
         Character saved = characterRepository.save(character);
         return characterMapper.toResponse(saved);
