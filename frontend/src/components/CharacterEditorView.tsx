@@ -1028,6 +1028,7 @@ export default function CharacterEditorView({
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [fichaAnimStatus, setFichaAnimStatus] = useState<'idle' | 'approving' | 'rejecting'>('idle');
   const [dmFeedback, setDmFeedback] = useState('');
+  const [isTicketDiffOpen, setIsTicketDiffOpen] = useState(false);
   const reviewCampaignId = editedChar.campaignId || characters.find((c) => c.id === characterId)?.campaignId;
   const { data: campaignTickets = [] } = useCampaignReviewTickets(reviewCampaignId, {
     enabled: userRole === 'dm' && !!characterId,
@@ -5770,10 +5771,18 @@ export default function CharacterEditorView({
         <div className="bg-surface-container border border-outline-variant/40 p-4 space-y-3 -mt-4">
           {pendingTicket && (
             <div className="space-y-2">
-              <h5 className="font-sans text-micro text-primary tracking-widest font-bold uppercase">
+              <button
+                type="button"
+                onClick={() => setIsTicketDiffOpen((open) => !open)}
+                aria-expanded={isTicketDiffOpen}
+                className="w-full flex items-center justify-center gap-2 font-sans text-micro text-primary tracking-widest font-bold uppercase cursor-pointer"
+              >
                 Pedido #{pendingTicket.ticketNumber} • Alterações propostas
-              </h5>
-              <ReviewTicketDiff changes={pendingTicket.changes} />
+                <span className="material-symbols-outlined text-base leading-none">
+                  {isTicketDiffOpen ? 'expand_less' : 'expand_more'}
+                </span>
+              </button>
+              {isTicketDiffOpen && <ReviewTicketDiff changes={pendingTicket.changes} />}
             </div>
           )}
           <textarea
@@ -5789,13 +5798,13 @@ export default function CharacterEditorView({
       )}
 
       {(editedChar.isPendingDMReview || characters.find((c) => c.id === characterId)?.isPendingDMReview) && userRole === 'player' && (
-        <div className="bg-amber-950/20 border border-amber-500/30 p-4 text-left flex flex-col sm:flex-row sm:items-center gap-3.5 shadow-md">
-          <span className="material-symbols-outlined text-amber-500 animate-pulse text-2xl shrink-0 self-start sm:self-center">pending_actions</span>
+        <div className="relative z-[60] bg-amber-500/35 backdrop-blur-sm border border-amber-300/60 p-4 text-left flex flex-col sm:flex-row sm:items-center gap-3.5 shadow-md">
+          <span className="material-symbols-outlined text-white animate-pulse drop-shadow text-2xl shrink-0 self-start sm:self-center">pending_actions</span>
           <div className="space-y-1">
-            <h4 className="font-serif text-sm text-secondary font-bold uppercase tracking-widest">
+            <h4 className="font-serif text-sm text-white font-bold drop-shadow uppercase tracking-widest">
               Aguardando Aprovação do Mestre
             </h4>
-            <p className="text-xs font-sans text-on-surface-variant/80 leading-relaxed">
+            <p className="text-xs font-sans text-white drop-shadow-sm leading-relaxed">
               Você realizou alterações nesta ficha. Elas foram enviadas para o mestre e estão aguardando aprovação.
             </p>
           </div>
