@@ -106,7 +106,19 @@ export function useCharacterMutations(
       const response = await api.post(`/campaigns/${campaignId}/approve-character/${characterId}`, { dmFeedback });
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data: { name?: string } | undefined) => {
+      toast.success(
+        data?.name
+          ? `Alterações de "${data.name}" aprovadas.`
+          : 'Alterações aprovadas.'
+      );
+      queryClient.invalidateQueries({ queryKey: ['characters'] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-characters'] });
+      queryClient.invalidateQueries({ queryKey: REVIEW_TICKETS_KEY });
+    },
+    onError: (err: unknown) => {
+      errorUtils.showApiErrorToast(err);
+      // O estado local pode estar defasado (ex.: pedido já resolvido); recarrega para refletir o servidor.
       queryClient.invalidateQueries({ queryKey: ['characters'] });
       queryClient.invalidateQueries({ queryKey: ['campaign-characters'] });
       queryClient.invalidateQueries({ queryKey: REVIEW_TICKETS_KEY });
@@ -118,7 +130,19 @@ export function useCharacterMutations(
       const response = await api.post(`/campaigns/${campaignId}/reject-character/${characterId}`, { dmFeedback });
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data: { name?: string } | undefined) => {
+      toast.success(
+        data?.name
+          ? `Alterações de "${data.name}" recusadas.`
+          : 'Alterações recusadas.'
+      );
+      queryClient.invalidateQueries({ queryKey: ['characters'] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-characters'] });
+      queryClient.invalidateQueries({ queryKey: REVIEW_TICKETS_KEY });
+    },
+    onError: (err: unknown) => {
+      errorUtils.showApiErrorToast(err);
+      // O estado local pode estar defasado (ex.: pedido já resolvido); recarrega para refletir o servidor.
       queryClient.invalidateQueries({ queryKey: ['characters'] });
       queryClient.invalidateQueries({ queryKey: ['campaign-characters'] });
       queryClient.invalidateQueries({ queryKey: REVIEW_TICKETS_KEY });
@@ -195,7 +219,7 @@ export function useCharacterMutations(
   const handleApproveCharacter = (id: string, dmFeedback?: string) => {
     const char = characters.find((c) => c.id === id);
     const campaignId = char?.campaignId || activeCampaignId;
-    if (campaignId) {
+    if (campaignId && !approveCharacterMutation.isPending && !rejectCharacterMutation.isPending) {
       approveCharacterMutation.mutate({ campaignId, characterId: id, dmFeedback });
     }
   };
@@ -203,7 +227,7 @@ export function useCharacterMutations(
   const handleRejectCharacter = (id: string, dmFeedback?: string) => {
     const char = characters.find((c) => c.id === id);
     const campaignId = char?.campaignId || activeCampaignId;
-    if (campaignId) {
+    if (campaignId && !approveCharacterMutation.isPending && !rejectCharacterMutation.isPending) {
       rejectCharacterMutation.mutate({ campaignId, characterId: id, dmFeedback });
     }
   };

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { ShieldCheck, ShieldAlert, Check, X, RefreshCw, ChevronRight } from 'lucide-react';
-import { toast } from 'sonner';
 import { CharacterReviewTicket, User } from '../types';
 import { useCampaignReviewTickets } from '../hooks/useReviewTickets';
 import { useCharacterMutations } from '../hooks/useCharacterMutations';
@@ -34,12 +33,8 @@ export default function CampaignReviewDashboard({ campaignId, user, token }: Cam
     mutation.mutate(
       { campaignId, characterId: ticket.characterId, dmFeedback: feedbacks[ticket.id]?.trim() || undefined },
       {
-        onSuccess: () => {
-          toast.success(decision === 'approve' ? 'Evolução da ficha aprovada!' : 'Alterações recusadas.');
-          setSelectedId(null);
-        },
-        onError: (error: any) =>
-          toast.error(error?.response?.data?.detail || error?.response?.data?.message || 'Falha ao processar solicitação.'),
+        // Os toasts de sucesso/erro vêm do hook (useCharacterMutations).
+        onSuccess: () => setSelectedId(null),
       }
     );
   };
