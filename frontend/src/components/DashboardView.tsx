@@ -37,25 +37,9 @@ export default function DashboardView({
   const effectiveCampaignId = activeCampaign?.id || campaignId;
   const { data: dbChronicles = [] } = useChroniclesQuery(effectiveCampaignId);
 
-  // Local fallback state (used when offline or without active campaignId)
-  const [localChronicles] = useState<ChronicleSession[]>(() => {
-    try {
-      const saved = localStorage.getItem('daemon_chronicles_list');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed.filter((c: any) => c && c.id && !c.id.startsWith('chronicle-'));
-        }
-      }
-      return [];
-    } catch {
-      return [];
-    }
-  });
-
   // Source of truth: Server state when effectiveCampaignId is present (Rule 9)
   const chronicles: ChronicleSession[] = React.useMemo(() => {
-    if (!effectiveCampaignId) return localChronicles;
+    if (!effectiveCampaignId) return [];
     return dbChronicles.map((c) => ({
       id: c.id,
       session: `SESSÃO ${toRoman(c.sessionNumber)}`,
@@ -69,7 +53,7 @@ export default function DashboardView({
       danger: 'Médio',
       majorEvent: c.mission || 'Relato de aventura'
     }));
-  }, [effectiveCampaignId, dbChronicles, localChronicles]);
+  }, [effectiveCampaignId, dbChronicles]);
 
   const [selectedChronicle, setSelectedChronicle] = useState<ChronicleSession | null>(null);
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
@@ -302,7 +286,7 @@ export default function DashboardView({
             </div>
           ) : (
             <div className="flex gap-6 overflow-x-auto pb-6 scroll-smooth snap-x snap-mandatory custom-scrollbar pt-1">
-              {[...chronicles].reverse().map((chronicle) => (
+              {[...chronicles].reverse().slice(0, 3).map((chronicle) => (
                 <div
                   key={chronicle.id}
                   onClick={() => setSelectedChronicle(chronicle)}

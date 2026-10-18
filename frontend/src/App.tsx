@@ -306,6 +306,13 @@ function MainApp() {
   }, [viewRole, activeScreen]);
 
   // Auth actions
+  // NPCs e Bestiário são telas do Mestre: jogador (por URL ou ao alternar a visão) volta para a História.
+  useEffect(() => {
+    if (sessionSynced && viewRole !== 'dm' && (activeScreen === 'npcs' || activeScreen === 'bestiary')) {
+      setActiveScreen('dashboard');
+    }
+  }, [sessionSynced, viewRole, activeScreen]);
+
   const handleLoginSuccess = (_name: string, _email: string, _role: 'player' | 'dm') => {
     setActiveScreen('dashboard');
   };

@@ -10957,6 +10957,7 @@ export default function CharacterEditorView({
                     alt="Previa do Retrato"
                     className="w-full h-full object-cover filter contrast-[1.05]"
                     src={modalPortraitUrl}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent"></div>
                 </>

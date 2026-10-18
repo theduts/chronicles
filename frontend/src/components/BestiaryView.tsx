@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PageHeader from './common/PageHeader';
 import { toast } from 'sonner';
-import { Search, Plus, Trash2, Edit3, Skull, Shield, Heart, Zap, Sparkles, AlertTriangle, Languages, Briefcase, Gift, Compass, PawPrint, Ghost, UserRound, Leaf, Hammer } from 'lucide-react';
+import { Search, Plus, Trash2, Edit3, Skull, Shield, Heart, Zap, Sparkles, AlertTriangle, Languages, Briefcase, Gift, Compass, PawPrint, Ghost, UserRound, Leaf, Hammer, Flame, Swords } from 'lucide-react';
 import { api } from '../services/api';
 import CustomSelect from './CustomSelect';
 import Modal from './Modal';
@@ -19,14 +19,7 @@ export function CreatureIcon({ tipo, className = "w-5 h-5" }: { tipo?: string; c
     return <Hammer className={`${className} text-amber-500`} />;
   }
   if (t.includes('demôn') || t.includes('demon')) {
-    return (
-      <img
-        src="https://img.icons8.com/ios-glyphs/30/hardcore.png"
-        alt="demonio"
-        className={`${className} invert brightness-200 shrink-0`}
-        referrerPolicy="no-referrer"
-      />
-    );
+    return <Flame className={`${className} text-red-500`} />;
   }
   if (t.includes('espírito') || t.includes('espirito')) {
     return <Ghost className={`${className} text-cyan-400`} />;
@@ -44,14 +37,7 @@ export function CreatureIcon({ tipo, className = "w-5 h-5" }: { tipo?: string; c
     return <Leaf className={`${className} text-green-500`} />;
   }
   // default: Monstro or any other
-  return (
-    <img
-      src="https://img.icons8.com/fluency-systems-regular/48/1A1A1A/orc.png"
-      alt="monstro"
-      className={`${className} invert brightness-200 shrink-0`}
-      referrerPolicy="no-referrer"
-    />
-  );
+  return <Swords className={`${className} text-orange-400`} />;
 }
 
 export interface BestiaryEntry {

@@ -68,7 +68,6 @@ export interface ChronicleSession {
   majorEvent: string;
 }
 
-const INITIAL_CHRONICLES: ChronicleSession[] = [];
 
 interface ChroniclesViewProps {
   userRole?: 'player' | 'dm';
@@ -85,26 +84,9 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
   const updateMutation = useUpdateChronicleMutation(campaignId);
   const deleteMutation = useDeleteChronicleMutation(campaignId);
 
-  // Local fallback state (used when offline or without active campaignId)
-  const [localChronicles, setLocalChronicles] = useState<ChronicleSession[]>(() => {
-    try {
-      const saved = localStorage.getItem('daemon_chronicles_list');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed.filter((c: any) => c && c.id && !c.id.startsWith('chronicle-'));
-        }
-      }
-      return INITIAL_CHRONICLES;
-    } catch (e) {
-      console.error('Error parsing chronicles from localStorage:', e);
-      return INITIAL_CHRONICLES;
-    }
-  });
-
-  // Source of truth: Server state when campaignId is present, otherwise local state (Learned Rule 9)
+  // Source of truth: Server state (sem campanha ativa não há crônicas)
   const chronicles: ChronicleSession[] = useMemo(() => {
-    if (!campaignId) return localChronicles;
+    if (!campaignId) return [];
     return dbChronicles.map((c) => ({
       id: c.id,
       session: `SESSÃO ${toRoman(c.sessionNumber)}`,
@@ -118,7 +100,7 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
       danger: 'Médio',
       majorEvent: c.mission || 'Relato de aventura'
     }));
-  }, [campaignId, dbChronicles, localChronicles]);
+  }, [campaignId, dbChronicles]);
 
   const [search, setSearch] = useState('');
   const [selectedChronicle, setSelectedChronicle] = useState<ChronicleSession | null>(null);
@@ -137,13 +119,6 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
   const [isEditing, setIsEditing] = useState(false);
   const [editingData, setEditingData] = useState<Partial<ChronicleSession>>({});
   const [chronicleToDelete, setChronicleToDelete] = useState<ChronicleSession | null>(null);
-
-  // Sync local fallback only when !campaignId
-  useEffect(() => {
-    if (!campaignId) {
-      localStorage.setItem('daemon_chronicles_list', JSON.stringify(localChronicles));
-    }
-  }, [localChronicles, campaignId]);
 
   const hasChanges = isEditing && selectedChronicle && (
     (editingData.title !== undefined && editingData.title !== selectedChronicle.title) ||
@@ -203,17 +178,6 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
           setIsEditing(false);
         }
       });
-    } else {
-      const updated = {
-        ...selectedChronicle,
-        ...editingData,
-        desc: derivedDesc
-      } as ChronicleSession;
-
-      setLocalChronicles(prev => prev.map(c => c.id === updated.id ? updated : c));
-      setSelectedChronicle(updated);
-      setIsEditing(false);
-      toast.success(`A crônica "${updated.title}" foi atualizada.`);
     }
   };
 
@@ -229,17 +193,6 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
             setChronicleToDelete(null);
           }
         });
-      } else {
-        setLocalChronicles(prev => {
-          const filtered = prev.filter(c => c.id !== chronicleToDelete.id);
-          return filtered.map((c, idx) => ({ ...c, session: `SESSÃO ${toRoman(idx + 1)}`, rawSessionNumber: idx + 1 }));
-        });
-        toast.success(`A crônica "${chronicleToDelete.title}" foi apagada dos registros.`);
-        if (selectedChronicle?.id === chronicleToDelete.id) {
-          setSelectedChronicle(null);
-          setIsEditing(false);
-        }
-        setChronicleToDelete(null);
       }
     }
   };
@@ -260,8 +213,6 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
       return;
     }
 
-    const derivedDesc = newFullText.length > 200 ? `${newFullText.slice(0, 197)}...` : newFullText;
-
     if (campaignId) {
       createMutation.mutate({
         sessionNumber: nextSessionNumber,
@@ -280,28 +231,6 @@ export default function ChroniclesView({ userRole = 'player', onNavigateToHistor
           setNewFullText('');
         }
       });
-    } else {
-      const newChronicle: ChronicleSession = {
-        id: `chronicle-${Date.now()}`,
-        session: autoSessionLabel,
-        rawSessionNumber: nextSessionNumber,
-        title: newTitle,
-        location: newLocation.toUpperCase(),
-        date: newDate,
-        desc: derivedDesc,
-        fullText: newFullText,
-        image: newImage,
-        danger: 'Médio',
-        majorEvent: 'Relato de aventura'
-      };
-
-      setLocalChronicles((prev) => [...prev, newChronicle]);
-      setShowCreateModal(false);
-      setNewTitle('');
-      setNewLocation('');
-      setNewDate('');
-      setNewFullText('');
-      toast.success(`A crônica "${newTitle}" foi registrada nos tomos.`);
     }
   };
 

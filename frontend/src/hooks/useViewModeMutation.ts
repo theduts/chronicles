@@ -7,10 +7,16 @@ export function useViewModeMutation() {
   const { viewRole, setViewRole } = useAppStore();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  // Último modo confirmado pelo servidor: é para ele que a UI volta se o PATCH falhar.
+  const confirmedModeRef = useRef(viewRole);
 
   const toggleViewMode = useCallback(() => {
     // 1. Optimistic UI update
     const previousMode = viewRole;
+    // Sem PATCH pendente, o modo atual é o que o servidor tem (cobre mudanças vindas de fora, como o login).
+    if (!debounceRef.current) {
+      confirmedModeRef.current = viewRole;
+    }
     const nextMode = viewRole === 'player' ? 'dm' : 'player';
     
     setViewRole(nextMode);
@@ -30,6 +36,7 @@ export function useViewModeMutation() {
 
     // 4. Debounce the API call
     debounceRef.current = setTimeout(async () => {
+      debounceRef.current = null;
       const payload = {
         mode: nextMode.toUpperCase(), // 'PLAYER' or 'DM'
       };
@@ -41,6 +48,7 @@ export function useViewModeMutation() {
           signal: currentAbortController.signal,
         });
 
+        confirmedModeRef.current = nextMode;
         console.debug('[ViewMode] PATCH /api/users/me/view-mode completed successfully:', payload);
       } catch (error: any) {
         if (error.name === 'CanceledError' || error.message === 'canceled') {
@@ -51,7 +59,7 @@ export function useViewModeMutation() {
         console.error('[ViewMode] Request failed:', error);
 
         // Revert the state
-        setViewRole(previousMode);
+        setViewRole(confirmedModeRef.current);
 
         if (error.response?.status === 429) {
           toast.error("Calma ae! Que indecisão é essa? Esperar esfriar primeiro!");

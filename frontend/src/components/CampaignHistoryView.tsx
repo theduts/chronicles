@@ -636,16 +636,7 @@ export default function CampaignHistoryView({ onBack, userRole = 'player', campa
         console.error('Erro ao buscar NPCs da campanha:', err);
       }
     }
-    try {
-      const saved = localStorage.getItem('daemon_npcs');
-      if (saved) {
-        setAvailableNpcs(JSON.parse(saved));
-      } else {
-        setAvailableNpcs([]);
-      }
-    } catch {
-      setAvailableNpcs([]);
-    }
+    setAvailableNpcs([]);
     setShowImportNpcModal(true);
   };
 
