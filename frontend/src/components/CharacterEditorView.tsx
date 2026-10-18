@@ -11186,7 +11186,7 @@ export default function CharacterEditorView({
                             s && (s.toLowerCase().includes('poderes mágicos') || s.toLowerCase().includes('poderes magicos'))
                           );
                           if (!hasPoderesMagicos) {
-                            toast.error("É necessária a adição do atributo Poderes Mágicos");
+                            toast.error("É necessária a adição do aprimoramento Poderes Mágicos");
                             return;
                           }
                         }
