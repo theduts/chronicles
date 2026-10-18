@@ -160,6 +160,9 @@ CREATE INDEX idx_characters_sheet ON characters USING gin (sheet);
    - NPCs e Bestiário foram retirados da linha da campanha e movidos para tabelas filhas relacionais dedicadas, evitando tráfego de megabytes de JSON e eliminando concorrência de locks durante o jogo ao vivo.
 4. **Tabela Associativa `campaign_players`:**
    - Permite que múltiplos jogadores participem da campanha, mantendo a data de ingresso (`joined_at`).
+5. **`campaigns.is_active` sem utilidade no momento:**
+   - Não há lógica nem UI de ativar/desativar campanha; a única forma de encerrar uma campanha é excluí-la (`deleteCampaign`). A coluna permanece no schema sem uso, caso pausar/arquivar campanhas seja necessário no futuro.
+   - O limite de campanhas por Mestre conta todas as campanhas existentes, sem considerar `is_active`.
 
 ### DDL Aprovado:
 
@@ -432,6 +435,7 @@ CREATE INDEX idx_contracts_status ON contracts(campaign_id, status);
    - Se `campaign_id IS NULL`: Anotação pessoal do jogador (acervo geral, builds, rascunhos).
    - Se `campaign_id IS NOT NULL`: Anotação atrelada a uma mesa de RPG específica.
    - **Atualizado em V4:** a FK `notes_campaign_id_fkey` usa `ON DELETE SET NULL` (e não `CASCADE`): ao excluir a campanha, a anotação do jogador é preservada como pessoal.
+   - **Nota (decisão de convites):** hoje as notas são sempre privadas ao autor e o backend ignora `campaignId`. A coluna `notes.campaign_id` fica no schema **de propósito, sem uso**, caso um dia notas por campanha voltem a ser necessárias. Não remover nem passar a usar sem nova decisão.
 2. **Ordenação Temporal (`updated_at`):**
    - Imprescindível para o bloco de notas rich-text do frontend listar as notas ordenadas pelas modificadas mais recentemente.
 

@@ -13,6 +13,7 @@ import java.util.UUID;
 @Repository
 public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
     List<Campaign> findAllByDmId(UUID dmId);
+    long countByDmId(UUID dmId);
     Optional<Campaign> findByInviteCode(String inviteCode);
     boolean existsByIdAndDmId(UUID id, UUID dmId);
 

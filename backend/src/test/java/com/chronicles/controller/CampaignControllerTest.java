@@ -370,5 +370,44 @@ class CampaignControllerTest {
                         .content(objectMapper.writeValueAsString(patchBody)))
                 .andExpect(status().isForbidden());
     }
-}
 
+    @Test
+    @DisplayName("Campaign limit: a regular DM cannot create more than 5 campaigns, an admin is exempt")
+    void shouldLimitCampaignsPerDmExceptAdmin() throws Exception {
+        CampaignRequest request = CampaignRequest.builder().name("Mesa").subtitulo("s").universo("u").build();
+        String body = objectMapper.writeValueAsString(request);
+
+        for (int i = 0; i < 5; i++) {
+            mockMvc.perform(post("/api/campaigns")
+                            .header(HttpHeaders.AUTHORIZATION, dmToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isCreated());
+        }
+
+        mockMvc.perform(post("/api/campaigns")
+                        .header(HttpHeaders.AUTHORIZATION, dmToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("Limite de 5 campanhas")));
+
+        String unique = UUID.randomUUID().toString().substring(0, 8);
+        User admin = userRepository.save(User.builder()
+                .username("admin_" + unique)
+                .email("admin_" + unique + "@chronicles.com")
+                .passwordHash("hashed")
+                .role(Role.ROLE_ADMIN)
+                .isActive(true)
+                .build());
+        String adminToken = "Bearer " + jwtService.generateToken(admin);
+
+        for (int i = 0; i < 6; i++) {
+            mockMvc.perform(post("/api/campaigns")
+                            .header(HttpHeaders.AUTHORIZATION, adminToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isCreated());
+        }
+    }
+}

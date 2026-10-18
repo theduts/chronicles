@@ -27,7 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -166,5 +168,37 @@ class ReviewTicketControllerTest {
         mockMvc.perform(get("/api/campaigns/" + campaignId + "/review-tickets")
                         .header(HttpHeaders.AUTHORIZATION, playerToken))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Review tickets: deleting the campaign detaches the character, clears the pending review and rejects the ticket")
+    void shouldCleanPendingReviewWhenCampaignIsDeleted() throws Exception {
+        String campaignId = createCampaign();
+        Character character = characterRepository.save(Character.builder()
+                .user(playerUser).campaignId(UUID.fromString(campaignId)).name("Kaelen")
+                .currentLevel(1).xp(0).sheet(sheetWithForce(12)).build());
+
+        CharacterRequest submit = CharacterRequest.builder()
+                .name("Kaelen").campaignId(UUID.fromString(campaignId))
+                .attributes(CharacterAttributes.builder()
+                        .forAttr(AttributeRow.builder().natural(14).build()).build())
+                .build();
+        mockMvc.perform(post("/api/characters/" + character.getId() + "/submit-review")
+                        .header(HttpHeaders.AUTHORIZATION, playerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(submit)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(delete("/api/campaigns/" + campaignId).header(HttpHeaders.AUTHORIZATION, dmToken))
+                .andExpect(status().isNoContent());
+
+        Character reloaded = characterRepository.findById(character.getId()).orElseThrow();
+        assertThat(reloaded.getCampaignId()).isNull();
+        assertThat(reloaded.getIsPendingReview()).isFalse();
+        assertThat(reloaded.getProposedSheet()).isNull();
+
+        mockMvc.perform(get("/api/users/me/review-tickets").header(HttpHeaders.AUTHORIZATION, playerToken))
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].status").value("REJECTED"));
     }
 }

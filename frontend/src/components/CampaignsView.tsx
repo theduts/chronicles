@@ -3,6 +3,7 @@ import PageHeader from './common/PageHeader';
 import { motion, AnimatePresence } from 'motion/react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
+import { showApiErrorToast } from '../hooks/useApiErrorToast';
 import { Map, Plus, Trash2, X, Link, Image as ImageIcon, Save, Sparkles, BookOpen, AlertTriangle, UserPlus, Copy, Check, Users } from 'lucide-react';
 import { Campaign } from '../types';
 import CustomSelect from './CustomSelect';
@@ -11,8 +12,6 @@ import ConfirmDeleteModal from './ConfirmDeleteModal';
 import Toggle from './Toggle';
 import { ActionButton, SaveButton, AddButton, DeleteButton } from './ActionButtons';
 import ImageWithFallback from './ImageWithFallback';
-import CampaignReviewDashboard from './CampaignReviewDashboard';
-import { useAppStore } from '../store/useAppStore';
 
 interface CampaignsViewProps {
   campaigns: Campaign[];
@@ -31,7 +30,6 @@ export default function CampaignsView({
   activeCampaignId,
   setActiveCampaignId
 }: CampaignsViewProps) {
-  const { user: storeUser, token } = useAppStore();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
@@ -101,6 +99,7 @@ export default function CampaignsView({
         setActiveCampaignId(data.id);
       }
     },
+    onError: showApiErrorToast,
   });
 
   const updateCampaignMutation = useMutation({
@@ -216,17 +215,16 @@ export default function CampaignsView({
           setCampaigns(prev => [...prev, createdCamp]);
           setActiveCampaignId(createdCamp.id);
         }
+        // Reset fields (só no sucesso, para não perder o que foi digitado se o servidor recusar)
+        setNewCampName('');
+        setNewCampSubtitle('');
+        setNewCampUniverse('Medieval');
+        setNewCampLore('');
+        setNewCampIlustracaoLink('');
+        setNewCampIlustracaoBase64('');
+        setShowCreateModal(false);
       }
     });
-
-    // Reset fields
-    setNewCampName('');
-    setNewCampSubtitle('');
-    setNewCampUniverse('Medieval');
-    setNewCampLore('');
-    setNewCampIlustracaoLink('');
-    setNewCampIlustracaoBase64('');
-    setShowCreateModal(false);
   };
 
   const handleOpenEdit = (camp: Campaign) => {
@@ -460,11 +458,6 @@ export default function CampaignsView({
         )}
       </div>
 
-      {/* Central de Solicitações (Mestre da campanha ativa) */}
-      {activeCampaignObj && !activeCampaignObj.id.startsWith('camp_') &&
-        (activeCampaignObj.isDm || activeCampaignObj.dmEmail === user.email) && (
-          <CampaignReviewDashboard campaignId={activeCampaignObj.id} user={storeUser} token={token} />
-        )}
 
       {/* MODAL: Nova Campanha */}
       <Modal

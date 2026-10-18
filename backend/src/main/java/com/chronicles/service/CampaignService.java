@@ -25,6 +25,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CampaignService {
 
+    static final int MAX_CAMPAIGNS_PER_DM = 5;
+
     private final CampaignRepository campaignRepository;
     private final CampaignPlayerRepository campaignPlayerRepository;
     private final CharacterRepository characterRepository;
@@ -70,6 +72,12 @@ public class CampaignService {
 
     @Transactional
     public CampaignResponse createCampaign(CampaignRequest request, User user) {
+        if (user.getRole() != Role.ROLE_ADMIN
+                && campaignRepository.countByDmId(user.getId()) >= MAX_CAMPAIGNS_PER_DM) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Limite de " + MAX_CAMPAIGNS_PER_DM + " campanhas por Mestre atingido. Exclua uma campanha para criar outra.");
+        }
+
         String inviteCode = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
 
         Campaign campaign = Campaign.builder()
@@ -131,14 +139,25 @@ public class CampaignService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Apenas o Mestre pode excluir a campanha");
         }
 
-        characterRepository.findAll().stream()
-                .filter(c -> id.equals(c.getCampaignId()))
-                .forEach(c -> {
-                    c.setCampaignId(null);
-                    characterRepository.save(c);
-                });
+        characterRepository.findAllByCampaignId(id)
+                .forEach(c -> detachCharacterFromCampaign(c, user));
 
         campaignRepository.delete(campaign);
+    }
+
+    /**
+     * Torna o personagem avulso: desvincula da campanha, descarta qualquer evolução em análise
+     * e rejeita os pedidos de análise pendentes. Usado ao excluir a campanha (e, futuramente,
+     * ao jogador sair ou ser removido).
+     */
+    void detachCharacterFromCampaign(Character character, User actor) {
+        if (Boolean.TRUE.equals(character.getIsPendingReview()) || character.getProposedSheet() != null) {
+            character.setProposedSheet(null);
+            character.setIsPendingReview(false);
+        }
+        reviewTicketService.resolvePending(character.getId(), ReviewTicketStatus.REJECTED, actor, null);
+        character.setCampaignId(null);
+        characterRepository.save(character);
     }
 
     @Transactional

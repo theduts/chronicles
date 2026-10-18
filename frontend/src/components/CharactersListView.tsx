@@ -5,6 +5,7 @@ import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { AddButton } from './ActionButtons';
 import CustomSelect from './CustomSelect';
 import { CharacterCardSkeleton } from './ui/Skeleton';
+import CampaignReviewDashboard from './CampaignReviewDashboard';
 
 function CharacterCardPortrait({ url, name }: { url?: string; name: string }) {
   const [error, setError] = useState(false);
@@ -47,6 +48,7 @@ interface CharactersListViewProps {
   onApproveCharacter?: (id: string) => void;
   onRejectCharacter?: (id: string) => void;
   campaigns?: Campaign[];
+  activeCampaignId?: string;
   isLoading?: boolean;
 }
 
@@ -59,6 +61,7 @@ export default function CharactersListView({
   onApproveCharacter,
   onRejectCharacter,
   campaigns = [],
+  activeCampaignId = '',
   isLoading = false,
 }: CharactersListViewProps) {
   const [characterToDelete, setCharacterToDelete] = useState<{ id: string; name: string } | null>(null);
@@ -99,6 +102,14 @@ export default function CharactersListView({
     }
     return true;
   });
+
+  // Central de Solicitações: segue o filtro de campanha; em "todas", usa a campanha ativa (se for do Mestre).
+  const reviewCampaignId =
+    selectedCampaignFilter !== 'all'
+      ? selectedCampaignFilter
+      : campaigns.some((c) => c.id === activeCampaignId)
+        ? activeCampaignId
+        : '';
 
   return (
     <div className="space-y-8 pb-24 relative font-sans">
@@ -255,6 +266,10 @@ export default function CharactersListView({
         ))
       )}
       </div>
+
+      {userRole === 'dm' && reviewCampaignId && !reviewCampaignId.startsWith('camp_') && (
+        <CampaignReviewDashboard campaignId={reviewCampaignId} />
+      )}
 
       {/* Floating Mobile Creation Button */}
       {userRole !== 'dm' && (

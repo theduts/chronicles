@@ -23,6 +23,7 @@ import ModalOverlay from './components/common/ModalOverlay';
 import { AnimatePresence } from 'motion/react';
 import ToastProvider from './components/ui/ToastProvider';
 import { toast } from 'sonner';
+import { showApiErrorToast } from './hooks/useApiErrorToast';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -267,7 +268,11 @@ function MainApp() {
         const idStr = String(data.id);
         setActiveCampaignId(idStr);
       }
+      setNewCampaignName('');
+      setSelectedPlayers([]);
+      setShowCreateCampaignModal(false);
     },
+    onError: showApiErrorToast,
   });
 
   const handleCreateCampaign = (e: React.FormEvent) => {
@@ -279,10 +284,6 @@ function MainApp() {
       subtitulo: '',
       universo: 'Medieval',
     });
-
-    setNewCampaignName('');
-    setSelectedPlayers([]);
-    setShowCreateCampaignModal(false);
   };
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -305,7 +306,6 @@ function MainApp() {
     }
   }, [viewRole, activeScreen]);
 
-  // Auth actions
   // NPCs e Bestiário são telas do Mestre: jogador (por URL ou ao alternar a visão) volta para a História.
   useEffect(() => {
     if (sessionSynced && viewRole !== 'dm' && (activeScreen === 'npcs' || activeScreen === 'bestiary')) {
@@ -313,6 +313,7 @@ function MainApp() {
     }
   }, [sessionSynced, viewRole, activeScreen]);
 
+  // Auth actions
   const handleLoginSuccess = (_name: string, _email: string, _role: 'player' | 'dm') => {
     setActiveScreen('dashboard');
   };
@@ -619,6 +620,7 @@ function MainApp() {
                 onApproveCharacter={handleApproveCharacter}
                 onRejectCharacter={handleRejectCharacter}
                 campaigns={visibleCampaigns}
+                activeCampaignId={activeCampaignId}
               />
             )}
 
