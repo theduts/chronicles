@@ -2,6 +2,7 @@ package com.chronicles.controller;
 
 import com.chronicles.domain.*;
 import com.chronicles.dto.CampaignNpcCreateDTO;
+import com.chronicles.repository.CampaignLoreRepository;
 import com.chronicles.repository.CampaignNpcRepository;
 import com.chronicles.repository.CampaignPlayerRepository;
 import com.chronicles.repository.CampaignRepository;
@@ -48,6 +49,9 @@ class CampaignNpcControllerTest {
 
     @Autowired
     private CampaignNpcRepository campaignNpcRepository;
+
+    @Autowired
+    private CampaignLoreRepository campaignLoreRepository;
 
     @Autowired
     private JwtService jwtService;
@@ -150,9 +154,9 @@ class CampaignNpcControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/campaigns/{campaignId}/npcs - Jogador lista NPCs com notas confidenciais mascaradas")
-    void getNpcs_asPlayer_returnsListWithoutNotes() throws Exception {
-        campaignNpcRepository.save(CampaignNpc.builder()
+    @DisplayName("GET /api/campaigns/{campaignId}/npcs - Jogador não vê NPC que não foi promovido a persona")
+    void getNpcs_asPlayer_hidesNonPersonaNpcs() throws Exception {
+        CampaignNpc comum = campaignNpcRepository.save(CampaignNpc.builder()
                 .campaign(campaign)
                 .name("Lorde Blackwood")
                 .race("Humano")
@@ -163,9 +167,45 @@ class CampaignNpcControllerTest {
         mockMvc.perform(get("/api/campaigns/{campaignId}/npcs", campaign.getId())
                         .header(HttpHeaders.AUTHORIZATION, playerToken))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+
+        mockMvc.perform(get("/api/campaigns/{campaignId}/npcs/{npcId}", campaign.getId(), comum.getId())
+                        .header(HttpHeaders.AUTHORIZATION, playerToken))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/api/campaigns/{campaignId}/npcs", campaign.getId())
+                        .header(HttpHeaders.AUTHORIZATION, dmToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)));
+    }
+
+    @Test
+    @DisplayName("GET /api/campaigns/{campaignId}/npcs?personaOnly=true - Persona escondida na Enciclopédia some para o jogador")
+    void getNpcs_asPlayer_hiddenPersonaIsNotReturned() throws Exception {
+        CampaignNpc npc = campaignNpcRepository.save(CampaignNpc.builder()
+                .campaign(campaign)
+                .name("Elena a Feiticeira")
+                .build());
+
+        mockMvc.perform(post("/api/campaigns/{campaignId}/npcs/{npcId}/promote", campaign.getId(), npc.getId())
+                        .header(HttpHeaders.AUTHORIZATION, dmToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/campaigns/{campaignId}/npcs?personaOnly=true", campaign.getId())
+                        .header(HttpHeaders.AUTHORIZATION, playerToken))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].name").value("Lorde Blackwood"))
-                .andExpect(jsonPath("$[0].notes").doesNotExist());
+                .andExpect(jsonPath("$[0].name").value("Elena a Feiticeira"));
+
+        campaignLoreRepository.findByCampaignId(campaign.getId()).forEach(l -> {
+            l.setIsVisible(false);
+            campaignLoreRepository.save(l);
+        });
+
+        mockMvc.perform(get("/api/campaigns/{campaignId}/npcs?personaOnly=true", campaign.getId())
+                        .header(HttpHeaders.AUTHORIZATION, playerToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
     }
 
     @Test
@@ -251,12 +291,22 @@ class CampaignNpcControllerTest {
         java.util.Map<String, Object> combatData = new java.util.HashMap<>();
         combatData.put("pv", 30);
 
-        campaignNpcRepository.save(CampaignNpc.builder()
+        CampaignNpc secreto = campaignNpcRepository.save(CampaignNpc.builder()
                 .campaign(campaign)
                 .name("Lorde Secreto")
                 .notes("Nota secreta do DM")
                 .data(combatData)
                 .isPersona(true)
+                .build());
+
+        java.util.Map<String, Object> loreData = new java.util.HashMap<>();
+        loreData.put("npcId", secreto.getId().toString());
+        campaignLoreRepository.save(CampaignLore.builder()
+                .campaign(campaign)
+                .category("persona")
+                .title("Lorde Secreto")
+                .isVisible(true)
+                .data(loreData)
                 .build());
 
         mockMvc.perform(get("/api/campaigns/{campaignId}/npcs", campaign.getId())

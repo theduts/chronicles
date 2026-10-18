@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +44,26 @@ public class CampaignNpcService {
             npcs = campaignNpcRepository.findByCampaignIdOrderByCreatedAtDesc(campaignId);
         }
 
+        if (!isDm) {
+            Set<String> visibleIds = visiblePersonaNpcIds(campaignId);
+            npcs = npcs.stream().filter(npc -> isVisibleToPlayers(npc, visibleIds)).toList();
+        }
+
         return npcs.stream().map(npc -> toDTO(npc, isDm)).toList();
+    }
+
+    /** Jogador só enxerga NPC promovido a persona, que não seja template e cuja persona na Enciclopédia esteja visível. */
+    private boolean isVisibleToPlayers(CampaignNpc npc, Set<String> visiblePersonaNpcIds) {
+        return Boolean.TRUE.equals(npc.getIsPersona())
+                && !Boolean.TRUE.equals(npc.getIsTemplate())
+                && visiblePersonaNpcIds.contains(npc.getId().toString());
+    }
+
+    private Set<String> visiblePersonaNpcIds(UUID campaignId) {
+        return campaignLoreRepository.findByCampaignIdAndIsVisibleTrue(campaignId).stream()
+                .filter(l -> "persona".equalsIgnoreCase(l.getCategory()) && l.getData() != null)
+                .map(l -> String.valueOf(l.getData().get("npcId")))
+                .collect(Collectors.toSet());
     }
 
     @Transactional(readOnly = true)
@@ -53,6 +73,10 @@ public class CampaignNpcService {
 
         CampaignNpc npc = campaignNpcRepository.findByIdAndCampaignId(npcId, campaignId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "NPC não encontrado"));
+
+        if (!isDm && !isVisibleToPlayers(npc, visiblePersonaNpcIds(campaignId))) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "NPC não encontrado");
+        }
 
         return toDTO(npc, isDm);
     }
@@ -111,6 +135,8 @@ public class CampaignNpcService {
 
         if (Boolean.TRUE.equals(savedNpc.getIsPersona())) {
             syncNpcToCampaignLore(campaign, savedNpc);
+        } else {
+            removePersonaLore(campaign, savedNpc);
         }
 
         return toDTO(savedNpc, true);
@@ -118,11 +144,12 @@ public class CampaignNpcService {
 
     @Transactional
     public void deleteNpc(UUID campaignId, UUID npcId, User user) {
-        validateCampaignAccess(campaignId, user, true);
+        Campaign campaign = validateCampaignAccess(campaignId, user, true);
 
         CampaignNpc npc = campaignNpcRepository.findByIdAndCampaignId(npcId, campaignId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "NPC não encontrado"));
 
+        removePersonaLore(campaign, npc);
         campaignNpcRepository.delete(npc);
     }
 
@@ -141,13 +168,22 @@ public class CampaignNpcService {
         return toDTO(savedNpc, true);
     }
 
-    private void syncNpcToCampaignLore(Campaign campaign, CampaignNpc npc) {
+    private List<CampaignLore> findPersonaLore(Campaign campaign, CampaignNpc npc) {
         String npcIdStr = npc.getId().toString();
-        List<CampaignLore> personas = campaignLoreRepository.findByCampaignId(campaign.getId()).stream()
+        return campaignLoreRepository.findByCampaignId(campaign.getId()).stream()
                 .filter(l -> "persona".equalsIgnoreCase(l.getCategory()) &&
                         l.getData() != null &&
                         npcIdStr.equals(String.valueOf(l.getData().get("npcId"))))
                 .toList();
+    }
+
+    private void removePersonaLore(Campaign campaign, CampaignNpc npc) {
+        campaignLoreRepository.deleteAll(findPersonaLore(campaign, npc));
+    }
+
+    private void syncNpcToCampaignLore(Campaign campaign, CampaignNpc npc) {
+        String npcIdStr = npc.getId().toString();
+        List<CampaignLore> personas = findPersonaLore(campaign, npc);
 
         Map<String, Object> data = new HashMap<>();
         String raceDisplay = (npc.getRace() != null && !npc.getRace().isBlank()) ? npc.getRace() : "Desconhecido";

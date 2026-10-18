@@ -155,30 +155,51 @@ class CampaignNpcServiceTest {
     }
 
     @Test
-    @DisplayName("Jogador visualiza lista de NPCs mas tem as notas confidenciais mascaradas")
-    void getNpcsByCampaign_asPlayer_masksNotes() {
+    @DisplayName("Jogador vê só NPCs promovidos a persona com lore visível, e com as notas mascaradas")
+    void getNpcsByCampaign_asPlayer_onlyVisiblePersonasAndMasksNotes() {
         when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
         when(campaignPlayerRepository.existsByCampaignIdAndUserId(campaignId, playerUser.getId()))
                 .thenReturn(true);
 
-        CampaignNpc npc = CampaignNpc.builder()
-                .id(UUID.randomUUID())
-                .campaign(campaign)
-                .name("Ferreiro Thorin")
-                .race("Anão")
-                .occupation("Armeiro")
-                .notes("Ele é um informante secreto.")
-                .isPersona(false)
-                .build();
+        CampaignNpc persona = CampaignNpc.builder()
+                .id(UUID.randomUUID()).campaign(campaign).name("Ferreiro Thorin").race("Anão")
+                .occupation("Armeiro").notes("Ele é um informante secreto.").isPersona(true).build();
+        CampaignNpc comum = CampaignNpc.builder()
+                .id(UUID.randomUUID()).campaign(campaign).name("Lorde Blackwood")
+                .notes("Vampiro disfarçado").isPersona(false).build();
+        CampaignNpc personaOculta = CampaignNpc.builder()
+                .id(UUID.randomUUID()).campaign(campaign).name("Persona Escondida").isPersona(true).build();
+        CampaignNpc template = CampaignNpc.builder()
+                .id(UUID.randomUUID()).campaign(campaign).name("Template").isPersona(true).isTemplate(true).build();
 
         when(campaignNpcRepository.findByCampaignIdOrderByCreatedAtDesc(campaignId))
-                .thenReturn(List.of(npc));
+                .thenReturn(List.of(persona, comum, personaOculta, template));
+        // A persona oculta não aparece em findByCampaignIdAndIsVisibleTrue; o template tem lore visível mas é excluído.
+        when(campaignLoreRepository.findByCampaignIdAndIsVisibleTrue(campaignId)).thenReturn(List.of(
+                personaLoreOf(persona.getId()), personaLoreOf(template.getId())));
 
         List<CampaignNpcDTO> result = campaignNpcService.getNpcsByCampaign(campaignId, playerUser);
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getName()).isEqualTo("Ferreiro Thorin");
+        assertThat(result).extracting(CampaignNpcDTO::getName).containsExactly("Ferreiro Thorin");
         assertThat(result.get(0).getNotes()).isNull(); // Mascarado para jogadores
+    }
+
+    @Test
+    @DisplayName("Jogador recebe 404 ao buscar NPC que não é persona visível; Mestre vê qualquer NPC")
+    void getNpcById_asPlayer_hiddenNpcIsNotFound_dmSeesIt() {
+        UUID npcId = UUID.randomUUID();
+        when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
+        when(campaignPlayerRepository.existsByCampaignIdAndUserId(campaignId, playerUser.getId()))
+                .thenReturn(true);
+        CampaignNpc comum = CampaignNpc.builder()
+                .id(npcId).campaign(campaign).name("Lorde Blackwood").isPersona(false).build();
+        when(campaignNpcRepository.findByIdAndCampaignId(npcId, campaignId)).thenReturn(Optional.of(comum));
+
+        assertThatThrownBy(() -> campaignNpcService.getNpcById(campaignId, npcId, playerUser))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("NPC não encontrado");
+
+        assertThat(campaignNpcService.getNpcById(campaignId, npcId, dmUser).getName()).isEqualTo("Lorde Blackwood");
     }
 
     @Test
@@ -243,5 +264,54 @@ class CampaignNpcServiceTest {
         campaignNpcService.deleteNpc(campaignId, npcId, dmUser);
 
         verify(campaignNpcRepository).delete(npc);
+    }
+
+    private CampaignLore personaLoreOf(UUID npcId) {
+        return CampaignLore.builder()
+                .id(UUID.randomUUID())
+                .campaign(campaign)
+                .category("persona")
+                .title("Capitão Valerius")
+                .isVisible(true)
+                .data(new HashMap<>(Map.of("npcId", npcId.toString())))
+                .build();
+    }
+
+    @Test
+    @DisplayName("Deletar NPC deve apagar a persona sincronizada na campaign_lore")
+    void deleteNpc_removesSyncedPersonaLore() {
+        UUID npcId = UUID.randomUUID();
+        when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
+        CampaignNpc npc = CampaignNpc.builder().id(npcId).campaign(campaign).name("Valerius").isPersona(true).build();
+        when(campaignNpcRepository.findByIdAndCampaignId(npcId, campaignId)).thenReturn(Optional.of(npc));
+
+        CampaignLore persona = personaLoreOf(npcId);
+        CampaignLore outra = personaLoreOf(UUID.randomUUID());
+        when(campaignLoreRepository.findByCampaignId(campaignId)).thenReturn(List.of(persona, outra));
+
+        campaignNpcService.deleteNpc(campaignId, npcId, dmUser);
+
+        verify(campaignLoreRepository).deleteAll(List.of(persona));
+        verify(campaignNpcRepository).delete(npc);
+    }
+
+    @Test
+    @DisplayName("Despromover NPC (isPersona=false) deve apagar a persona da campaign_lore")
+    void updateNpc_demote_removesPersonaLore() {
+        UUID npcId = UUID.randomUUID();
+        when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
+        CampaignNpc npc = CampaignNpc.builder().id(npcId).campaign(campaign).name("Valerius").isPersona(true).build();
+        when(campaignNpcRepository.findByIdAndCampaignId(npcId, campaignId)).thenReturn(Optional.of(npc));
+        when(campaignNpcRepository.save(any(CampaignNpc.class))).thenAnswer(i -> i.getArgument(0));
+
+        CampaignLore persona = personaLoreOf(npcId);
+        when(campaignLoreRepository.findByCampaignId(campaignId)).thenReturn(List.of(persona));
+
+        CampaignNpcCreateDTO request = CampaignNpcCreateDTO.builder().name("Valerius").isPersona(false).build();
+        CampaignNpcDTO result = campaignNpcService.updateNpc(campaignId, npcId, request, dmUser);
+
+        assertThat(result.getIsPersona()).isFalse();
+        verify(campaignLoreRepository).deleteAll(List.of(persona));
+        verify(campaignLoreRepository, never()).save(any(CampaignLore.class));
     }
 }

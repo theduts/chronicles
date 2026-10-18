@@ -111,6 +111,32 @@ class CampaignLoreServiceTest {
     }
 
     @Test
+    @DisplayName("Player does not receive data.secrets; DM does")
+    void testGetLoreByCampaign_masksSecretsForNonDm() {
+        when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
+        when(campaignPlayerRepository.existsByCampaignIdAndUserId(campaignId, playerUser.getId())).thenReturn(true);
+
+        CampaignLore geo = CampaignLore.builder()
+                .id(UUID.randomUUID())
+                .campaign(campaign)
+                .category("geografia")
+                .title("Vale Sombrio")
+                .isVisible(true)
+                .data(Map.of("clima", "Frio", "secrets", "Portal para o Abismo"))
+                .build();
+
+        when(campaignLoreRepository.findByCampaignIdAndIsVisibleTrue(campaignId)).thenReturn(List.of(geo));
+        when(campaignLoreRepository.findByCampaignId(campaignId)).thenReturn(List.of(geo));
+
+        CampaignLoreDTO asPlayer = campaignLoreService.getLoreByCampaign(campaignId, playerUser).get(0);
+        CampaignLoreDTO asDm = campaignLoreService.getLoreByCampaign(campaignId, dmUser).get(0);
+
+        assertThat(asPlayer.getData()).containsEntry("clima", "Frio").doesNotContainKey("secrets");
+        assertThat(asDm.getData()).containsEntry("secrets", "Portal para o Abismo");
+        assertThat(geo.getData()).containsKey("secrets");
+    }
+
+    @Test
     @DisplayName("Player sees only visible lore items")
     void testGetLoreByCampaign_asPlayer_returnsVisibleLoreOnly() {
         when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));

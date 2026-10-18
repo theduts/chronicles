@@ -16,7 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -36,7 +38,7 @@ public class CampaignLoreService {
                 ? campaignLoreRepository.findByCampaignId(campaignId)
                 : campaignLoreRepository.findByCampaignIdAndIsVisibleTrue(campaignId);
 
-        return items.stream().map(this::toDTO).toList();
+        return items.stream().map(item -> toDTO(item, isDm)).toList();
     }
 
     @Transactional(readOnly = true)
@@ -51,7 +53,7 @@ public class CampaignLoreService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Artigo de Lore não encontrado");
         }
 
-        return toDTO(lore);
+        return toDTO(lore, isDm);
     }
 
     @Transactional
@@ -68,7 +70,7 @@ public class CampaignLoreService {
                 .data(request.getData() != null ? request.getData() : Collections.emptyMap())
                 .build();
 
-        return toDTO(campaignLoreRepository.save(lore));
+        return toDTO(campaignLoreRepository.save(lore), true);
     }
 
     @Transactional
@@ -89,7 +91,7 @@ public class CampaignLoreService {
             lore.setData(request.getData());
         }
 
-        return toDTO(campaignLoreRepository.save(lore));
+        return toDTO(campaignLoreRepository.save(lore), true);
     }
 
     @Transactional
@@ -100,7 +102,7 @@ public class CampaignLoreService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Artigo de Lore não encontrado"));
 
         lore.setIsVisible(isVisible != null ? isVisible : true);
-        return toDTO(campaignLoreRepository.save(lore));
+        return toDTO(campaignLoreRepository.save(lore), true);
     }
 
     @Transactional
@@ -134,7 +136,12 @@ public class CampaignLoreService {
         return campaign;
     }
 
-    private CampaignLoreDTO toDTO(CampaignLore lore) {
+    private CampaignLoreDTO toDTO(CampaignLore lore, boolean isDm) {
+        Map<String, Object> data = lore.getData();
+        if (!isDm && data != null && data.containsKey("secrets")) {
+            data = new HashMap<>(data);
+            data.remove("secrets");
+        }
         return CampaignLoreDTO.builder()
                 .id(lore.getId())
                 .campaignId(lore.getCampaign().getId())
@@ -143,7 +150,7 @@ public class CampaignLoreService {
                 .description(lore.getDescription())
                 .imageUrl(lore.getImageUrl())
                 .isVisible(lore.getIsVisible())
-                .data(lore.getData())
+                .data(data)
                 .createdAt(lore.getCreatedAt())
                 .updatedAt(lore.getUpdatedAt())
                 .build();
